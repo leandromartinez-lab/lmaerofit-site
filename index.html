@@ -98,15 +98,15 @@
     display: inline-flex;
     align-items: center;
     text-decoration: none;
-    height: 64px;
+    height: 80px;
   }
   .logo img {
     height: 100%;
     width: auto;
     display: block;
   }
-  nav.scrolled .logo { height: 52px; }
-  footer .logo { height: 80px; }
+  nav.scrolled .logo { height: 60px; }
+  footer .logo { height: 96px; }
 
   .nav-links { display: flex; gap: 32px; list-style: none; }
   .nav-links a {
@@ -844,7 +844,9 @@
       <h1 class="reveal d1">Treino, nutrição e prova.<br><em>Um sistema só.</em></h1>
       <p class="reveal d2">Conectamos seu Garmin Connect e Intervals.icu para entender onde você está — e te dizemos exatamente o que comer, treinar e ajustar até a próxima prova.</p>
 
-      <form class="email-form reveal d3" id="email-form-hero" onsubmit="return submitEmail(event, 'hero')">
+      <form class="email-form reveal d3" id="email-form-hero" action="https://formspree.io/f/mpqnydll" method="POST">
+        <input type="hidden" name="source" value="hero">
+        <input type="hidden" name="_subject" value="Novo lead LMAeroFit (Hero)">
         <input type="email" placeholder="seu@email.com" required autocomplete="email" />
         <button type="submit">
           Entrar na lista
@@ -1014,7 +1016,9 @@
       <h2>Seja um dos primeiros<br>a usar o <em>sistema completo.</em></h2>
       <p>Quando a área de membros lançar (Garmin Connect + análise diária + Flow VIP), quem está na lista entra antes — com 50% off no primeiro ano.</p>
 
-      <form class="email-form" id="email-form-cta" onsubmit="return submitEmail(event, 'cta')">
+      <form class="email-form" id="email-form-cta" action="https://formspree.io/f/mpqnydll" method="POST">
+          <input type="hidden" name="source" value="cta-final">
+          <input type="hidden" name="_subject" value="Novo lead LMAeroFit (CTA Final)">
         <input type="email" placeholder="seu@email.com" required autocomplete="email" />
         <button type="submit">
           Garantir meu acesso
@@ -1110,26 +1114,6 @@
   reveals.forEach(r => io.observe(r));
 
   // Email submission (mock — substituir pela chamada real à API/Resend/Beehiiv)
-  function submitEmail(e, source) {
-    e.preventDefault();
-    const form = e.target;
-    const email = form.querySelector('input[type="email"]').value;
-
-    // TODO: substituir por chamada real
-    // await fetch('/api/lead', { method: 'POST', body: JSON.stringify({ email, source }) });
-
-    console.log('Email captured:', { email, source });
-
-    // Show toast
-    const toast = document.getElementById('toast');
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
-
-    // Reset form
-    form.reset();
-
-    return false;
-  }
-</script>
+  </script>
 </body>
 </html>
