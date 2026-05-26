@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Race Fueling | LMAeroFit</title>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="supported-color-schemes" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0a0a0c; --bg-2:#13131a; --bg-3:#1a1a23;
+  --ink:#e8e6e1; --ink-2:#a8a59c; --ink-3:#6b6960;
+  --amber:#ff8a1c; --amber-dim:#b35e10;
+  --green:#7fb069; --yellow:#e8b84a; --red:#d4504a; --blue:#4a90c2;
+  --rule:rgba(232,230,225,0.08); --rule-2:rgba(232,230,225,0.14);
+  --serif:'Fraunces', Georgia, serif; --mono:'JetBrains Mono', 'Courier New', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0a0a0c;color:#e8e6e1;font-family:var(--mono);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{padding:32px 24px 80px;max-width:1080px;margin:0 auto}
+
+/* HEADER */
+.header{border-bottom:1px solid var(--rule-2);padding-bottom:20px;margin-bottom:32px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.header .brand{font-family:var(--mono);font-size:11px;letter-spacing:0.28em;color:var(--amber);text-transform:uppercase}
+.header h1{font-family:var(--serif);font-style:italic;font-weight:300;font-size:42px;line-height:1.05;margin-top:6px;color:var(--ink)}
+.header .meta{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.18em;text-transform:uppercase;text-align:right}
+.header .meta .v{color:var(--amber)}
+
+/* SECTIONS */
+.section{margin:48px 0}
+.section-head{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.section-num{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:0.18em}
+.section-title{font-family:var(--serif);font-style:italic;font-weight:400;font-size:22px;color:var(--ink)}
+.section-sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:0.1em;margin-left:auto;text-transform:uppercase}
+
+.intro{font-family:var(--serif);font-style:italic;font-weight:300;font-size:17px;line-height:1.55;color:var(--ink-2);max-width:760px;margin-bottom:8px}
+.intro strong{color:var(--ink);font-style:normal;font-family:var(--mono);font-size:13px;letter-spacing:0.02em}
+
+/* COCKPIT INPUT */
+.cockpit{background:var(--bg-2);border:1px solid var(--rule-2);border-radius:2px;padding:24px;margin-bottom:24px}
+.cockpit-label{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;color:var(--amber);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.cockpit-label::before{content:"◆";color:var(--amber);font-size:10px}
+.cockpit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.14em;text-transform:uppercase}
+.field input,.field select{background:var(--bg-3);border:1px solid var(--rule-2);color:var(--ink);font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:2px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--amber)}
+.field .hint{font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:0.06em}
+
+/* HUD */
+.hud{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule-2);border:1px solid var(--rule-2);border-radius:2px;margin-bottom:24px}
+.hud-cell{background:var(--bg-2);padding:18px 14px;display:flex;flex-direction:column;gap:6px;min-height:110px;position:relative}
+.hud-cell .label{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:var(--ink-3);text-transform:uppercase}
+.hud-cell .value{font-family:var(--serif);font-weight:400;font-size:28px;color:var(--amber);line-height:1;margin-top:4px}
+.hud-cell .value .unit{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-left:4px;letter-spacing:0.05em}
+.hud-cell .note{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:auto;letter-spacing:0.04em}
+@media(max-width:900px){.hud{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.hud{grid-template-columns:repeat(2,1fr)}}
+
+/* RACE PLAN */
+.race-plan{background:var(--bg-2);border:1px solid var(--rule-2);border-radius:2px;padding:0;margin-bottom:24px;overflow:hidden}
+.race-plan-head{padding:18px 22px;border-bottom:1px solid var(--rule-2);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.race-plan-head .title{font-family:var(--serif);font-style:italic;font-weight:400;font-size:20px;color:var(--ink)}
+.race-plan-head .stats{font-family:var(--mono);font-size:11px;color:var(--ink-2);letter-spacing:0.08em}
+.race-plan-head .stats span{color:var(--amber)}
+.timeline{padding:0}
+.timeline-row{display:grid;grid-template-columns:90px 1fr;gap:0;border-bottom:1px solid var(--rule);padding:0}
+.timeline-row:last-child{border-bottom:0}
+.timeline-row.pro{background:rgba(255,138,28,0.03)}
+.timeline-time{padding:16px 14px;font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:0.08em;background:var(--bg-3);border-right:1px solid var(--rule-2);display:flex;align-items:flex-start}
+.timeline-time.pro{background:linear-gradient(90deg,var(--bg-3),rgba(255,138,28,0.05));color:var(--amber)}
+.timeline-content{padding:14px 18px;display:flex;flex-direction:column;gap:6px}
+.timeline-action{font-family:var(--mono);font-size:13px;color:var(--ink);line-height:1.4}
+.timeline-action .pro-tag{display:inline-block;font-size:9px;letter-spacing:0.18em;color:var(--amber);background:rgba(255,138,28,0.08);padding:2px 6px;border-radius:2px;border:1px solid rgba(255,138,28,0.25);margin-right:6px;text-transform:uppercase;vertical-align:1px}
+.timeline-detail{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:0.02em}
+.timeline-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;padding:2px 8px;border-radius:2px;background:var(--bg-3);color:var(--ink-2);border:1px solid var(--rule);text-transform:uppercase;width:fit-content}
+.timeline-badge.cho{color:var(--amber);border-color:rgba(255,138,28,0.25)}
+.timeline-badge.fluid{color:var(--blue);border-color:rgba(74,144,194,0.25)}
+.timeline-badge.na{color:var(--yellow);border-color:rgba(232,184,74,0.25)}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule-2);margin-bottom:24px;flex-wrap:wrap}
+.tab{flex:1;min-width:140px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--ink-3);font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;padding:12px 14px;cursor:pointer;transition:all 0.15s ease}
+.tab:hover{color:var(--ink-2)}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+.tab .duration{display:block;font-size:9px;color:var(--ink-3);margin-top:3px;letter-spacing:0.08em}
+.tab.active .duration{color:var(--amber-dim)}
+
+/* DOSE TABLE */
+.dose-table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--rule-2);border-radius:2px;margin-bottom:24px;overflow:hidden}
+.dose-table th{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;padding:14px 16px;text-align:left;border-bottom:1px solid var(--rule-2);background:var(--bg-3);font-weight:400}
+.dose-table td{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:12px 16px;border-bottom:1px solid var(--rule);letter-spacing:0.02em}
+.dose-table tr:last-child td{border-bottom:0}
+.dose-table .v{color:var(--amber);font-weight:500}
+.dose-table .pct{color:var(--ink-3);font-size:10px;letter-spacing:0.05em}
+
+/* ALERT */
+.alert{border-left:3px solid var(--amber);background:rgba(255,138,28,0.05);padding:14px 18px;margin:16px 0;font-family:var(--mono);font-size:12px;color:var(--ink-2);letter-spacing:0.02em;line-height:1.6}
+.alert.red{border-color:var(--red);background:rgba(212,80,74,0.06)}
+.alert.green{border-color:var(--green);background:rgba(127,176,105,0.05)}
+.alert strong{color:var(--ink);font-weight:500}
+.alert .alert-label{display:block;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.alert.red .alert-label{color:var(--red)}
+.alert.green .alert-label{color:var(--green)}
+
+/* PRODUCTS */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.product{background:var(--bg-2);border:1px solid var(--rule);border-radius:2px;padding:16px;border-left:3px solid var(--amber-dim);display:flex;flex-direction:column;gap:8px}
+.product .name{font-family:var(--serif);font-style:italic;font-weight:400;font-size:17px;color:var(--ink)}
+.product .brand{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--ink-3);text-transform:uppercase}
+.product .nacho{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg-3);border-radius:2px;margin-top:4px}
+.product .nacho-label{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;color:var(--ink-3);text-transform:uppercase}
+.product .nacho-val{font-family:var(--serif);font-style:italic;font-size:20px}
+.product .nacho-val.hi{color:var(--green)}
+.product .nacho-val.mid{color:var(--yellow)}
+.product .nacho-val.lo{color:var(--red)}
+.product .specs{display:flex;flex-wrap:wrap;gap:6px}
+.product .spec{font-family:var(--mono);font-size:10px;padding:3px 8px;background:var(--bg-3);border:1px solid var(--rule);color:var(--ink-2);border-radius:2px;letter-spacing:0.04em}
+.product .spec.amber{color:var(--amber);border-color:rgba(255,138,28,0.2)}
+.product .price{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:0.04em;margin-top:auto;padding-top:4px}
+.product .price span{color:var(--green)}
+
+/* CITATION */
+.cite{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--rule-2);border-radius:50%;font-family:var(--mono);font-size:9px;color:var(--amber);margin:0 2px;cursor:help;vertical-align:1px;background:var(--bg-2);position:relative;text-decoration:none}
+.cite:hover{border-color:var(--amber)}
+.cite:hover::after{content:attr(data-cite);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--bg-3);border:1px solid var(--rule-2);border-radius:2px;padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--ink);width:260px;letter-spacing:0.02em;z-index:10;text-align:left;line-height:1.5;font-weight:400;pointer-events:none}
+
+/* CHECKLIST */
+.checklist{background:var(--bg-2);border:1px solid var(--rule-2);border-radius:2px;padding:18px 22px;margin:16px 0}
+.checklist-title{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--amber);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.checklist-title::before{content:"▶";font-size:9px}
+.checklist ul{list-style:none}
+.checklist li{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:6px 0 6px 22px;position:relative;letter-spacing:0.02em;line-height:1.5}
+.checklist li::before{content:"□";position:absolute;left:0;top:6px;color:var(--amber);font-size:13px}
+
+/* PROGRESSION */
+.progression-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px}
+.step{background:var(--bg-2);border:1px solid var(--rule);border-radius:2px;padding:14px 10px;text-align:center}
+.step.active{border-color:var(--amber);background:rgba(255,138,28,0.06)}
+.step .week{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;color:var(--ink-3);text-transform:uppercase;margin-bottom:6px}
+.step .step-val{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--amber);line-height:1}
+.step .step-unit{font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:2px;letter-spacing:0.04em}
+@media(max-width:700px){.progression-bar{grid-template-columns:repeat(3,1fr)}}
+
+/* CARB LOAD CARDS */
+.load-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0}
+.load-card{background:var(--bg-2);border:1px solid var(--rule);border-radius:2px;padding:16px;border-top:2px solid var(--amber-dim)}
+.load-card .load-day{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;color:var(--amber);text-transform:uppercase;margin-bottom:8px}
+.load-card .load-val{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink);line-height:1.1;margin-bottom:4px}
+.load-card .load-val .load-unit{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-left:4px;letter-spacing:0.04em}
+.load-card .load-sub{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.04em;line-height:1.5}
+
+/* REAL FOOD TABLE */
+.food-table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--rule-2);border-radius:2px;margin:18px 0;overflow:hidden}
+.food-table th{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;padding:12px 14px;text-align:left;border-bottom:1px solid var(--rule-2);background:var(--bg-3);font-weight:400}
+.food-table td{font-family:var(--mono);font-size:11px;color:var(--ink-2);padding:10px 14px;border-bottom:1px solid var(--rule);letter-spacing:0.02em}
+.food-table tr:last-child td{border-bottom:0}
+.food-table .food-name{color:var(--ink);font-weight:500}
+.food-table .food-cho{color:var(--amber);font-family:var(--serif);font-style:italic;font-size:14px}
+.food-table .food-use{font-size:10px;color:var(--ink-3)}
+
+/* DIY MIX CARD */
+.diy{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--amber-dim);border-radius:2px;padding:20px;margin:20px 0;position:relative}
+.diy-label{position:absolute;top:-1px;right:14px;background:var(--bg);color:var(--amber);font-family:var(--mono);font-size:9px;letter-spacing:0.18em;padding:3px 10px;border:1px solid var(--amber-dim);border-top:0;border-radius:0 0 2px 2px;text-transform:uppercase}
+.diy h4{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--ink);font-size:18px;margin-bottom:14px}
+.diy-recipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:14px}
+.diy-item{display:flex;flex-direction:column;gap:3px}
+.diy-item .diy-q{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--amber)}
+.diy-item .diy-q .u{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-left:3px}
+.diy-item .diy-n{font-family:var(--mono);font-size:11px;color:var(--ink)}
+.diy-item .diy-d{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.diy-totals{padding:12px 14px;background:var(--bg);border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.diy-totals .v{color:var(--amber);font-weight:500}
+
+/* REFS */
+.refs{margin-top:64px;border-top:1px solid var(--rule-2);padding-top:24px}
+.refs h3{font-family:var(--serif);font-style:italic;font-weight:400;font-size:18px;color:var(--ink);margin-bottom:16px}
+.refs ol{list-style:none;counter-reset:r}
+.refs li{counter-increment:r;font-family:var(--mono);font-size:11px;color:var(--ink-3);padding:6px 0 6px 32px;position:relative;letter-spacing:0.02em;line-height:1.5}
+.refs li::before{content:"[" counter(r) "]";position:absolute;left:0;top:6px;color:var(--amber);font-family:var(--mono);font-size:10px}
+.refs a{color:var(--blue);text-decoration:none;border-bottom:1px dotted rgba(74,144,194,0.3)}
+.refs a:hover{color:var(--ink-2)}
+
+/* FOOTER */
+.footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:0.12em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.footer a{color:var(--amber);text-decoration:none}
+
+/* UTILITIES */
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:700px){.row-2{grid-template-columns:1fr}}
+.prose{font-family:var(--mono);font-size:12px;color:var(--ink-2);line-height:1.7;letter-spacing:0.02em;max-width:780px;margin:10px 0}
+.prose strong{color:var(--ink);font-weight:500}
+
+/* NAV PADRÃO LMAEROFIT */
+nav.lmaf-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 12px 0;
+  background: rgba(10,10,12,0.85);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--rule);
+}
+.lmaf-nav-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 32px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.lmaf-logo { display: inline-flex; align-items: center; text-decoration: none; height: 64px; }
+.lmaf-logo img { height: 100%; width: auto; display: block; }
+.lmaf-nav-links { display: flex; gap: 32px; list-style: none; margin: 0; padding: 0; }
+.lmaf-nav-links a {
+  color: var(--ink-2); text-decoration: none; font-size: 14px; font-weight: 500;
+  transition: color .2s; font-family: 'Inter Tight', sans-serif;
+}
+.lmaf-nav-links a:hover { color: var(--ink); }
+.lmaf-nav-links a.active { color: var(--amber); }
+@media (max-width: 768px) {
+  .lmaf-nav-links { display: none; }
+  .lmaf-logo { height: 48px; }
+}
+body { padding-top: 112px !important; }
+@media (max-width: 768px) {
+  body { padding-top: 88px !important; }
+}
+</style>
+</head>
+<body>
+
+<nav class="lmaf-nav">
+  <div class="lmaf-nav-inner">
+    <a href="/" class="lmaf-logo" aria-label="LMAeroFit">
+      <img src="./assets/lmaerofit-logo.png" alt="LMAeroFit">
+    </a>
+    <ul class="lmaf-nav-links">
+      <li><a href="/">Início</a></li>
+      <li><a href="/race-fueling.html" class="active">Ferramentas</a></li>
+      <li><a href="/#cta">Newsletter</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="header">
+  <div>
+    <div class="brand" style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <img src="./assets/lmaerofit-logo.png" alt="LMAeroFit" style="height:36px;width:auto;display:block">
+      <span style="font-family:var(--mono);font-size:11px;letter-spacing:0.28em;color:var(--amber);text-transform:uppercase">· Endurance Performance Lab</span>
+    </div>
+    <h1>Race Fueling</h1>
+  </div>
+  <div class="meta">
+    Ferramenta 03 / 04<br>
+    Build <span class="v">v1.1 · 2026.05</span><br>
+    Sem login · Grátis
+  </div>
+</header>
+
+<p class="intro">
+Combustível certo, na hora certa, na quantidade certa.<br>
+Estratégia de <strong>CARBO · SÓDIO · LÍQUIDO</strong> por distância, clima e perfil — com carb load, plano de prova e comida real. Baseado em evidência 2024–2026.
+</p>
+
+<!-- 01: INPUTS -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Configuração da prova</h2>
+    <span class="section-sub">Race Briefing</span>
+  </div>
+
+  <div class="cockpit">
+    <div class="cockpit-label">Atleta &nbsp;·&nbsp; Input Panel</div>
+    <div class="cockpit-grid">
+      <div class="field">
+        <label>Peso corporal</label>
+        <input type="number" id="weight" value="75" min="40" max="120" step="0.5">
+        <span class="hint">kg</span>
+      </div>
+      <div class="field">
+        <label>Taxa de sudorese</label>
+        <select id="sweat">
+          <option value="0.6">Baixa · 0.6 L/h</option>
+          <option value="0.9" selected>Moderada · 0.9 L/h</option>
+          <option value="1.2">Alta · 1.2 L/h</option>
+          <option value="1.6">Muito alta · 1.6 L/h</option>
+        </select>
+        <span class="hint">teste em treino, peso antes/depois</span>
+      </div>
+      <div class="field">
+        <label>Perfil de sódio no suor</label>
+        <select id="saltLoss">
+          <option value="500">Baixo · 500 mg/L</option>
+          <option value="900" selected>Médio · 900 mg/L</option>
+          <option value="1300">Alto · 1300 mg/L</option>
+          <option value="1800">Muito alto · 1800 mg/L</option>
+        </select>
+        <span class="hint">"salty sweater" = manchas brancas na roupa</span>
+      </div>
+      <div class="field">
+        <label>Condição climática</label>
+        <select id="climate">
+          <option value="cool">Fresco · &lt;18°C</option>
+          <option value="moderate" selected>Moderado · 18–25°C</option>
+          <option value="warm">Quente · 25–30°C</option>
+          <option value="hot">Muito quente · &gt;30°C</option>
+        </select>
+        <span class="hint">+ umidade altera necessidade</span>
+      </div>
+      <div class="field">
+        <label>Gut training (CHO máx testado)</label>
+        <select id="gut">
+          <option value="60">Iniciante · 60 g/h</option>
+          <option value="80" selected>Intermediário · 80 g/h</option>
+          <option value="100">Avançado · 100 g/h</option>
+          <option value="120">Elite · 120 g/h</option>
+          <option value="160">Pro · 160 g/h</option>
+        </select>
+        <span class="hint">nunca testar novo na prova</span>
+      </div>
+      <div class="field">
+        <label>Cafeína · resposta</label>
+        <select id="caf">
+          <option value="0">Evitar</option>
+          <option value="low">Leve · 1–2 mg/kg</option>
+          <option value="mod" selected>Moderada · 3 mg/kg</option>
+          <option value="high">Padrão · 3–6 mg/kg</option>
+        </select>
+        <span class="hint">testar tolerância em treinos longos</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02: DISTÂNCIA -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Distância da prova</h2>
+    <span class="section-sub">Race Distance</span>
+  </div>
+
+  <div class="tabs" id="raceTabs">
+    <button class="tab" data-race="sprint">Sprint<span class="duration">~1h–1h30</span></button>
+    <button class="tab active" data-race="olimpico">Olímpico<span class="duration">2h–3h</span></button>
+    <button class="tab" data-race="meia">70.3 / Meio Ironman<span class="duration">4h30–7h</span></button>
+    <button class="tab" data-race="ironman">Ironman 140.6<span class="duration">9h–16h</span></button>
+  </div>
+
+  <div class="prose" id="raceIntro"></div>
+</section>
+
+<!-- 03: HUD -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <h2 class="section-title">HUD · Alvos personalizados</h2>
+    <span class="section-sub">Primary Targets</span>
+  </div>
+
+  <div class="hud" id="hud"></div>
+  <div class="prose" id="hudNote"></div>
+</section>
+
+<!-- 04: CARB LOAD -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Carb load · pré-prova</h2>
+    <span class="section-sub">Glycogen Maximization</span>
+  </div>
+
+  <p class="prose">
+  Glicogênio é finito (~90–120 min de trabalho moderado-duro) e binda com água — hidratar bem é parte do load<a class="cite" data-cite="[1] T100 Triathlon (2026). Best Foods for Carb Loading. 8–12 g/kg/dia, 2–3 dias antes da prova; mulheres podem precisar de intake consistente vs short load.">[1]</a>. Aumentar para <strong>8–12 g/kg/dia por 2–3 dias</strong> antes da prova eleva estoques 25–100% acima do normal e estende time-to-fatigue<a class="cite" data-cite="[2] Burke L. et al. (2011). Carbohydrates for training and competition. J Sports Sciences 29:S17-S27.">[2]</a>. Aborte abaixo de 70.3 — em provas curtas o load completo não compensa o desconforto.
+  </p>
+
+  <div class="load-grid" id="loadGrid"></div>
+
+  <div class="row-2">
+    <div class="alert">
+      <span class="alert-label">Estratégia geral</span>
+      <strong>Aumente carbs, não calorias.</strong> Reduza fibra, fritura, álcool e laticínios pesados. Refeições menores, mais frequentes. Use carbs familiares — race week não é hora de experimentar.
+    </div>
+    <div class="alert">
+      <span class="alert-label">Atletas femininas</span>
+      Pesquisa sugere variação por fatores hormonais — pode funcionar melhor <strong>intake consistente alta</strong> durante a semana vs load curto e intenso<a class="cite" data-cite="[1] T100 Triathlon (2026). Carbohydrate storage may vary slightly due to hormonal factors; consistent carb intake throughout the week may work better than a short intense load.">[1]</a>.
+    </div>
+  </div>
+</section>
+
+<!-- 05: TIMELINE -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Timeline da prova</h2>
+    <span class="section-sub">Mission Flight Plan</span>
+  </div>
+
+  <div class="race-plan" id="racePlan"></div>
+
+  <div class="alert">
+    <span class="alert-label">Estratégia Pro (linhas destacadas)</span>
+    Pros como <strong>Magnus Ditlev e Kristian Blummenfelt</strong> consomem 200+ g CHO antes do swim e 80–100 g em T1 antes da bike<a class="cite" data-cite="[3] Triathlete Magazine (2025). Stornes Nice 2025 strategy: ~200+ g carbs pré-swim, 80–100 g em T1, 180 g/h sustained na bike.">[3]</a>. <strong>Cameron Wurf</strong> bateu o recorde do IM Texas (3:53 bike) fuelando ~200 g/h sustained<a class="cite" data-cite="[4] Triathlete Magazine (2025). Wurf IM Texas 2024 bike record at ~200 g CHO/h; new bike split world record 3:53:32.">[4]</a>. Não é para amador, mas mostra para onde o teto vai.
+  </div>
+</section>
+
+<!-- 06: DOSE TABLE -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Tabela de dosagem</h2>
+    <span class="section-sub">Hourly Breakdown</span>
+  </div>
+
+  <table class="dose-table">
+    <thead>
+      <tr>
+        <th>Bloco</th>
+        <th>Tipo</th>
+        <th>CHO/h</th>
+        <th>Líquido/h</th>
+        <th>Sódio/h</th>
+        <th>Cafeína</th>
+      </tr>
+    </thead>
+    <tbody id="doseTbody"></tbody>
+  </table>
+</section>
+
+<!-- 07: GUT TRAINING -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Gut training · progressão</h2>
+    <span class="section-sub">Train the Gut</span>
+  </div>
+
+  <p class="prose">
+  O intestino é treinável<a class="cite" data-cite="[5] Jeukendrup A. (2017). Training the Gut for Athletes. Sports Medicine 47:S101-S110.">[5]</a>. Subir CHO/h em passos de 10–15 g a cada 2–3 semanas, replicando produtos e cadência da prova. Atleta que começa em 60 g/h pode chegar a 100–110 g/h em 12 semanas<a class="cite" data-cite="[6] Roadman Cycling (2026). Triathlon Bike Nutrition: gut is trainable, push up by ~10g/h every 2-3 weeks.">[6]</a>.
+  </p>
+
+  <div class="progression-bar" id="progression"></div>
+  <p class="prose" style="font-size:11px;color:var(--ink-3)">Ajuste baseado no <strong>seu</strong> alvo. Sempre em treinos longos, nunca em treinos intensos. Repetir o produto, sabor e cadência da prova.</p>
+</section>
+
+<!-- 08: COMIDA REAL -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Comida real · alternativa econômica</h2>
+    <span class="section-sub">Real Food Fueling</span>
+  </div>
+
+  <p class="prose">
+  Géis são convenientes, não obrigatórios. Estudo comparou <strong>purê de batata vs gel</strong> a 60 g/h em ciclistas: performance idêntica em time-trial<a class="cite" data-cite="[7] Salvador AF et al. (2019). Potato Ingestion is as Effective as Carbohydrate Gels to Support Prolonged Cycling Performance. J Appl Physiol 127:1651-1659.">[7]</a>. Na bike (mais estável, menos jostle), comida real funciona bem; no run, géis vencem na praticidade. Para carb load e café da manhã, <strong>comida real é regra</strong>.
+  </p>
+
+  <table class="food-table">
+    <thead>
+      <tr>
+        <th>Alimento</th>
+        <th style="text-align:right">CHO</th>
+        <th>Melhor uso</th>
+        <th class="hide-mobile" style="text-align:right">R$/g CHO</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="food-name">Aveia (60g seca)</td><td style="text-align:right" class="food-cho">~40g</td><td class="food-use">Café da manhã pré-prova</td><td style="text-align:right">≈ 0,02</td></tr>
+      <tr><td class="food-name">Arroz branco cozido (200g)</td><td style="text-align:right" class="food-cho">~55–60g</td><td class="food-use">Jantar pré-prova / refeição base</td><td style="text-align:right">≈ 0,01</td></tr>
+      <tr><td class="food-name">Macarrão cozido (180–200g)</td><td style="text-align:right" class="food-cho">~55–60g</td><td class="food-use">Jantar pré-prova / carb load</td><td style="text-align:right">≈ 0,02</td></tr>
+      <tr><td class="food-name">Batata cozida (200g)</td><td style="text-align:right" class="food-cho">~35–40g</td><td class="food-use">Fuel real na bike (salgada)</td><td style="text-align:right">≈ 0,02</td></tr>
+      <tr><td class="food-name">Bagel / pão de forma + mel</td><td style="text-align:right" class="food-cho">~60–65g</td><td class="food-use">Café da manhã / top-up</td><td style="text-align:right">≈ 0,03</td></tr>
+      <tr><td class="food-name">Banana (1 média)</td><td style="text-align:right" class="food-cho">~25–27g</td><td class="food-use">Pré-largada / mid-race bike</td><td style="text-align:right">≈ 0,04</td></tr>
+      <tr><td class="food-name">Tâmaras (5 unidades)</td><td style="text-align:right" class="food-cho">~30g</td><td class="food-use">Snack denso / bolso de tri-suit</td><td style="text-align:right">≈ 0,12</td></tr>
+      <tr><td class="food-name">Cola (350ml lata)</td><td style="text-align:right" class="food-cho">~37g</td><td class="food-use">Run · final de prova (cafeína)</td><td style="text-align:right">≈ 0,11</td></tr>
+      <tr><td class="food-name">Leite com chocolate (500ml)</td><td style="text-align:right" class="food-cho">~45–50g</td><td class="food-use">Pós-treino (+18g proteína)</td><td style="text-align:right">≈ 0,08</td></tr>
+      <tr><td class="food-name">Smoothie banana+aveia+mel</td><td style="text-align:right" class="food-cho">~50–70g</td><td class="food-use">Pós-prova / quando apetite some</td><td style="text-align:right">≈ 0,04</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert green">
+    <span class="alert-label">Estratégia híbrida (economia + tolerância)</span>
+    <strong>Bike: garrafa de drink mix DIY + 1 banana ou 50g de batata salgada a cada 30 min.</strong> Run: géis (praticidade) + cola no final. Carb load: comida real, sempre. Custo total da prova pode cair pela metade vs estratégia 100% gel.
+  </div>
+</section>
+
+<!-- 09: PRODUTOS BR + Na:CHO -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Produtos no Brasil · razão Na:CHO</h2>
+    <span class="section-sub">Fuel Comparator</span>
+  </div>
+
+  <p class="prose">
+  A métrica decisiva para clima brasileiro: <strong>razão sódio:carboidrato (mg Na por g CHO)</strong>. Acima de 10 = adequado para calor intenso (Florianópolis, Búzios, Brasília no verão). Entre 5–10 = clima moderado. Abaixo de 5 = exige <strong>complementar sal por fora</strong><a class="cite" data-cite="[8] IronmanHacks (2024). Best Carb Mixes: sodium:carb ratio is decisive for hot climates. Top picks PF60 (16.7:1), Tailwind (12.4:1).">[8]</a>.
+  </p>
+
+  <div class="product-grid">
+    <div class="product">
+      <div class="name">Z2 Energy Gel Everyday</div>
+      <div class="brand">Z2 Performance · Brasil</div>
+      <div class="nacho">
+        <span class="nacho-label">Na : CHO</span>
+        <span class="nacho-val lo">3.4</span>
+      </div>
+      <div class="specs">
+        <span class="spec amber">25g CHO</span>
+        <span class="spec">85 mg Na</span>
+        <span class="spec">2:1:1 mix</span>
+        <span class="spec">sem cafeína</span>
+      </div>
+      <div class="price">≈ R$ 8–10/un · <span>R$ 0,32–0,40/g CHO</span></div>
+    </div>
+
+    <div class="product">
+      <div class="name">Carb-Up Gel Energy</div>
+      <div class="brand">Probiótica · Brasil</div>
+      <div class="nacho">
+        <span class="nacho-label">Na : CHO</span>
+        <span class="nacho-val lo">0.8</span>
+      </div>
+      <div class="specs">
+        <span class="spec amber">28g CHO</span>
+        <span class="spec">23 mg Na</span>
+        <span class="spec">malto + frutose</span>
+        <span class="spec">cafeína opcional</span>
+      </div>
+      <div class="price">≈ R$ 5–7/un · <span>R$ 0,18–0,25/g CHO</span></div>
+    </div>
+
+    <div class="product">
+      <div class="name">GU Energy Gel</div>
+      <div class="brand">GU Energy · importado</div>
+      <div class="nacho">
+        <span class="nacho-label">Na : CHO</span>
+        <span class="nacho-val mid">5.4</span>
+      </div>
+      <div class="specs">
+        <span class="spec amber">22g CHO</span>
+        <span class="spec">125 mg Na</span>
+        <span class="spec">malto + frutose</span>
+        <span class="spec">caf. opcional</span>
+      </div>
+      <div class="price">≈ R$ 14–18/un · <span>R$ 0,64–0,82/g CHO</span></div>
+    </div>
+
+    <div class="product">
+      <div class="name">Maurten Gel 100</div>
+      <div class="brand">Maurten · premium</div>
+      <div class="nacho">
+        <span class="nacho-label">Na : CHO</span>
+        <span class="nacho-val lo">1.4</span>
+      </div>
+      <div class="specs">
+        <span class="spec amber">25g CHO</span>
+        <span class="spec">35 mg Na</span>
+        <span class="spec">hidrogel 1:0.8</span>
+        <span class="spec">↓ risco GI</span>
+      </div>
+      <div class="price">≈ R$ 28–35/un · <span>R$ 1,12–1,40/g CHO</span></div>
+    </div>
+  </div>
+
+  <div class="alert red">
+    <span class="alert-label">Limitação do mercado BR</span>
+    <strong>Nenhum produto BR atinge Na:CHO &gt; 10.</strong> Comparado a Precision PF60 (16.7) ou Tailwind (12.4), todos os disponíveis aqui ficam baixos em sódio. Para clima quente brasileiro, é necessário <strong>complementar sódio</strong> via cápsulas (saltz Z2, salt stick), sal de cozinha em comida real, ou usar a receita DIY abaixo.
+  </div>
+
+  <!-- DIY MIX -->
+  <div class="diy">
+    <div class="diy-label">DIY · Drink Mix</div>
+    <h4>Receita base · garrafa de 750ml para clima quente</h4>
+    <div class="diy-recipe">
+      <div class="diy-item">
+        <div class="diy-q">60<span class="u">g</span></div>
+        <div class="diy-n">Maltodextrina</div>
+        <div class="diy-d">~ R$ 1,80 (em pó, granel)</div>
+      </div>
+      <div class="diy-item">
+        <div class="diy-q">30<span class="u">g</span></div>
+        <div class="diy-n">Frutose (ou açúcar refinado)</div>
+        <div class="diy-d">razão 2:1 glicose:frutose</div>
+      </div>
+      <div class="diy-item">
+        <div class="diy-q">1<span class="u">g</span></div>
+        <div class="diy-n">Sal de cozinha (NaCl)</div>
+        <div class="diy-d">~ 400mg de sódio</div>
+      </div>
+      <div class="diy-item">
+        <div class="diy-q">30<span class="u">ml</span></div>
+        <div class="diy-n">Suco de limão</div>
+        <div class="diy-d">sabor + acidez</div>
+      </div>
+    </div>
+    <div class="diy-totals">
+      <strong>Totais por garrafa:</strong> <span class="v">90 g CHO</span> · <span class="v">400 mg Na</span> · razão <span class="v">4.4 mg/g</span> · custo ≈ <span class="v">R$ 2,50</span><br>
+      <strong>vs Maurten 320:</strong> 80g CHO · ~35mg Na · custo ≈ R$ 60 — <strong style="color:var(--green)">DIY é 24× mais barato</strong> e tem 11× mais sódio
+    </div>
+  </div>
+
+  <p class="prose" style="font-size:11px">Suba 0.5g de sal por garrafa se for "salty sweater". Combine 1 garrafa DIY/h com 1 banana ou batata salgada a cada 45 min na bike.</p>
+</section>
+
+<!-- 10: PRINCÍPIOS -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">10</span>
+    <h2 class="section-title">Princípios não-negociáveis</h2>
+    <span class="section-sub">Standard Operating Procedures</span>
+  </div>
+
+  <div class="row-2">
+    <div class="alert green">
+      <span class="alert-label">Treine o que vai usar</span>
+      <strong>Nada novo na prova.</strong> Cada gel, sabor, marca, temperatura, cadência e volume deve ter sido testado em treinos longos similares à prova.
+    </div>
+
+    <div class="alert">
+      <span class="alert-label">Comece a fuelar cedo</span>
+      Primeira dose <strong>15–20 min após T1</strong>. Não dá pra recuperar depois — esvaziamento gástrico cai com intensidade e duração<a class="cite" data-cite="[6] Roadman Cycling (2026). Start fuelling within 15-20 min of T1. You cannot catch up later.">[6]</a>.
+    </div>
+
+    <div class="alert">
+      <span class="alert-label">Glicose:frutose 2:1 acima de 60 g/h</span>
+      Mix de transportadores (SGLT1 + GLUT5) permite absorção de até 90 g/h vs ~60 g/h só com glicose<a class="cite" data-cite="[9] Jeukendrup A. (2014). Multiple Transportable Carbohydrates. Sports Medicine 44:S25-S33.">[9]</a>.
+    </div>
+
+    <div class="alert red">
+      <span class="alert-label">Hidratação · nunca terminar mais pesado</span>
+      Bebida em excesso + suor com sódio = risco de hiponatremia. Use sede + taxa de suor + contexto. Sódio não corrige pacing ruim<a class="cite" data-cite="[10] Hew-Butler T et al. (2015). Statement on Exercise-Associated Hyponatremia. Clin J Sport Med 25:303-320.">[10]</a>.
+    </div>
+  </div>
+</section>
+
+<!-- 11: CHECKLIST -->
+<section class="section">
+  <div class="section-head">
+    <span class="section-num">11</span>
+    <h2 class="section-title">Checklist final · 72h antes</h2>
+    <span class="section-sub">Pre-Flight Check</span>
+  </div>
+
+  <div class="row-2">
+    <div class="checklist">
+      <div class="checklist-title">72–48h antes</div>
+      <ul>
+        <li>Iniciar carb load (ver seção 04 para gramas/dia)</li>
+        <li>Reduzir fibra 24–72h antes</li>
+        <li>Hidratar com eletrólitos (não só água)</li>
+        <li>Conferir todos os produtos da prova</li>
+        <li>Treinar leve, dormir cedo</li>
+      </ul>
+    </div>
+
+    <div class="checklist">
+      <div class="checklist-title">Manhã da prova</div>
+      <ul>
+        <li>Café da manhã 3h antes: 1–4 g/kg CHO</li>
+        <li>500–750 ml líquido + eletrólitos 2–3h antes</li>
+        <li>Sip de 150–300 ml até 15 min antes</li>
+        <li>Última dose CHO 15 min antes (gel + água)</li>
+        <li>Cafeína 30–60 min antes (se for usar)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- REFS -->
+<section class="refs">
+  <h3>Referências</h3>
+  <ol>
+    <li>T100 Triathlon (2025). <em>Best Foods for Carb Loading: A Triathlete's Guide</em>. <a href="https://t100triathlon.com/articles/nutrition/best-foods-for-carb-loading/" target="_blank">t100triathlon.com</a></li>
+    <li>Burke L, Hawley J, Wong S, Jeukendrup A. (2011). <em>Carbohydrates for training and competition</em>. J Sports Sciences 29 Suppl 1: S17–S27.</li>
+    <li>Triathlete Magazine (2025). <em>How Ironman World Championship Pros Use High-Carb Fueling</em>. <a href="https://www.triathlete.com/nutrition/race-fueling/ironman-world-championship-pros-high-carb-nutrition-plans/" target="_blank">triathlete.com</a></li>
+    <li>Triathlete Magazine (2025). <em>High-Carb Drink Mixes for Endurance Athletes</em>. <a href="https://www.triathlete.com/nutrition/high-carb-drink-mixes-for-endurance-athletes/" target="_blank">triathlete.com</a></li>
+    <li>Jeukendrup A. (2017). <em>Training the Gut for Athletes</em>. Sports Medicine 47 (Suppl 1): S101–S110.</li>
+    <li>Roadman Cycling (2026). <em>Triathlon Bike Nutrition: Fuel the Bike, Save the Run</em>. <a href="https://roadmancycling.com/blog/triathlon-bike-nutrition-strategy" target="_blank">roadmancycling.com</a></li>
+    <li>Salvador AF, McKenna CF, Alamilla RA et al. (2019). <em>Potato Ingestion is as Effective as Carbohydrate Gels to Support Prolonged Cycling Performance</em>. J Appl Physiol 127:1651–1659.</li>
+    <li>IronmanHacks (2024). <em>Ironman Nutrition: The Best Carb Mixes of 2024</em>. <a href="https://ironmanhacks.com/ironman-nutrition-the-best-carb-mixes-of-2024/" target="_blank">ironmanhacks.com</a></li>
+    <li>Jeukendrup A. (2014). <em>A Step Towards Personalized Sports Nutrition: Carbohydrate Intake During Exercise</em>. Sports Medicine 44 (Suppl 1): S25–S33.</li>
+    <li>Hew-Butler T et al. (2015). <em>3rd International Exercise-Associated Hyponatremia Consensus</em>. Clin J Sport Med 25(4):303–320.</li>
+    <li>Rouvy (2026). <em>Best Carbohydrate Sources for Triathletes</em>. <a href="https://rouvy.com/blog/best-carb-sources-triathletes" target="_blank">rouvy.com</a></li>
+    <li>Triathlete Magazine (2025). <em>The Best Energy Gels for Triathlon, Running, and Cycling</em>. <a href="https://www.triathlete.com/nutrition/the-best-energy-gels-for-triathlon-running-and-cycling/" target="_blank">triathlete.com</a></li>
+  </ol>
+</section>
+
+<!-- AVISO LEGAL -->
+<section class="refs">
+  <h3>Aviso legal · citações e fontes</h3>
+  <ol style="list-style:none; counter-reset:none;">
+    <li style="padding-left:0">
+      <strong style="color:var(--ink); font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-transform:uppercase">Atletas profissionais.</strong>
+      Menções a atletas como Magnus Ditlev, Kristian Blummenfelt e Cameron Wurf são <strong style="color:var(--ink)">informações públicas</strong>
+      extraídas de reportagens jornalísticas (Triathlete Magazine, IronmanHacks, Roadman Cycling) sobre suas estratégias de fueling em prova.
+      O LMAeroFit não tem qualquer afiliação, contrato ou endorsement com esses atletas. As citações servem apenas como referência
+      do estado da arte do fueling em alta performance.
+    </li>
+    <li style="padding-left:0; margin-top:14px">
+      <strong style="color:var(--ink); font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-transform:uppercase">Marcas e produtos.</strong>
+      Marcas comerciais citadas (Maurten, Precision Hydration, Skratch, GU, Power, Pacific, Probiotica, Z-Caps e outras)
+      pertencem aos respectivos fabricantes. O LMAeroFit é uma ferramenta independente, <strong style="color:var(--ink)">sem patrocínio
+      ou parceria comercial</strong> com qualquer marca citada. Nomes são usados apenas para identificação de produtos disponíveis no
+      mercado brasileiro, conforme uso nominativo previsto em lei.
+    </li>
+    <li style="padding-left:0; margin-top:14px">
+      <strong style="color:var(--ink); font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-transform:uppercase">Citações científicas.</strong>
+      Estudos científicos citados (Jeukendrup, Burke, Hew-Butler, Salvador et al.) seguem norma acadêmica padrão de referência —
+      autor, ano, periódico. Conteúdo é resumido em linguagem técnica brasileira, sem reprodução literal dos textos originais.
+    </li>
+    <li style="padding-left:0; margin-top:14px">
+      <strong style="color:var(--ink); font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-transform:uppercase">Caráter informativo.</strong>
+      Esta ferramenta tem caráter <strong style="color:var(--ink)">educativo e orientativo</strong>, não constitui prescrição nutricional.
+      Recomendações de carbo, sódio e hidratação são alvos baseados em literatura científica e devem ser <strong style="color:var(--ink)">individualizadas
+      com nutricionista esportivo</strong>, especialmente em casos de comorbidades, gestação, diabetes, doenças renais ou outras condições clínicas.
+    </li>
+  </ol>
+</section>
+
+<footer class="footer">
+  <div>LMAeroFit · Endurance Performance Lab · <a href="https://lmaerofit.com.br">lmaerofit.com.br</a></div>
+  <div>Não substitui avaliação médica ou nutricional profissional</div>
+</footer>
+
+<script>
+// DADOS POR DISTÂNCIA
+const RACE_DATA = {
+  sprint: {
+    name: "Sprint",
+    duration: "1h–1h30",
+    durationH: 1.25,
+    intro: "<strong>Sprint (≤90 min):</strong> intensidade alta, glicogênio quase suficiente. Foco: hidratação leve, opcional <em>mouth rinse</em> de CHO no último terço, sem grandes quantidades de fuel. Cafeína pré-prova tem ROI máximo aqui.",
+    cho_h: 30,
+    cho_note: "30 g/h opcional ou mouth rinse",
+    fluid_base: 500,
+    load_g_kg: 6,       // load moderado
+    load_days: 1,       // 1 dia
+    blocks: [
+      {label:"Pré-largada (–30 min)", cho:"25g (1 gel)", fluid:"200 ml", sodium:"100 mg", caf:true},
+      {label:"Bike (45 min)", cho:"20–30g (opcional)", fluid:"300–400 ml", sodium:"150–250 mg", caf:false},
+      {label:"Run (30 min)", cho:"mouth rinse OR 1 gel", fluid:"150–250 ml", sodium:"100–150 mg", caf:false}
+    ],
+    timeline:[
+      {t:"–3h", action:"Café da manhã leve · pão + mel + banana", detail:"1–2 g/kg CHO, baixa fibra"},
+      {t:"–30min", action:"Última dose · 1 gel + água", detail:"~25g CHO + 200ml + cafeína (se usar)", badges:["cho:25g","fluid:200ml"]},
+      {t:"T1→T2", action:"Bike · 1 garrafa isotônico", detail:"Sip a cada 10 min, opcional 1 gel se &gt; 1h", badges:["cho:0–30g","fluid:400ml","na:200mg"]},
+      {t:"T2→fim", action:"Run · sip de água nos PAs", detail:"Mouth rinse de CHO ajuda mais que ingerir", badges:["fluid:200ml"]}
+    ]
+  },
+  olimpico: {
+    name: "Olímpico",
+    duration: "2h–3h",
+    durationH: 2.5,
+    intro: "<strong>Olímpico (2–3h):</strong> zona onde fuelar começa a importar. CHO 30–60 g/h, líquido conforme suor, sódio moderado. Atletas mais rápidos (sub-2h15) podem se aproximar do sprint; mais lentos, do 70.3.",
+    cho_h: 45,
+    cho_note: "30–60 g/h conforme tempo de prova",
+    fluid_base: 600,
+    load_g_kg: 8,
+    load_days: 2,
+    blocks: [
+      {label:"Pré-largada", cho:"1 gel (25g) + água", fluid:"200 ml", sodium:"150 mg", caf:true},
+      {label:"Bike (40 km)", cho:"40–60 g/h", fluid:"500–700 ml/h", sodium:"400–600 mg/h", caf:false},
+      {label:"Run (10 km)", cho:"30–45 g/h", fluid:"300–500 ml/h", sodium:"200–400 mg/h", caf:"meio do run"}
+    ],
+    timeline:[
+      {t:"–3h", action:"Café da manhã · aveia + banana + mel + café", detail:"1.5–2 g/kg CHO, fibra moderada-baixa"},
+      {t:"–60min", action:"Hidratação pré · 500 ml isotônico", detail:"+ cafeína se for usar", badges:["fluid:500ml","na:300mg"]},
+      {t:"–15min", action:"Última carga · 1 gel + 200 ml água", detail:"~25g CHO · não deixar pra largada", badges:["cho:25g"]},
+      {t:"Bike", action:"Garrafa isotônico forte · 1 gel aos 30 e 60 min", detail:"500–700 ml/h", badges:["cho:50g/h","fluid:600ml","na:500mg"]},
+      {t:"T2", action:"1 gel + sip de água ao montar tênis", detail:"Carrega o run com glicose pronta", badges:["cho:25g"]},
+      {t:"Run", action:"Gel a cada 25–30 min · água nos PAs", detail:"Cafeína no gel do km 5 se planejado", badges:["cho:40g/h","fluid:400ml"]}
+    ]
+  },
+  meia: {
+    name: "70.3 / Meio Ironman",
+    duration: "4h30–7h",
+    durationH: 5.5,
+    intro: "<strong>70.3 (4h30–7h):</strong> aqui o gut training paga em minutos. Alvo robusto: <strong>60–90 g CHO/h</strong>, líquido 500–800 ml/h, sódio 500–1000 mg/h. Maioria dos age-groupers fica abaixo do potencial — protocolo bem feito vale 5–15 minutos na corrida.",
+    cho_h: 75,
+    cho_note: "60–90 g/h (mix glicose+frutose obrigatório)",
+    fluid_base: 700,
+    load_g_kg: 9,
+    load_days: 2,
+    blocks: [
+      {label:"Pré-largada", cho:"1–2 géis (25–50g)", fluid:"200–400 ml", sodium:"200 mg", caf:true},
+      {label:"Swim (1.9 km)", cho:"—", fluid:"—", sodium:"—", caf:false},
+      {label:"Bike (90 km)", cho:"70–90 g/h", fluid:"500–800 ml/h", sodium:"700–1000 mg/h", caf:"meio da bike"},
+      {label:"Run (21 km)", cho:"40–60 g/h", fluid:"400–600 ml/h", sodium:"400–700 mg/h", caf:"km 10"}
+    ],
+    timeline:[
+      {t:"–3h", action:"Café da manhã · 2–3 g/kg CHO", detail:"aveia + banana + mel + pão + café · baixa fibra"},
+      {t:"–60min", action:"500 ml isotônico forte", detail:"600–800 mg Na · cafeína se planejado", badges:["fluid:500ml","na:700mg"]},
+      {t:"–15min", action:"1 gel + 200 ml água", detail:"front-load · glicose pronta na largada", badges:["cho:25g"]},
+      {t:"–5min", action:"<span class='pro-tag'>Estratégia Pro</span> 2 géis extras + cola pequena", detail:"Pré-swim load adicional · ~50–80g CHO em cima do café", badges:["cho:50–80g"], pro:true},
+      {t:"Swim", action:"Sem fuelar · foco em ritmo", detail:"hidratação só nos PAs no início da bike"},
+      {t:"Bike 0–15min", action:"1 gel + sip de garrafa", detail:"Inicia o motor · não esperar 30 min", badges:["cho:25g","fluid:200ml"]},
+      {t:"Bike 15min→fim", action:"Garrafa concentrada + géis a cada 25 min", detail:"~500g CHO em 3h · 90 g/h target", badges:["cho:80g/h","fluid:700ml","na:900mg"]},
+      {t:"T2", action:"1 gel ao trocar tênis + sip de água", detail:"Carrega o run · cafeína se ainda não usou", badges:["cho:25g"]},
+      {t:"Run 0–10km", action:"1 gel a cada 25–30 min + água nos PAs", detail:"Sip pequeno e frequente · não chuga", badges:["cho:50g/h","fluid:500ml"]},
+      {t:"Run 10–21km", action:"Gel + cafeína · isotônico nos PAs", detail:"Cola = fácil tolerância no fim", badges:["cho:50g/h","fluid:500ml"]}
+    ]
+  },
+  ironman: {
+    name: "Ironman 140.6",
+    duration: "9h–16h",
+    durationH: 11,
+    intro: "<strong>Ironman (9h–16h):</strong> teste extremo de fuelar sob fadiga. Alvo padrão <strong>90 g CHO/h</strong> (pros: 100–120 g/h, recorde Wurf ~200 g/h). Líquido alto na bike, redução natural no run. Sódio depende muito do suor individual. Treine o intestino por meses, não semanas.",
+    cho_h: 90,
+    cho_note: "90 g/h padrão · 100–120 se gut trained",
+    fluid_base: 750,
+    load_g_kg: 10,
+    load_days: 3,
+    blocks: [
+      {label:"Pré-largada", cho:"2 géis (50g)", fluid:"300–500 ml", sodium:"300 mg", caf:true},
+      {label:"Swim (3.8 km)", cho:"—", fluid:"—", sodium:"—", caf:false},
+      {label:"Bike (180 km)", cho:"90–110 g/h", fluid:"700–1000 ml/h", sodium:"800–1200 mg/h", caf:"a partir da metade"},
+      {label:"Run (42.2 km)", cho:"60–90 g/h", fluid:"500–700 ml/h", sodium:"500–900 mg/h", caf:"a partir do km 15"}
+    ],
+    timeline:[
+      {t:"–3h", action:"Café da manhã · 3 g/kg CHO", detail:"aveia + banana + mel + pão branco + café · zero fibra"},
+      {t:"–60min", action:"500 ml isotônico forte + cafeína", detail:"800 mg Na · prepara plasma volume", badges:["fluid:500ml","na:800mg"]},
+      {t:"–15min", action:"1 gel + 200 ml água", detail:"front-load CHO antes do swim", badges:["cho:25g"]},
+      {t:"–5min", action:"<span class='pro-tag'>Estratégia Pro</span> 2–4 géis ou drink alto-carb", detail:"Pros: 100–200g extras pré-swim (Stornes, Blummenfelt)", badges:["cho:50–200g"], pro:true},
+      {t:"Swim", action:"Sem fuelar", detail:"foco em ritmo confortável e linha"},
+      {t:"T1", action:"<span class='pro-tag'>Estratégia Pro</span> 1–3 géis ao montar bike", detail:"Pros: 80–100g em T1 antes da bike", badges:["cho:25–100g"], pro:true},
+      {t:"Bike 0–20min", action:"1–2 géis + sip de garrafa", detail:"Liga o sistema · não esperar fome", badges:["cho:50g","fluid:300ml"]},
+      {t:"Bike 20min–3h", action:"Garrafa concentrada + gel cada 25 min + sólido aos 90 min", detail:"~500g CHO nas primeiras 5h · 100 g/h", badges:["cho:100g/h","fluid:800ml","na:1000mg"]},
+      {t:"Bike 3–5h+", action:"Manter cadência · cafeína entra · sólido leve", detail:"Última hora: voltar a líquido para preparar run", badges:["cho:90g/h","fluid:750ml","na:900mg"]},
+      {t:"T2", action:"1 gel + 250 ml água + sal", detail:"Glicose pronta + reset eletrolítico", badges:["cho:25g","fluid:250ml"]},
+      {t:"Run 0–15km", action:"Gel cada 25–30 min · cola/isotônico nos PAs", detail:"Mantém volume · cafeína estratégica km 15", badges:["cho:70g/h","fluid:600ml","na:700mg"]},
+      {t:"Run 15–32km", action:"Cola + gel cafeína + sal · variar sabores", detail:"Doce cansa — alternar com salgado se possível", badges:["cho:60g/h","fluid:550ml","na:600mg"]},
+      {t:"Run 32–42km", action:"O que descer · cola é rei", detail:"60g/h mínimo · evitar parar de fuelar", badges:["cho:60g/h","fluid:500ml"]}
+    ]
+  }
+};
+
+const state = {
+  race: "olimpico",
+  weight: 75,
+  sweat: 0.9,
+  saltLoss: 900,
+  climate: "moderate",
+  gut: 80,
+  caf: "mod"
+};
+
+const CLIMATE_FLUID_MULT = { cool:0.8, moderate:1.0, warm:1.2, hot:1.4 };
+const CLIMATE_NA_MULT    = { cool:0.85, moderate:1.0, warm:1.15, hot:1.3 };
+
+function computeTargets(){
+  const race = RACE_DATA[state.race];
+  const choTarget = Math.min(race.cho_h, state.gut);
+  const sweatFactor = state.sweat / 0.9;
+  let fluid = race.fluid_base * Math.min(sweatFactor * CLIMATE_FLUID_MULT[state.climate], 1.4);
+  fluid = Math.min(Math.round(fluid/50)*50, 1000);
+  const sodium = Math.round((state.sweat * state.saltLoss * 0.6 * CLIMATE_NA_MULT[state.climate]) / 50) * 50;
+  const cafMap = { "0":0, "low":1.5, "mod":3, "high":5 };
+  const cafTotal = Math.round(cafMap[state.caf] * state.weight);
+  // Carb load total
+  const loadG = Math.round(race.load_g_kg * state.weight / 10) * 10;
+  return { cho:choTarget, fluid, sodium, cafTotal, loadG, race };
+}
+
+function renderHUD(){
+  const t = computeTargets();
+  const hud = document.getElementById('hud');
+  hud.innerHTML = `
+    <div class="hud-cell">
+      <div class="label">Carboidrato</div>
+      <div class="value">${t.cho}<span class="unit">g/h</span></div>
+      <div class="note">${t.race.cho_note}</div>
+    </div>
+    <div class="hud-cell">
+      <div class="label">Líquido</div>
+      <div class="value">${t.fluid}<span class="unit">ml/h</span></div>
+      <div class="note">sweat ${state.sweat} L/h · ${state.climate}</div>
+    </div>
+    <div class="hud-cell">
+      <div class="label">Sódio</div>
+      <div class="value">${t.sodium}<span class="unit">mg/h</span></div>
+      <div class="note">~${Math.round((t.sodium/t.fluid)*1000)} mg/L bebida</div>
+    </div>
+    <div class="hud-cell">
+      <div class="label">Cafeína (total)</div>
+      <div class="value">${t.cafTotal||"—"}<span class="unit">${t.cafTotal?'mg':''}</span></div>
+      <div class="note">${state.caf==="0"?"sem cafeína":`${state.caf==="low"?"1.5":state.caf==="mod"?"3":"5"} mg/kg pré`}</div>
+    </div>
+    <div class="hud-cell">
+      <div class="label">Carb Load</div>
+      <div class="value">${t.loadG}<span class="unit">g/dia</span></div>
+      <div class="note">${t.race.load_days}d antes · ${t.race.load_g_kg}g/kg</div>
+    </div>
+  `;
+  const note = document.getElementById('hudNote');
+  let msg = "";
+  if(t.cho < RACE_DATA[state.race].cho_h){
+    msg = `<strong>Atenção:</strong> seu gut (${state.gut} g/h) está abaixo do alvo da distância (${RACE_DATA[state.race].cho_h} g/h). Use progressão de gut training ou aceite performance abaixo do teto. `;
+  } else {
+    msg = `<strong>Gut compatível:</strong> sua tolerância (${state.gut} g/h) cobre o alvo. `;
+  }
+  msg += `Sódio em ~60% das perdas projetadas. Carb load = ${t.loadG}g CHO/dia × ${t.race.load_days} dias = <strong>${t.loadG * t.race.load_days}g de CHO total</strong> nas 48–72h antes.`;
+  note.innerHTML = msg;
+}
+
+function renderLoadCards(){
+  const t = computeTargets();
+  const race = RACE_DATA[state.race];
+  const grid = document.getElementById('loadGrid');
+  // monta dias
+  const days = race.load_days;
+  let cards = '';
+  for(let i=days; i>=1; i--){
+    cards += `
+      <div class="load-card">
+        <div class="load-day">D−${i} · ${days-i+1}º dia do load</div>
+        <div class="load-val">${t.loadG}<span class="load-unit">g CHO</span></div>
+        <div class="load-sub">≈ ${Math.round(t.loadG/55)} porções de arroz/macarrão (200g cada) ou mix com pão, mel, banana, suco</div>
+      </div>`;
+  }
+  // dia da prova
+  const raceDayCho = Math.round(2 * state.weight);
+  cards += `
+    <div class="load-card" style="border-top-color:var(--amber)">
+      <div class="load-day" style="color:var(--green)">Manhã da prova</div>
+      <div class="load-val">${raceDayCho}<span class="load-unit">g CHO</span></div>
+      <div class="load-sub">2 g/kg · 3h antes da largada · aveia + mel + banana + pão + café</div>
+    </div>`;
+  grid.innerHTML = cards;
+}
+
+function renderTimeline(){
+  const race = RACE_DATA[state.race];
+  const plan = document.getElementById('racePlan');
+  let html = `<div class="race-plan-head">
+    <div><div class="title">${race.name} · plano de prova</div></div>
+    <div class="stats">Duração: <span>${race.duration}</span> · CHO total: <span>~${Math.round(race.cho_h * race.durationH)}g</span></div>
+  </div><div class="timeline">`;
+  race.timeline.forEach(row=>{
+    const proCls = row.pro ? ' pro' : '';
+    html += `<div class="timeline-row${proCls}">
+      <div class="timeline-time${proCls}">${row.t}</div>
+      <div class="timeline-content">
+        <div class="timeline-action">${row.action}</div>
+        <div class="timeline-detail">${row.detail}</div>
+        ${row.badges ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${row.badges.map(b=>{
+          const [k,v] = b.split(':');
+          const cls = k==='cho'?'cho':k==='fluid'?'fluid':k==='na'?'na':'';
+          const lbl = k==='cho'?'CHO':k==='fluid'?'H₂O':k==='na'?'Na':k;
+          return `<span class="timeline-badge ${cls}">${lbl} ${v}</span>`;
+        }).join('')}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  plan.innerHTML = html;
+}
+
+function renderDoseTable(){
+  const race = RACE_DATA[state.race];
+  const tbody = document.getElementById('doseTbody');
+  tbody.innerHTML = race.blocks.map(b=>`
+    <tr>
+      <td><strong style="color:var(--ink)">${b.label}</strong></td>
+      <td class="pct">${b.label.includes('Bike')||b.label.includes('Run')||b.label.includes('Swim') ? 'segmento' : 'fase'}</td>
+      <td class="v">${b.cho}</td>
+      <td>${b.fluid}</td>
+      <td>${b.sodium}</td>
+      <td class="pct">${b.caf===true?'✓ sim':b.caf===false?'—':b.caf}</td>
+    </tr>
+  `).join('');
+}
+
+function renderRaceIntro(){
+  document.getElementById('raceIntro').innerHTML = RACE_DATA[state.race].intro;
+}
+
+function renderProgression(){
+  const target = state.gut;
+  const start = Math.max(40, target - 50);
+  const stepsCount = 6;
+  const stepSize = (target - start) / (stepsCount - 1);
+  const html = Array.from({length:stepsCount}, (_,i)=>{
+    const val = Math.round(start + stepSize*i);
+    const isActive = i === stepsCount-1;
+    return `<div class="step ${isActive?'active':''}">
+      <div class="week">Sem ${i*2+1}–${i*2+2}</div>
+      <div class="step-val">${val}</div>
+      <div class="step-unit">g CHO/h</div>
+    </div>`;
+  }).join('');
+  document.getElementById('progression').innerHTML = html;
+}
+
+function bindEvents(){
+  document.querySelectorAll('#raceTabs .tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('#raceTabs .tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      state.race = t.dataset.race;
+      renderAll();
+    });
+  });
+  ['weight','sweat','saltLoss','climate','gut','caf'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('change', ()=>{
+      const v = el.value;
+      if(['weight','sweat','saltLoss','gut'].includes(id)){
+        state[id] = parseFloat(v);
+      } else {
+        state[id] = v;
+      }
+      renderAll();
+    });
+    el.addEventListener('input', ()=>{
+      const v = el.value;
+      if(['weight','sweat','saltLoss','gut'].includes(id)){
+        state[id] = parseFloat(v);
+      } else {
+        state[id] = v;
+      }
+      renderAll();
+    });
+  });
+}
+
+function renderAll(){
+  renderRaceIntro();
+  renderHUD();
+  renderLoadCards();
+  renderTimeline();
+  renderDoseTable();
+  renderProgression();
+}
+
+bindEvents();
+renderAll();
+</script>
+
+</body>
+</html>
