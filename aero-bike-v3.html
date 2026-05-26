@@ -1,0 +1,3712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LMAeroFit · Avaliação Aerodinâmica de Bike v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --bg-2:#111114;
+    --bg-3:#16161b;
+    --ink:#e8e6e1;
+    --ink-2:#9a978f;
+    --ink-3:#5b5852;
+    --line:#1d1d22;
+    --line-2:#2a2a31;
+    --amber:#ff8a1c;
+    --amber-dim:#b8631a;
+    --amber-glow:rgba(255,138,28,0.15);
+    --green:#7fb069;
+    --red:#d4504a;
+    --yellow:#e8b84a;
+    --cyan:#5ab0c2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;font-weight:400;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{
+    min-height:100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,138,28,0.08), transparent 60%),
+      linear-gradient(to bottom, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment:fixed;
+  }
+  .grain::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.4;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.5'/></svg>");
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-feature-settings:"ss01","ss02"}
+  .container{max-width:820px;margin:0 auto;padding:24px 20px 80px;position:relative;z-index:2}
+
+  /* HEADER */
+  header{padding:32px 0 28px;border-bottom:1px solid var(--line);position:relative}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+  .brand-mark{
+    width:28px;height:28px;border:1.5px solid var(--amber);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .brand-mark::after{
+    content:"";position:absolute;width:14px;height:1.5px;background:var(--amber);
+    transform:rotate(-25deg);
+  }
+  .brand-mark::before{
+    content:"";position:absolute;width:4px;height:4px;background:var(--amber);
+    border-radius:50%;
+  }
+  .brand-text{font-family:'Fraunces';font-weight:800;font-size:14px;letter-spacing:0.08em;text-transform:uppercase}
+  .brand-text span{color:var(--amber)}
+  .eyebrow{
+    font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);
+    letter-spacing:0.25em;text-transform:uppercase;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(to right,var(--line-2),transparent)}
+  h1{font-family:'Fraunces';font-weight:300;font-size:clamp(34px,7vw,52px);line-height:0.98;letter-spacing:-0.02em;font-variation-settings:"opsz" 144;margin-bottom:18px}
+  h1 em{font-style:italic;font-weight:400;color:var(--amber)}
+  .lede{font-size:15px;line-height:1.6;color:var(--ink-2);max-width:600px}
+  .meta-strip{
+    display:flex;gap:20px;margin-top:24px;padding-top:18px;border-top:1px dashed var(--line-2);
+    font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);letter-spacing:0.08em;text-transform:uppercase;flex-wrap:wrap;
+  }
+  .meta-strip span{display:flex;align-items:center;gap:6px}
+  .meta-strip .dot{width:4px;height:4px;border-radius:50%;background:var(--amber)}
+
+  /* SECTIONS */
+  .section{margin-top:44px}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .section-num{font-family:'JetBrains Mono';font-size:11px;color:var(--amber);letter-spacing:0.15em}
+  .section-title{font-family:'Fraunces';font-weight:400;font-size:22px;letter-spacing:-0.01em}
+  .section-rule{flex:1;height:1px;background:var(--line);align-self:center}
+  .section-sub{font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);margin-bottom:20px;line-height:1.5}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media (max-width:540px){
+    .grid,.grid-3{grid-template-columns:1fr}
+  }
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1 / -1}
+  .field label{
+    font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);
+    letter-spacing:0.12em;text-transform:uppercase;display:flex;justify-content:space-between;
+  }
+  .field label .hint{color:var(--ink-3);text-transform:none;letter-spacing:0;font-size:10px;opacity:0.7;text-align:right}
+
+  .input,.select{
+    background:transparent;border:none;border-bottom:1px solid var(--line-2);
+    color:var(--ink);font-family:'JetBrains Mono';font-size:15px;font-weight:400;
+    padding:10px 0 8px;outline:none;width:100%;transition:border-color .2s,color .2s;
+    border-radius:0;-webkit-appearance:none;appearance:none;
+  }
+  .input:focus,.select:focus{border-bottom-color:var(--amber);color:var(--ink)}
+  .input::placeholder{color:var(--ink-3);opacity:0.5}
+  .select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%239a978f' fill='none' stroke-width='1.2'/></svg>");
+    background-repeat:no-repeat;background-position:right 4px center;padding-right:24px;
+  }
+  .select option{background:var(--bg-2);color:var(--ink)}
+  .select optgroup{background:var(--bg-3);color:var(--ink-2);font-style:normal}
+
+  .segmented{display:flex;gap:0;border:1px solid var(--line-2);border-radius:2px;overflow:hidden;flex-wrap:wrap}
+  .segmented input{display:none}
+  .segmented label{
+    flex:1;min-width:0;padding:10px 8px;text-align:center;cursor:pointer;
+    font-family:'JetBrains Mono';font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--ink-2);transition:all .15s;border-right:1px solid var(--line-2);
+    background:transparent;white-space:nowrap;
+  }
+  .segmented label:last-of-type{border-right:none}
+  .segmented input:checked + label{background:var(--amber);color:var(--bg);font-weight:500}
+
+  .slider-wrap{padding:6px 0 4px}
+  .slider-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-family:'JetBrains Mono';font-size:11px}
+  .slider-value{color:var(--amber);font-size:14px;font-weight:500}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:2px;
+    background:linear-gradient(to right,var(--amber) 0%,var(--amber) var(--p,50%),var(--line-2) var(--p,50%),var(--line-2) 100%);
+    outline:none;border-radius:1px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;
+    background:var(--bg);border:2px solid var(--amber);border-radius:50%;cursor:pointer;
+    box-shadow:0 0 0 4px var(--amber-glow);
+  }
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--bg);border:2px solid var(--amber);border-radius:50%;cursor:pointer}
+  .slider-scale{display:flex;justify-content:space-between;margin-top:6px;font-family:'JetBrains Mono';font-size:9.5px;color:var(--ink-3);letter-spacing:0.05em}
+
+  /* SUBSECTIONS */
+  .sub{margin-top:24px;padding-top:18px;border-top:1px dashed var(--line-2)}
+  .sub-title{font-family:'Fraunces';font-style:italic;font-size:14px;color:var(--ink-2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .sub-title::before{content:"";width:14px;height:1px;background:var(--amber)}
+
+  /* CTA */
+  .cta-wrap{margin-top:48px;display:flex;justify-content:center}
+  .cta{
+    background:var(--amber);color:var(--bg);border:none;
+    font-family:'JetBrains Mono';font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+    padding:18px 36px;cursor:pointer;border-radius:2px;
+    transition:all .2s;display:inline-flex;align-items:center;gap:14px;
+    box-shadow:0 0 0 1px var(--amber),0 8px 32px -8px var(--amber-glow);
+  }
+  .cta:hover{background:transparent;color:var(--amber);transform:translateY(-1px)}
+  .cta:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+  .cta .arrow{display:inline-block;transition:transform .2s}
+  .cta:hover .arrow{transform:translateX(4px)}
+
+  /* RESULT */
+  .result{margin-top:60px;animation:fadeIn .6s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .verdict{
+    border:1px solid var(--line-2);padding:32px 24px;text-align:center;
+    background:linear-gradient(180deg,rgba(255,138,28,0.04),transparent);position:relative;overflow:hidden;
+  }
+  .verdict::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--amber),transparent)}
+  .score-label{font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px}
+  .score{font-family:'Fraunces';font-weight:300;font-size:clamp(80px,18vw,128px);line-height:1;letter-spacing:-0.04em;color:var(--amber);font-variation-settings:"opsz" 144}
+  .score-suffix{font-size:0.3em;color:var(--ink-3);font-weight:400;margin-left:6px;vertical-align:0.5em}
+  .verdict-label{margin-top:6px;font-family:'Fraunces';font-style:italic;font-size:20px;color:var(--ink)}
+  .verdict-blurb{margin-top:14px;font-size:14px;color:var(--ink-2);line-height:1.55;max-width:520px;margin-left:auto;margin-right:auto}
+
+  /* TABS */
+  .tabs{display:flex;gap:0;margin-top:32px;border-bottom:1px solid var(--line-2)}
+  .tab{
+    background:transparent;border:none;color:var(--ink-3);
+    font-family:'JetBrains Mono';font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+    padding:14px 20px;cursor:pointer;position:relative;transition:color .2s;
+  }
+  .tab.active{color:var(--amber)}
+  .tab.active::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:1px;background:var(--amber)}
+  .tab:hover{color:var(--ink)}
+  .tab-content{display:none;padding-top:24px}
+  .tab-content.active{display:block;animation:fadeIn .3s ease}
+
+  /* METRICS */
+  .metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+  @media (max-width:540px){.metrics-grid{grid-template-columns:1fr}}
+  .metric{background:var(--bg);padding:22px 20px}
+  .metric-label{font-family:'JetBrains Mono';font-size:10px;color:var(--ink-3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px}
+  .metric-value{font-family:'Fraunces';font-weight:300;font-size:32px;line-height:1;letter-spacing:-0.02em}
+  .metric-value .unit{font-family:'JetBrains Mono';font-size:13px;color:var(--ink-3);font-weight:400;margin-left:6px;letter-spacing:0.05em}
+  .metric-detail{margin-top:8px;font-family:'JetBrains Mono';font-size:11px;color:var(--ink-2)}
+  .metric-detail.good{color:var(--green)}
+  .metric-detail.warn{color:var(--yellow)}
+  .metric-detail.bad{color:var(--red)}
+
+  /* BREAKDOWN */
+  .breakdown{margin-top:24px;border:1px solid var(--line);padding:20px}
+  .breakdown-title{font-family:'Fraunces';font-style:italic;font-size:14px;color:var(--ink-2);margin-bottom:16px}
+  .bd-row{
+    display:flex;justify-content:space-between;align-items:center;padding:8px 0;
+    border-bottom:1px dashed var(--line-2);font-family:'JetBrains Mono';font-size:12px;
+  }
+  .bd-row:last-child{border-bottom:none}
+  .bd-row .bd-k{color:var(--ink-2)}
+  .bd-row .bd-v{color:var(--ink)}
+  .bd-row .bd-v.pos{color:var(--red)}
+  .bd-row .bd-v.neg{color:var(--green)}
+  .bd-row.total{margin-top:6px;padding-top:14px;border-top:1px solid var(--line-2);border-bottom:none;font-weight:600}
+  .bd-row.total .bd-v{color:var(--amber);font-size:14px}
+
+  /* GAIN */
+  .gain-panel{margin-top:32px;border:1px solid var(--line-2);padding:24px 22px;background:linear-gradient(180deg,rgba(255,138,28,0.03),transparent)}
+  .gain-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .gain-title{font-family:'Fraunces';font-weight:400;font-size:18px}
+  .gain-dist-select{display:flex;gap:0;border:1px solid var(--line-2);border-radius:2px;overflow:hidden}
+  .gain-dist-select button{
+    background:transparent;border:none;border-right:1px solid var(--line-2);
+    font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:0.08em;
+    color:var(--ink-2);padding:6px 10px;cursor:pointer;text-transform:uppercase;
+  }
+  .gain-dist-select button:last-child{border-right:none}
+  .gain-dist-select button.active{background:var(--amber);color:var(--bg);font-weight:600}
+  .gain-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px dashed var(--line-2)}
+  .gain-row:last-child{border-bottom:none;padding-bottom:0}
+  .gain-row .k{font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);letter-spacing:0.1em;text-transform:uppercase}
+  .gain-row .v{font-family:'Fraunces';font-size:22px;font-weight:400;color:var(--ink)}
+  .gain-row .v.amber{color:var(--amber)}
+  .gain-row .v .unit{font-family:'JetBrains Mono';font-size:12px;color:var(--ink-3);margin-left:4px}
+
+  /* DRIVETRAIN */
+  .gear-vis{margin-top:18px;padding:18px;border:1px solid var(--line-2);background:var(--bg-3)}
+  .gear-vis-title{font-family:'Fraunces';font-style:italic;font-size:13px;color:var(--ink-2);margin-bottom:14px}
+  .cadence-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;font-family:'JetBrains Mono';font-size:12px;border-bottom:1px dashed var(--line-2)}
+  .cadence-row:last-child{border-bottom:none}
+  .cadence-row .ck{color:var(--ink-2)}
+  .cadence-row .cv{color:var(--cyan)}
+  .cadence-row.optimal .cv{color:var(--green);font-weight:600}
+  .cadence-row.bad .cv{color:var(--red)}
+
+  /* RECS */
+  .recs{margin-top:36px}
+  .recs-head{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+  .recs-title{font-family:'Fraunces';font-weight:400;font-size:22px;letter-spacing:-0.01em}
+  .recs-list{display:flex;flex-direction:column;gap:14px}
+  .rec{border-left:2px solid var(--amber);padding:14px 16px 14px 18px;background:rgba(255,138,28,0.025)}
+  .rec.lo{border-left-color:var(--green);background:rgba(127,176,105,0.04)}
+  .rec.md{border-left-color:var(--yellow);background:rgba(232,184,74,0.04)}
+  .rec.hi{border-left-color:var(--red);background:rgba(212,80,74,0.04)}
+  .rec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+  .rec-title{font-family:'Fraunces';font-weight:600;font-size:15px}
+  .rec-tag{font-family:'JetBrains Mono';font-size:9.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-3)}
+  .rec-tag .impact{color:var(--amber);font-weight:700}
+  .rec-tag .impact.lo{color:var(--green)}
+  .rec-tag .impact.md{color:var(--yellow)}
+  .rec-tag .impact.hi{color:var(--red)}
+  .rec-body{font-size:14px;color:var(--ink-2);line-height:1.55}
+
+  /* FOOTER */
+  .footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);text-align:center}
+  .footer .disclaimer{font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);letter-spacing:0.08em;line-height:1.6;max-width:600px;margin:0 auto}
+  .footer .signature{margin-top:18px;font-family:'Fraunces';font-style:italic;font-size:13px;color:var(--ink-3)}
+  .footer .signature a{color:var(--amber);text-decoration:none;font-style:normal;font-weight:600;letter-spacing:0.05em;font-size:11px;font-family:'JetBrains Mono';text-transform:uppercase;margin-left:8px}
+  .reset-btn{margin-top:24px;background:transparent;border:1px solid var(--line-2);color:var(--ink-2);font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;padding:10px 20px;cursor:pointer;border-radius:2px;transition:all .2s}
+  .reset-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .hidden{display:none !important}
+
+  .tcorners{position:relative}
+  .tcorners::before,.tcorners::after{content:"";position:absolute;width:8px;height:8px;border:1px solid var(--amber)}
+  .tcorners::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .tcorners::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  .formula-note{margin-top:20px;padding:14px 16px;border:1px dashed var(--line-2);font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);line-height:1.55}
+  .formula-note strong{color:var(--ink-2);font-weight:500}
+
+  /* ============ PAINEL DIAGNÓSTICO ============ */
+  .bike-diagram-section{margin-top:30px}
+
+  .bike-panel-wrap{
+    margin-top:20px;
+    display:grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    gap:20px;
+    background:#08080a;
+    border:1px solid var(--line-2);
+    padding:24px;
+    border-radius:2px;
+  }
+  @media (max-width:760px){
+    .bike-panel-wrap{grid-template-columns:1fr;padding:16px}
+  }
+
+  /* GAUGE CENTRAL */
+  .panel-central{
+    display:flex;flex-direction:column;align-items:stretch;gap:18px;
+    padding:20px 16px;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(255,138,28,0.04),transparent);
+    position:relative;
+  }
+  .panel-central::before,.panel-central::after{
+    content:"";position:absolute;width:10px;height:10px;border:1.5px solid var(--amber);
+  }
+  .panel-central::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .panel-central::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+
+  .cda-gauge{width:100%;max-width:240px;margin:0 auto;display:block}
+  .g-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:0.25em;
+    fill:var(--ink-3);
+  }
+  .g-main{
+    font-family:'Fraunces',serif;
+    font-weight:400;font-size:38px;
+    fill:var(--amber);
+    font-variation-settings:"opsz" 144;
+  }
+  .g-sub{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:0.1em;
+    fill:var(--ink-2);
+  }
+  .g-tick{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:0.05em;
+    fill:var(--ink-3);
+  }
+
+  .panel-strip{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-2);
+    border:1px solid var(--line-2);
+  }
+  .strip-item{background:var(--bg);padding:10px 8px;text-align:center}
+  .strip-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:8.5px;letter-spacing:0.15em;color:var(--ink-3);
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .strip-value{font-size:16px;color:var(--ink);font-weight:400}
+  .strip-unit{font-size:9px;color:var(--ink-3);margin-left:2px;letter-spacing:0.05em}
+
+  /* GRID DE PICTOGRAMAS */
+  .panel-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(165px, 1fr));
+    gap:8px;
+    align-content:start;
+  }
+  @media (max-width:540px){
+    .panel-grid{grid-template-columns:repeat(2, 1fr)}
+  }
+
+  .panel-card{
+    background:#0d0d11;
+    border:1px solid var(--line);
+    color:var(--ink-2);
+    padding:11px 12px;
+    border-radius:2px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    transition:all .15s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .panel-card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+    background:var(--amber);opacity:0;transition:opacity .15s;
+  }
+  .panel-card:hover{
+    background:#13131a;
+    border-color:var(--amber-dim);
+    color:var(--ink);
+    transform:translateX(2px);
+  }
+  .panel-card:hover::before{opacity:1}
+  .panel-card:hover .panel-card-arrow{color:var(--amber);transform:translateX(2px)}
+  .panel-card:hover .panel-card-icon{color:var(--amber)}
+
+  .panel-card-icon{
+    flex-shrink:0;width:36px;height:36px;
+    color:var(--ink-2);
+    display:flex;align-items:center;justify-content:center;
+    transition:color .15s;
+  }
+  .panel-card-icon .picto{width:36px;height:36px;display:block}
+
+  .panel-card-body{flex:1;min-width:0}
+  .panel-card-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:8.5px;letter-spacing:0.18em;color:var(--ink-3);
+    text-transform:uppercase;margin-bottom:3px;
+  }
+  .panel-card-value{
+    font-family:'Fraunces',serif;font-style:italic;
+    font-size:13px;color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    line-height:1.2;
+  }
+  .panel-card-delta{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--ink-3);
+    letter-spacing:0.05em;margin-top:3px;
+  }
+  .panel-card-delta.good{color:var(--green)}
+  .panel-card-delta.warn{color:var(--yellow)}
+  .panel-card-delta.bad{color:var(--red)}
+
+  .panel-card-arrow{
+    color:var(--ink-3);font-family:'JetBrains Mono';font-size:14px;
+    transition:all .15s;flex-shrink:0;
+  }
+
+  /* Highlight effect when section navigated to */
+  .section-highlight{
+    animation: sectionPulse 1.2s ease;
+  }
+  @keyframes sectionPulse{
+    0%{box-shadow:0 0 0 0 rgba(255,138,28,0)}
+    30%{box-shadow:0 0 0 8px rgba(255,138,28,0.2);background:rgba(255,138,28,0.03)}
+    100%{box-shadow:0 0 0 0 rgba(255,138,28,0)}
+  }
+
+  /* ============ ROI STACK · ORDEM DE OPERAÇÕES ============ */
+  .roi-stack{margin-top:48px}
+  .roi-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .roi-sub{font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);margin-bottom:20px;line-height:1.5;max-width:620px}
+  .roi-list{
+    display:flex;flex-direction:column;gap:1px;
+    background:var(--line);border:1px solid var(--line);
+  }
+  .roi-row{
+    background:#0d0d11;
+    padding:14px 18px;
+    display:grid;
+    grid-template-columns:48px 1fr 160px;
+    gap:16px;
+    align-items:center;
+    border-left:3px solid;
+    transition:background .15s;
+  }
+  .roi-row:hover{background:#13131a}
+  .roi-row.tier-1{border-left-color:var(--green)}
+  .roi-row.tier-2{border-left-color:var(--amber)}
+  .roi-row.tier-3{border-left-color:var(--yellow)}
+  .roi-row.tier-4{border-left-color:var(--red)}
+  .roi-num{
+    font-family:'Fraunces';font-weight:300;font-size:28px;
+    color:var(--amber);line-height:1;
+    font-variation-settings:"opsz" 144;
+  }
+  .roi-info{min-width:0}
+  .roi-title{
+    font-family:'Fraunces';font-weight:600;font-size:15px;
+    margin-bottom:4px;color:var(--ink);
+  }
+  .roi-desc{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .roi-meta{text-align:right}
+  .roi-cost{
+    font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);
+    letter-spacing:0.08em;margin-bottom:2px;
+  }
+  .roi-time{
+    font-family:'Fraunces';font-style:italic;font-size:13px;color:var(--ink-2);
+    margin-bottom:4px;
+  }
+  .roi-rate{
+    font-family:'JetBrains Mono';font-size:11px;font-weight:600;
+    letter-spacing:0.08em;color:var(--ink);
+  }
+  .roi-rate.good{color:var(--green)}
+  .roi-rate.warn{color:var(--yellow)}
+  .roi-rate.bad{color:var(--red)}
+  .roi-note{
+    margin-top:20px;padding:16px 18px;border:1px dashed var(--amber-dim);
+    background:rgba(255,138,28,0.04);
+    font-size:13px;color:var(--ink-2);line-height:1.6;
+  }
+  .roi-note strong{color:var(--amber)}
+  .roi-note em{color:var(--ink);font-style:italic;font-weight:500}
+
+  @media (max-width:540px){
+    .roi-row{grid-template-columns:32px 1fr;grid-template-rows:auto auto;gap:8px}
+    .roi-num{font-size:22px}
+    .roi-meta{grid-column:1 / -1;text-align:left;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding-left:40px}
+    .roi-cost,.roi-time,.roi-rate{margin:0}
+  }
+
+  /* ============ CITAÇÕES + TOOLTIPS ============ */
+  .cite{
+    color:var(--amber);font-size:0.7em;font-weight:600;
+    cursor:help;text-decoration:none;
+    padding:0 2px;margin-left:1px;
+    position:relative;
+    vertical-align:super;line-height:1;
+    transition:color .15s;
+  }
+  .cite:hover{color:#ffa84c}
+  .cite::before{
+    content:attr(data-tip);
+    position:absolute;bottom:130%;left:50%;
+    transform:translateX(-50%);
+    background:#1a1a1f;border:1px solid var(--amber-dim);
+    color:var(--ink);
+    padding:8px 12px;border-radius:3px;
+    font-family:'JetBrains Mono';font-size:10px;letter-spacing:0.03em;
+    white-space:normal;line-height:1.5;
+    width:240px;text-align:left;
+    pointer-events:none;
+    opacity:0;visibility:hidden;
+    transition:opacity .2s,visibility .2s;
+    z-index:100;
+    box-shadow:0 4px 16px rgba(0,0,0,0.6);
+  }
+  .cite::after{
+    content:"";position:absolute;bottom:130%;left:50%;
+    transform:translateX(-50%) translateY(8px);
+    border:5px solid transparent;border-top-color:var(--amber-dim);
+    pointer-events:none;
+    opacity:0;transition:opacity .2s;
+  }
+  .cite:hover::before,.cite:hover::after{opacity:1;visibility:visible}
+
+  /* Seção de Referências */
+  .refs-section{
+    margin-top:48px;
+    padding:24px 22px;
+    border:1px solid var(--line-2);
+    background:#0c0c10;
+  }
+  .refs-head{
+    font-family:'Fraunces';font-weight:400;font-size:18px;
+    margin-bottom:6px;letter-spacing:-0.01em;
+  }
+  .refs-sub{
+    font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);
+    letter-spacing:0.1em;text-transform:uppercase;margin-bottom:18px;
+  }
+  .refs-list{
+    display:grid;grid-template-columns:1fr;gap:12px;
+  }
+  @media (min-width:680px){
+    .refs-list{grid-template-columns:1fr 1fr}
+  }
+  .ref-item{
+    display:flex;gap:12px;
+    padding:12px 14px;
+    border-left:2px solid var(--line-2);
+    background:#0a0a0c;
+    transition:border-color .15s;
+  }
+  .ref-item:target{border-left-color:var(--amber);animation:refFlash 1.5s ease}
+  @keyframes refFlash{
+    0%,100%{background:#0a0a0c}
+    30%{background:rgba(255,138,28,0.08)}
+  }
+  .ref-num{
+    font-family:'JetBrains Mono';font-size:11px;font-weight:600;
+    color:var(--amber);flex-shrink:0;letter-spacing:0.08em;
+    min-width:24px;
+  }
+  .ref-body{flex:1;min-width:0}
+  .ref-title{
+    font-family:'Fraunces';font-weight:600;font-size:13px;
+    color:var(--ink);margin-bottom:3px;line-height:1.3;
+  }
+  .ref-cite{
+    font-family:'JetBrains Mono';font-size:10.5px;
+    color:var(--ink-2);line-height:1.5;
+  }
+  .ref-cite a{color:var(--amber);text-decoration:none;border-bottom:1px dotted var(--amber-dim)}
+  .ref-cite a:hover{color:#ffa84c;border-bottom-color:var(--amber)}
+
+  /* ============ GRÁFICO WATERFALL ============ */
+  .chart-section{margin-top:48px}
+  .chart-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .chart-sub{
+    font-family:'JetBrains Mono';font-size:11px;color:var(--ink-3);
+    margin-bottom:20px;line-height:1.5;max-width:620px;
+  }
+  .waterfall-wrap{
+    border:1px solid var(--line-2);
+    background:#0a0a0c;
+    padding:20px 16px 12px;
+    margin-bottom:24px;
+  }
+  .waterfall-svg{width:100%;height:auto;display:block}
+
+  /* ============ GRÁFICO BARRAS HORIZONTAIS ============ */
+  .bars-wrap{
+    border:1px solid var(--line-2);
+    background:#0a0a0c;
+    padding:20px 18px;
+  }
+  .bar-row{
+    display:grid;
+    grid-template-columns:160px 1fr 80px;
+    align-items:center;
+    gap:12px;
+    padding:8px 0;
+    border-bottom:1px dashed var(--line);
+    font-family:'JetBrains Mono';font-size:11px;
+  }
+  .bar-row:last-child{border-bottom:none}
+  .bar-label{color:var(--ink-2);letter-spacing:0.08em;text-transform:uppercase}
+  .bar-track{
+    height:14px;background:#16161b;border:1px solid var(--line-2);
+    position:relative;border-radius:1px;overflow:hidden;
+  }
+  .bar-track::before{
+    content:"";position:absolute;left:50%;top:0;bottom:0;
+    width:1px;background:var(--ink-3);opacity:0.5;
+  }
+  .bar-fill{
+    position:absolute;top:0;bottom:0;
+    transition:width .5s ease, left .5s ease;
+  }
+  .bar-fill.good{background:linear-gradient(to right, var(--green), #5d9550);right:50%}
+  .bar-fill.bad{background:linear-gradient(to left, var(--red), #b8443e);left:50%}
+  .bar-value{
+    color:var(--ink);text-align:right;font-weight:500;
+  }
+  .bar-value.good{color:var(--green)}
+  .bar-value.bad{color:var(--red)}
+  @media (max-width:540px){
+    .bar-row{grid-template-columns:1fr;gap:4px}
+    .bar-label{font-size:10px}
+    .bar-value{text-align:left}
+  }
+
+  /* ============ SIMULADOR ANTES/DEPOIS ============ */
+  .sim-section{margin-top:48px}
+  .sim-wrap{
+    border:1px solid var(--line-2);
+    background:#0a0a0c;
+    padding:24px 22px;
+  }
+  .sim-controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:24px;
+  }
+  @media (max-width:540px){.sim-controls{grid-template-columns:1fr}}
+  .sim-field label{
+    display:block;
+    font-family:'JetBrains Mono';font-size:10.5px;color:var(--ink-3);
+    letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;
+  }
+  .sim-field select{
+    background:transparent;border:none;border-bottom:1px solid var(--line-2);
+    color:var(--ink);font-family:'JetBrains Mono';font-size:14px;
+    padding:8px 0;outline:none;width:100%;
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23ff8a1c' fill='none' stroke-width='1.2'/></svg>");
+    background-repeat:no-repeat;background-position:right 4px center;padding-right:24px;
+  }
+  .sim-field select:focus{border-bottom-color:var(--amber)}
+  .sim-field select option{background:#1a1a1f;color:var(--ink)}
+
+  .sim-compare{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:18px;align-items:center;
+    margin-bottom:20px;
+  }
+  @media (max-width:540px){
+    .sim-compare{grid-template-columns:1fr;gap:8px}
+    .sim-arrow{transform:rotate(90deg);justify-self:center;margin:8px 0}
+  }
+  .sim-card{
+    border:1px solid var(--line-2);
+    padding:14px 16px;
+    background:#0d0d11;
+  }
+  .sim-card.target{border-color:var(--amber);background:rgba(255,138,28,0.04)}
+  .sim-card-label{
+    font-family:'JetBrains Mono';font-size:9.5px;color:var(--ink-3);
+    letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;
+  }
+  .sim-card.target .sim-card-label{color:var(--amber)}
+  .sim-card-name{
+    font-family:'Fraunces';font-style:italic;font-size:14px;
+    color:var(--ink);line-height:1.3;margin-bottom:8px;
+  }
+  .sim-card-metric{
+    display:flex;justify-content:space-between;
+    padding:4px 0;border-bottom:1px dashed var(--line);
+    font-family:'JetBrains Mono';font-size:11px;
+  }
+  .sim-card-metric:last-child{border-bottom:none}
+  .sim-card-metric .k{color:var(--ink-3)}
+  .sim-card-metric .v{color:var(--ink)}
+  .sim-arrow{
+    color:var(--amber);font-size:24px;font-family:'JetBrains Mono';
+    text-align:center;
+  }
+
+  .sim-verdict{
+    margin-top:16px;
+    padding:18px 20px;
+    border:1px solid var(--line-2);
+    background:#0d0d11;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:18px;align-items:center;
+  }
+  @media (max-width:540px){
+    .sim-verdict{grid-template-columns:1fr;text-align:center;gap:10px}
+  }
+  .sim-verdict-icon{
+    font-family:'Fraunces';font-weight:300;font-size:46px;line-height:1;
+    font-variation-settings:"opsz" 144;
+  }
+  .sim-verdict-icon.good{color:var(--green)}
+  .sim-verdict-icon.warn{color:var(--yellow)}
+  .sim-verdict-icon.bad{color:var(--red)}
+  .sim-verdict-text{font-size:13px;color:var(--ink-2);line-height:1.55}
+  .sim-verdict-text strong{color:var(--ink);font-weight:600}
+  .sim-verdict-rate{
+    font-family:'JetBrains Mono';font-size:13px;font-weight:600;
+    color:var(--amber);text-align:right;letter-spacing:0.05em;
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body class="grain">
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">LM<span>Aero</span>Fit</div>
+    </div>
+    <div class="eyebrow">Ferramenta · 02 · Triatlo / TT · v3</div>
+    <h1>Avaliação<br/>Aerodinâmica<br/><em>de Bike</em></h1>
+    <p class="lede">
+      Diagnóstico HUD da sua setup. Clique nos componentes pra navegar até o ajuste. Modelagem física com banco de dados real (Kona/Nice 2025 · 4.000 bikes contadas), trade-off potência-posição (Birmingham study), hierarquia de ROI validada por Best Bike Split.
+    </p>
+    <div class="meta-strip">
+      <span><span class="dot"></span>Martin 1998 · Crouch 2017</span>
+      <span><span class="dot"></span>Best Bike Split · CdA model</span>
+      <span><span class="dot"></span>Helmet: Cyclingnews 2025</span>
+    </div>
+  </header>
+
+  <!-- ================ DIAGRAMA INTERATIVO ================ -->
+  <section class="section bike-diagram-section">
+    <div class="section-head">
+      <span class="section-num">→</span>
+      <span class="section-title">Diagrama da setup</span>
+      <span class="section-rule"></span>
+    </div>
+    <div class="section-sub">Clique em qualquer componente da bike pra ir direto ao ajuste. Cada peça contribui pro CdA total da sua posição em prova.</div>
+
+    <!-- ====== PAINEL DIAGNÓSTICO DA SETUP ====== -->
+<div class="bike-panel-wrap">
+
+  <!-- Central CdA gauge -->
+  <div class="panel-central">
+    <svg viewBox="0 0 240 240" class="cda-gauge">
+      <defs>
+        <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#7fb069"/>
+          <stop offset="50%" stop-color="#e8b84a"/>
+          <stop offset="100%" stop-color="#d4504a"/>
+        </linearGradient>
+      </defs>
+      <!-- Arco de referência -->
+      <path d="M 30 180 A 90 90 0 0 1 210 180" fill="none" stroke="#1d1d22" stroke-width="14" stroke-linecap="round"/>
+      <!-- Arco de progresso (calculado por JS) -->
+      <path id="cda-arc" d="M 30 180 A 90 90 0 0 1 210 180" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="283" stroke-dashoffset="283" />
+      <!-- Tick marks -->
+      <g stroke="#5b5852" stroke-width="1">
+        <line x1="30" y1="180" x2="35" y2="172"/>
+        <line x1="120" y1="90" x2="120" y2="80"/>
+        <line x1="210" y1="180" x2="205" y2="172"/>
+      </g>
+      <!-- Labels da gauge -->
+      <text x="30" y="200" text-anchor="middle" class="g-tick">0.18</text>
+      <text x="120" y="76" text-anchor="middle" class="g-tick">0.30</text>
+      <text x="210" y="200" text-anchor="middle" class="g-tick">0.50</text>
+
+      <!-- Valor central -->
+      <text x="120" y="135" text-anchor="middle" class="g-eyebrow">CdA TOTAL</text>
+      <text x="120" y="172" text-anchor="middle" id="gauge-cda-val" class="g-main">—</text>
+      <text x="120" y="195" text-anchor="middle" id="gauge-cda-bench" class="g-sub">aguardando dados</text>
+    </svg>
+
+    <div class="panel-strip">
+      <div class="strip-item">
+        <div class="strip-label">VEL @ FTP</div>
+        <div class="strip-value mono"><span id="strip-vel">—</span><span class="strip-unit">km/h</span></div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-label">CRR PNEU</div>
+        <div class="strip-value mono"><span id="strip-crr">—</span></div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-label">PSI ÓTIMO</div>
+        <div class="strip-value mono"><span id="strip-psi">—</span><span class="strip-unit">psi</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de pictogramas (clicáveis) -->
+  <div class="panel-grid">
+
+    <!-- POSIÇÃO -->
+    <button type="button" class="panel-card" data-target="section-posicao">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Atleta em aero (linha simples geométrica) -->
+          <circle cx="13" cy="11" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M 15 13 Q 22 14 30 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="30" y1="12" x2="36" y2="11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="22" y1="14" x2="20" y2="26" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="20" y1="26" x2="26" y2="34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">POSIÇÃO</div>
+        <div class="panel-card-value" id="card-posicao">—</div>
+        <div class="panel-card-delta" id="card-posicao-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- CAPACETE -->
+    <button type="button" class="panel-card" data-target="section-capacete" data-field="capacete">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Capacete TT com cauda -->
+          <path d="M 8 18 Q 8 10 18 9 Q 30 8 32 14 Q 33 18 30 20 L 18 20 Q 14 22 8 18 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="14" y1="14" x2="11" y2="11" stroke="currentColor" stroke-width="1"/>
+          <line x1="18" y1="14" x2="16" y2="11" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">CAPACETE</div>
+        <div class="panel-card-value" id="card-capacete">—</div>
+        <div class="panel-card-delta" id="card-capacete-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- VESTUÁRIO -->
+    <button type="button" class="panel-card" data-target="section-capacete" data-field="vest">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Trisuit -->
+          <path d="M 12 8 L 16 11 L 24 11 L 28 8 L 31 14 L 28 16 L 28 32 L 12 32 L 12 16 L 9 14 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="20" y1="11" x2="20" y2="32" stroke="currentColor" stroke-width="0.8" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">VESTUÁRIO</div>
+        <div class="panel-card-value" id="card-vest">—</div>
+        <div class="panel-card-delta" id="card-vest-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- QUADRO -->
+    <button type="button" class="panel-card" data-target="section-quadro" data-field="quadro">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Quadro TT geometria -->
+          <circle cx="8" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <circle cx="32" cy="30" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M 8 30 L 18 18 L 30 18 L 32 30 L 18 30 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="18" y1="18" x2="18" y2="30" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="30" y1="18" x2="32" y2="14" stroke="currentColor" stroke-width="1.6"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">QUADRO</div>
+        <div class="panel-card-value" id="card-quadro">—</div>
+        <div class="panel-card-delta" id="card-quadro-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- BASE BAR -->
+    <button type="button" class="panel-card" data-target="section-quadro" data-field="basebar">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Base bar (T invertido) -->
+          <path d="M 6 18 L 34 18 L 34 22 L 6 22 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <rect x="18" y="22" width="4" height="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="6" cy="20" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="34" cy="20" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">BASE BAR</div>
+        <div class="panel-card-value" id="card-basebar">—</div>
+        <div class="panel-card-delta" id="card-basebar-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- EXTENSIONS -->
+    <button type="button" class="panel-card" data-target="section-quadro" data-field="extensions">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Extensions (poles paralelos) -->
+          <line x1="6" y1="14" x2="28" y2="12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <line x1="6" y1="26" x2="28" y2="24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M 28 12 Q 32 12 33 16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M 28 24 Q 32 24 33 20" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="34" cy="18" r="2" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">EXTENSIONS</div>
+        <div class="panel-card-value" id="card-extensions">—</div>
+        <div class="panel-card-delta" id="card-extensions-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- ARM CUPS -->
+    <button type="button" class="panel-card" data-target="section-quadro" data-field="armcups">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Arm cups (dois bowls) -->
+          <path d="M 5 16 Q 5 22 12 22 Q 19 22 19 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M 21 16 Q 21 22 28 22 Q 35 22 35 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="5" y1="16" x2="19" y2="16" stroke="currentColor" stroke-width="1.2"/>
+          <line x1="21" y1="16" x2="35" y2="16" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">ARM CUPS</div>
+        <div class="panel-card-value" id="card-armcups">—</div>
+        <div class="panel-card-delta" id="card-armcups-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- RODA DIANTEIRA -->
+    <button type="button" class="panel-card" data-target="section-rodas" data-field="rodaf">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Roda aero com aro -->
+          <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.6"/>
+          <line x1="20" y1="5" x2="20" y2="35" stroke="currentColor" stroke-width="0.5" opacity="0.4"/>
+          <line x1="5" y1="20" x2="35" y2="20" stroke="currentColor" stroke-width="0.5" opacity="0.4"/>
+          <circle cx="20" cy="20" r="2" fill="currentColor"/>
+          <text x="20" y="23" text-anchor="middle" font-size="5" fill="currentColor" font-family="JetBrains Mono">F</text>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">RODA DIANT.</div>
+        <div class="panel-card-value" id="card-rodaf">—</div>
+        <div class="panel-card-delta" id="card-rodaf-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- RODA TRASEIRA -->
+    <button type="button" class="panel-card" data-target="section-rodas" data-field="rodat">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Roda disc (sólida) -->
+          <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="20" cy="20" r="12" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="0.8"/>
+          <circle cx="20" cy="20" r="2" fill="currentColor"/>
+          <text x="20" y="23" text-anchor="middle" font-size="5" fill="currentColor" font-family="JetBrains Mono">R</text>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">RODA TRAS.</div>
+        <div class="panel-card-value" id="card-rodat">—</div>
+        <div class="panel-card-delta" id="card-rodat-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- PNEU -->
+    <button type="button" class="panel-card" data-target="section-rodas" data-field="pneu">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Pneu (anel grosso) -->
+          <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="4"/>
+          <circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.5"/>
+          <line x1="20" y1="3" x2="20" y2="7" stroke="currentColor" stroke-width="1"/>
+          <line x1="20" y1="33" x2="20" y2="37" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">PNEU</div>
+        <div class="panel-card-value" id="card-pneu">—</div>
+        <div class="panel-card-delta" id="card-pneu-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- DRIVETRAIN -->
+    <button type="button" class="panel-card" data-target="section-drivetrain" data-field="pedivela">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Coroa + pedivela -->
+          <circle cx="20" cy="20" r="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.5"/>
+          <circle cx="20" cy="20" r="2" fill="currentColor"/>
+          <!-- Dentes (tracinhos) -->
+          <line x1="20" y1="8" x2="20" y2="10" stroke="currentColor" stroke-width="1"/>
+          <line x1="32" y1="20" x2="30" y2="20" stroke="currentColor" stroke-width="1"/>
+          <line x1="20" y1="32" x2="20" y2="30" stroke="currentColor" stroke-width="1"/>
+          <line x1="8" y1="20" x2="10" y2="20" stroke="currentColor" stroke-width="1"/>
+          <!-- Pedivela -->
+          <line x1="20" y1="20" x2="30" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <rect x="29" y="31" width="6" height="3" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">DRIVETRAIN</div>
+        <div class="panel-card-value" id="card-drivetrain">—</div>
+        <div class="panel-card-delta" id="card-drivetrain-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+    <!-- BTA -->
+    <button type="button" class="panel-card" data-target="section-quadro" data-field="garrafa">
+      <div class="panel-card-icon">
+        <svg viewBox="0 0 40 40" class="picto">
+          <!-- Garrafa BTA -->
+          <path d="M 17 8 L 23 8 L 23 12 L 26 14 L 26 32 Q 26 35 23 35 L 17 35 Q 14 35 14 32 L 14 14 L 17 12 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="20" y1="8" x2="20" y2="5" stroke="currentColor" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="panel-card-body">
+        <div class="panel-card-label">BTA / GARRAFA</div>
+        <div class="panel-card-value" id="card-garrafa">—</div>
+        <div class="panel-card-delta" id="card-garrafa-delta">—</div>
+      </div>
+      <div class="panel-card-arrow">→</div>
+    </button>
+
+  </div>
+</div>
+  </section>
+
+  <form id="form" autocomplete="off">
+
+    <!-- 01 ATLETA -->
+    <section class="section" id="section-atleta">
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <span class="section-title">Atleta</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Largura dos ombros é o melhor proxy antropométrico de área frontal (mais que altura ou peso). Medida: ponto ósseo a ponto ósseo dos ombros, ou use a largura do guidão road que você usa (costuma bater).</div>
+
+      <div class="grid-3">
+        <div class="field"><label>Altura <span class="hint">cm</span></label><input class="input mono" type="number" id="altura" min="140" max="220" value="178" /></div>
+        <div class="field"><label>Peso <span class="hint">kg</span></label><input class="input mono" type="number" id="peso" min="40" max="140" value="72" step="0.1" /></div>
+        <div class="field"><label>Ombros <span class="hint">cm · acrômio a acrômio</span></label><input class="input mono" type="number" id="ombros" min="30" max="60" value="43" step="0.5" /></div>
+        <div class="field"><label>Idade</label><input class="input mono" type="number" id="idade" min="14" max="80" value="52" /></div>
+        <div class="field"><label>Sexo</label><select class="select mono" id="sexo"><option value="m">Masculino</option><option value="f">Feminino</option></select></div>
+        <div class="field"><label>FTP <span class="hint">watts</span></label><input class="input mono" type="number" id="ftp" min="100" max="500" value="280" /></div>
+      </div>
+    </section>
+
+    <!-- 02 POSIÇÃO -->
+    <section class="section" id="section-posicao">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <span class="section-title">Posição & Flexibilidade</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">A posição é o fator individual de maior impacto no CdA — sozinha pode mudar 30-50 watts.</div>
+
+      <div class="field" style="margin-bottom:22px">
+        <label>Flexibilidade lombar / isquiotibiais</label>
+        <div class="slider-wrap">
+          <div class="slider-head"><span class="mono" style="color:var(--ink-3);font-size:10.5px;letter-spacing:0.1em">RIGIDEZ ←→ MOBILIDADE</span><span class="slider-value mono" id="flex-v">3</span></div>
+          <input type="range" id="flex" min="1" max="5" value="3" />
+          <div class="slider-scale"><span>1 · Mal toca joelhos</span><span>5 · Mãos no chão</span></div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:22px">
+        <label>Tempo confortável em aero contínuo</label>
+        <div class="slider-wrap">
+          <div class="slider-head"><span class="mono" style="color:var(--ink-3);font-size:10.5px;letter-spacing:0.1em">MINUTOS CONTÍNUOS</span><span class="slider-value mono" id="aero-v">90 min</span></div>
+          <input type="range" id="aerotempo" min="5" max="300" value="90" step="5" />
+          <div class="slider-scale"><span>5 min</span><span>5h+</span></div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:22px">
+        <label>Drop selim → cockpit <span class="hint">cm (selim acima do cockpit)</span></label>
+        <div class="slider-wrap">
+          <div class="slider-head"><span class="mono" style="color:var(--ink-3);font-size:10.5px;letter-spacing:0.1em">DROP ATUAL</span><span class="slider-value mono" id="drop-v">10 cm</span></div>
+          <input type="range" id="drop" min="0" max="22" value="10" step="0.5" />
+          <div class="slider-scale"><span>0 cm</span><span>22 cm</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Ângulo do tronco em aero</label>
+        <div class="segmented" id="tronco-seg">
+          <input type="radio" name="tronco" id="t1" value="vertical" />
+          <label for="t1">Alto (~50°)</label>
+          <input type="radio" name="tronco" id="t2" value="medio" checked />
+          <label for="t2">Médio (~35°)</label>
+          <input type="radio" name="tronco" id="t3" value="baixo" />
+          <label for="t3">Baixo (~22°)</label>
+          <input type="radio" name="tronco" id="t4" value="superman" />
+          <label for="t4">Plano (~10°)</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 QUADRO -->
+    <section class="section" id="section-quadro">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <span class="section-title">Quadro & Cockpit</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Modelos do banco têm deltas relativos a um quadro tri "genérico" de referência (CdA 0.000).</div>
+
+      <div class="grid">
+        <div class="field full">
+          <label>Modelo do quadro TT/Tri</label>
+          <select class="select mono" id="quadro">
+            <optgroup label="Top market share Kona/Nice 2025">
+              <option value="canyon_speedmax_cfr">Canyon Speedmax CFR (#1 Nice 2025 — 20%)</option>
+              <option value="cervelo_p5">Cervelo P5 (#1 Kona 2025 women)</option>
+              <option value="cervelo_pseries" selected>Cervelo P-Series</option>
+              <option value="trek_sc_slr">Trek Speed Concept SLR 9 (#3 share)</option>
+              <option value="spec_shiv">Specialized Shiv Disc</option>
+              <option value="qr_prsix">Quintana Roo PRsix2 (~5% Kona 2025)</option>
+              <option value="giant_trinity_sl">Giant Trinity Advanced SL</option>
+            </optgroup>
+            <optgroup label="Superbike / pro choice">
+              <option value="cadex_tri">Cadex Tri</option>
+              <option value="cube_aerium_slt">Cube Aerium C:68X SLT</option>
+              <option value="ventum_tempus">Ventum Tempus (top splits Kona 2025)</option>
+              <option value="ventum_one">Ventum One</option>
+              <option value="pinarello_bolide">Pinarello Bolide F</option>
+            </optgroup>
+            <optgroup label="Premium Tri/TT">
+              <option value="felt_ia">Felt IA Advanced</option>
+              <option value="argon_e119">Argon 18 E-119 Tri+</option>
+              <option value="bmc_tm01">BMC Timemachine 01</option>
+              <option value="scott_plasma">Scott Plasma RC</option>
+            </optgroup>
+            <optgroup label="Intermediário / road">
+              <option value="a2_sp">A2 Bikes SP</option>
+              <option value="generico_tri">Genérico Tri (tubular aero)</option>
+              <option value="road_aero">Road aero (Aeroad/Madone/SystemSix)</option>
+              <option value="road_classico">Road clássico (tubos redondos)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tamanho do quadro</label>
+          <select class="select mono" id="tamanho">
+            <option value="48">48-49 (XS)</option>
+            <option value="51">51 (S)</option>
+            <option value="54">54 (M)</option>
+            <option value="56" selected>56 (M/L)</option>
+            <option value="58">58 (L)</option>
+            <option value="61">61 (XL)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Base bar <span class="hint">parte horizontal com freios</span></label>
+          <select class="select mono" id="basebar">
+            <optgroup label="Sem upgrade">
+              <option value="sem_clip">Sem clip-on (apenas base bar)</option>
+              <option value="aluminio_gen">Alumínio genérico aftermarket</option>
+              <option value="carbono_gen">Carbono aftermarket genérico</option>
+            </optgroup>
+            <optgroup label="Stock do quadro">
+              <option value="stock_quadro" selected>Stock do quadro (padrão fabricante)</option>
+              <option value="cervelo_ex14_bb">Cervelo EX14 monoriser (P5 2024+)</option>
+              <option value="3t_aduro_bb">3T Aduro (Cervelo P5 original)</option>
+              <option value="spec_shiv_bb">Specialized Shiv Disc integrado</option>
+              <option value="trinity_bb">Giant Trinity Mono</option>
+              <option value="integrado_uci">Outro integrado UCI WT</option>
+            </optgroup>
+            <optgroup label="Aftermarket premium">
+              <option value="fasttt_xenos">FastTT Xenos318</option>
+              <option value="vision_tfa_evo">Vision Metron TFA EVO base bar</option>
+              <option value="tririg_alpha_bb">TriRig Alpha Prime</option>
+              <option value="swissside_bb">Swiss Side AERO</option>
+              <option value="kucycle_tf1_bb">Kú Cycle TF1 PRO (F-Ducts)</option>
+            </optgroup>
+            <optgroup label="Combo cockpit completo">
+              <option value="fasttt_20_full">FastTT 2.0 cockpit completo</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Extensions <span class="hint">poles onde apoia as mãos</span></label>
+          <select class="select mono" id="extensions">
+            <optgroup label="Sem upgrade">
+              <option value="sem_ext">Sem extensions</option>
+              <option value="aluminio_basico">Alumínio L/S-bend básico</option>
+              <option value="carbono_generico" selected>Carbono ski/S-bend genérico</option>
+            </optgroup>
+            <optgroup label="Profile Design (#1 Kona 2025 · ~30% share)">
+              <option value="pd_wing_pro">Profile Design Wing Pro</option>
+              <option value="pd_aeria">Profile Design Aeria Ultimate</option>
+              <option value="pd_aerobeam">Profile Design AeroBeam</option>
+            </optgroup>
+            <optgroup label="Vision Metron (originais)">
+              <option value="metron_tfe_pro">Vision Metron TFE Pro (€673)</option>
+              <option value="metron_tfe_evo">Vision Metron TFE EVO (€679)</option>
+              <option value="metron_replica">Réplica Metron TFE (chinesa)</option>
+            </optgroup>
+            <optgroup label="51 Speedshop (Mat Steinmetz)">
+              <option value="51_rev_pro">51 Rev Aero Pro (USD $479)</option>
+              <option value="51_rev">51 Rev Aero 70/120mm (USD $229)</option>
+              <option value="51_rev_light">51 Rev Aero Light (USD $189)</option>
+              <option value="51_ski_carbon">51 Ski Carbon (high target)</option>
+              <option value="51_ultimate">51 Ultimate Carbon (USD $159)</option>
+              <option value="51_alloy_120">51 Ultimate Alloy 120 (USD $79)</option>
+            </optgroup>
+            <optgroup label="Pro choice Kona 2025">
+              <option value="sync_aerobar3">Sync Ergonomics Aerobar 3</option>
+              <option value="sync_aerobar2">Sync Ergonomics Aerobar 2</option>
+              <option value="firstwheel_ext">First Wheel Extensions</option>
+              <option value="drag2zero">Drag2Zero (boutique UK)</option>
+            </optgroup>
+            <optgroup label="Outras marcas premium">
+              <option value="tririg_scoops">TriRig Scoops</option>
+              <option value="wattshop_anemoi">Wattshop Anemoi</option>
+              <option value="zipp_vuka">Zipp Vuka Stealth</option>
+              <option value="triwings_ext">Triwings (BR/Curitiba)</option>
+            </optgroup>
+            <optgroup label="Custom / Combo">
+              <option value="fasttt_2_ext">FastTT 2.0 full forearm</option>
+              <option value="aerogain_custom">AeroGain 3D custom</option>
+            </optgroup>
+            <optgroup label="House brands (stock do quadro)">
+              <option value="bontrager_ext">Bontrager (stock Trek)</option>
+              <option value="canyon_ext">Canyon (stock Speedmax)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Arm cups <span class="hint">apoio de cotovelo</span></label>
+          <select class="select mono" id="armcups">
+            <optgroup label="Padrão">
+              <option value="stock_quadro" selected>Stock do quadro</option>
+              <option value="pad_basico">Pad básico alumínio</option>
+              <option value="cup_padrao">Cup padrão (low-sided)</option>
+            </optgroup>
+            <optgroup label="High-sided (mais suporte)">
+              <option value="cup_high_sided">Cup high-sided genérico</option>
+              <option value="51_std">51 Speedshop Standard (USD $80)</option>
+              <option value="51_high">51 Speedshop High Sided (USD $119)</option>
+              <option value="51_high_wedge">51 Speedshop High + Wedge 15°</option>
+              <option value="vision_pad">Vision Metron pads</option>
+            </optgroup>
+            <optgroup label="Já incluído no cockpit (não duplicar)">
+              <option value="fasttt_full">FastTT full forearm (parte do cockpit)</option>
+              <option value="aerogain_3d_arm">AeroGain 3D (parte do cockpit)</option>
+              <option value="custom_3d">Custom 3D outras marcas</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Roteamento de cabos</label>
+          <select class="select mono" id="cabos">
+            <option value="externos">Externos visíveis</option>
+            <option value="parciais" selected>Parcialmente internos</option>
+            <option value="totais">Totalmente internos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Garrafa entre braços</label>
+          <select class="select mono" id="garrafa">
+            <option value="nao" selected>Não usa</option>
+            <option value="redonda">Redonda padrão</option>
+            <option value="aero">BTA aero dedicada</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 RODAS E PNEUS -->
+    <section class="section" id="section-rodas">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <span class="section-title">Rodas & Pneus</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Rodas dianteira e traseira separadas. Crr dos pneus do bicyclerollingresistance.com e AeroCoach 2024.</div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Roda dianteira</label>
+          <select class="select mono" id="rodaf">
+            <optgroup label="Box / Treino">
+              <option value="box">Alumínio &lt;30mm</option>
+              <option value="r40">Carbono 40mm genérico</option>
+            </optgroup>
+            <optgroup label="50mm">
+              <option value="zipp404">Zipp 404 Firecrest (58mm)</option>
+              <option value="enve45">Enve SES 4.5 (50/56mm)</option>
+              <option value="roval_clx">Roval Rapide CLX II (51/60)</option>
+              <option value="cadex50">Cadex 50 Ultra (50mm)</option>
+              <option value="bontrager_51">Bontrager Aeolus RSL 51</option>
+            </optgroup>
+            <optgroup label="60-65mm">
+              <option value="zipp808_60" selected>Zipp 808 Firecrest (~60mm)</option>
+              <option value="enve65">Enve SES 6.7 (60/67)</option>
+              <option value="hunt_60">Hunt 60 Limitless</option>
+              <option value="dt_arc_62">DT Swiss ARC 62</option>
+              <option value="dt_arc1100_62">DT Swiss ARC 1100 DICUT 62 (#1 Kona 2025)</option>
+              <option value="vision_metron60">Vision Metron 60 SL</option>
+              <option value="hed_v62">HED Vanquish V62 Pro</option>
+            </optgroup>
+            <optgroup label="80mm+">
+              <option value="zipp808">Zipp 808 NSW (80mm)</option>
+              <option value="enve78">Enve SES 7.8 (75/85)</option>
+              <option value="hed_v84">HED Vanquish V84 (top splits Kona 2025)</option>
+              <option value="princeton_blur">Princeton Blur 633 (63mm)</option>
+              <option value="princeton_mach">Princeton Mach 7580 (pros)</option>
+              <option value="dt_arc_80">DT Swiss ARC 80</option>
+              <option value="dt_arc1100_80">DT Swiss ARC 1100 DICUT 80</option>
+              <option value="cadex_aero">Cadex Aero 65 Ultra</option>
+              <option value="cadex_4spoke">Cadex Aero 4-Spoke (pros Kona 2025)</option>
+            </optgroup>
+            <optgroup label="Disc (legal só atrás na maioria)">
+              <option value="disc_zipp">Zipp Super-9 Disc</option>
+              <option value="disc_dt">DT Swiss ARC DICUT DISC</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Roda traseira</label>
+          <select class="select mono" id="rodat">
+            <optgroup label="Box / Treino"><option value="box">Alumínio &lt;30mm</option><option value="r40">Carbono 40mm genérico</option></optgroup>
+            <optgroup label="50-65mm">
+              <option value="zipp404">Zipp 404 Firecrest</option>
+              <option value="enve45">Enve SES 4.5</option>
+              <option value="roval_clx">Roval Rapide CLX II</option>
+              <option value="cadex50">Cadex 50 Ultra</option>
+              <option value="bontrager_51">Bontrager Aeolus RSL 51</option>
+              <option value="zipp808_60">Zipp 808 Firecrest</option>
+              <option value="enve65">Enve SES 6.7</option>
+              <option value="dt_arc1100_62">DT Swiss ARC 1100 DICUT 62</option>
+              <option value="hed_v62">HED Vanquish V62 Pro</option>
+            </optgroup>
+            <optgroup label="80mm">
+              <option value="zipp808" selected>Zipp 808 NSW (80mm)</option>
+              <option value="enve78">Enve SES 7.8</option>
+              <option value="hed_v84">HED Vanquish V84</option>
+              <option value="dt_arc_80">DT Swiss ARC 80</option>
+              <option value="dt_arc1100_80">DT Swiss ARC 1100 DICUT 80</option>
+              <option value="cadex_aero">Cadex Aero 65 Ultra</option>
+              <option value="cadex_4spoke">Cadex Aero 4-Spoke</option>
+              <option value="princeton_mach">Princeton Mach 7580</option>
+            </optgroup>
+            <optgroup label="Trilobe / disc-like (rear-only)">
+              <option value="hed_jet180">HED Jet 180 (trilobe — pros Kona 2025)</option>
+            </optgroup>
+            <optgroup label="Disc">
+              <option value="disc_zipp">Zipp Super-9 Disc</option>
+              <option value="disc_dt">DT Swiss ARC DICUT DISC</option>
+              <option value="disc_capa">Capa de disc adaptada</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Pneu (modelo)</label>
+          <select class="select mono" id="pneu">
+            <optgroup label="TT/Tri puro (rápido, frágil)">
+              <option value="vit_corsa_speed">Vittoria Corsa Speed 2.0</option>
+              <option value="vit_corsa_pro_speed">Vittoria Corsa Pro Speed TLR</option>
+              <option value="gp5000_tt">Continental GP5000 TT TR</option>
+              <option value="conti_aero111">Continental Aero 111</option>
+              <option value="veloflex_record">Veloflex Record</option>
+            </optgroup>
+            <optgroup label="Race rápido (equilíbrio)">
+              <option value="gp5000_str" selected>Continental GP5000 S TR</option>
+              <option value="vit_corsa_pro">Vittoria Corsa Pro TLR</option>
+              <option value="pirelli_prrs">Pirelli P Zero Race RS</option>
+              <option value="michelin_powercup">Michelin Power Cup TLR</option>
+              <option value="schwalbe_proone">Schwalbe Pro One TLE</option>
+              <option value="specialized_rapid">Specialized Rapid Air</option>
+            </optgroup>
+            <optgroup label="Treino / robusto">
+              <option value="gp5000_classic">Continental GP5000 (clincher)</option>
+              <option value="gatorskin">Continental Gatorskin / 4Season</option>
+              <option value="conti_treino">Pneu treino genérico</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Largura do pneu <span class="hint">mm (medida real)</span></label>
+          <select class="select mono" id="pneul">
+            <option value="23">23mm</option>
+            <option value="25">25mm</option>
+            <option value="28" selected>28mm</option>
+            <option value="30">30mm</option>
+            <option value="32">32mm</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Pressão <span class="hint">psi (auto-calculável)</span></label>
+          <input class="input mono" type="number" id="psi" min="50" max="130" value="80" />
+        </div>
+
+        <div class="field full">
+          <label>Câmara / Tubeless</label>
+          <div class="segmented">
+            <input type="radio" name="camara" id="ca1" value="butil" />
+            <label for="ca1">Câmara butil</label>
+            <input type="radio" name="camara" id="ca2" value="latex" />
+            <label for="ca2">Câmara látex</label>
+            <input type="radio" name="camara" id="ca3" value="tpu" />
+            <label for="ca3">Câmara TPU</label>
+            <input type="radio" name="camara" id="ca4" value="tubeless" checked />
+            <label for="ca4">Tubeless</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 CAPACETE & VESTUÁRIO -->
+    <section class="section" id="section-capacete">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <span class="section-title">Capacete & Vestuário</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Dados de túnel de vento Cyclingnews 2025 (47 capacetes, mannequin, ±0.74 W).</div>
+
+      <div class="grid">
+        <div class="field full">
+          <label>Capacete (modelo)</label>
+          <select class="select mono" id="capacete">
+            <optgroup label="TT dedicado · top tier (mais rápidos)">
+              <option value="rudy_wingdream">Rudy Project Wingdream (-16.6W @45km/h)</option>
+              <option value="vanrysel_xcr">Van Rysel XCR TT</option>
+              <option value="giro_aerohead">Giro Aerohead 2</option>
+              <option value="trek_ballista_tt">Trek Ballista TT</option>
+              <option value="met_drone">MET Drone MIPS</option>
+              <option value="rudy_wing">Rudy Project The Wing (-12.6W @45km/h)</option>
+              <option value="kask_bambino">Kask Bambino Pro</option>
+              <option value="kask_mistral">Kask Mistral</option>
+              <option value="lazer_victor">Lazer Victor KinetiCore</option>
+              <option value="rudy_wingspan">Rudy Project Wingspan</option>
+              <option value="poc_tempor">POC Tempor</option>
+            </optgroup>
+            <optgroup label="TT curto / aero road premium">
+              <option value="poc_procen">POC Procen Air</option>
+              <option value="oakley_velomach">Oakley Velo Mach</option>
+              <option value="rudy_volantis">Rudy Project Volantis (aero road)</option>
+              <option value="giro_eclipse" selected>Giro Eclipse</option>
+              <option value="trek_ballista">Trek Ballista</option>
+              <option value="sworks_evade">S-Works Evade III</option>
+              <option value="kask_utopia">Kask Utopia Y</option>
+              <option value="poc_ventral">POC Ventral</option>
+            </optgroup>
+            <optgroup label="Road / vented">
+              <option value="road_aero_gen">Road aero genérico</option>
+              <option value="road_vented">Road vented (Aether/Z1/Cytal)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Vestuário em prova</label>
+          <div class="segmented">
+            <input type="radio" name="vest" id="v1" value="bib" />
+            <label for="v1">Bib + jersey</label>
+            <input type="radio" name="vest" id="v2" value="trisuit" checked />
+            <label for="v2">Trisuit</label>
+            <input type="radio" name="vest" id="v3" value="skinsuit" />
+            <label for="v3">Skinsuit aero</label>
+            <input type="radio" name="vest" id="v4" value="skinsuit_pro" />
+            <label for="v4">Skinsuit pro c/ luvas</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Cobre-sapatilha aero</label>
+          <div class="segmented">
+            <input type="radio" name="overshoe" id="ov1" value="nao" checked />
+            <label for="ov1">Não usa</label>
+            <input type="radio" name="overshoe" id="ov2" value="sim" />
+            <label for="ov2">Usa</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Meias aero (acima do tornozelo)</label>
+          <div class="segmented">
+            <input type="radio" name="socks" id="sk1" value="nao" />
+            <label for="sk1">Não</label>
+            <input type="radio" name="socks" id="sk2" value="sim" checked />
+            <label for="sk2">Sim</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 DRIVETRAIN -->
+    <section class="section" id="section-drivetrain">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <span class="section-title">Drivetrain</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Transmissão afeta eficiência (perda 2-4%) e cadência ótima. Pedivela menor permite posição mais agressiva.</div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Grupo / Eletrônico</label>
+          <select class="select mono" id="grupo">
+            <optgroup label="Eletrônico (sem fio)">
+              <option value="sram_red_axs">SRAM Red AXS</option>
+              <option value="sram_force_axs" selected>SRAM Force AXS</option>
+              <option value="sram_rival_axs">SRAM Rival AXS</option>
+              <option value="shim_dura_di2">Shimano Dura-Ace Di2</option>
+              <option value="shim_ultegra_di2">Shimano Ultegra Di2</option>
+              <option value="campa_super">Campagnolo Super Record WRL</option>
+            </optgroup>
+            <optgroup label="Mecânico">
+              <option value="shim_mec">Shimano mecânico (105/Ultegra)</option>
+              <option value="sram_mec">SRAM mecânico (Force/Rival)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Configuração</label>
+          <div class="segmented">
+            <input type="radio" name="config" id="cf1" value="1x" checked />
+            <label for="cf1">1x (única)</label>
+            <input type="radio" name="config" id="cf2" value="2x" />
+            <label for="cf2">2x (dupla)</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Coroa <span class="hint">dentes</span></label>
+          <select class="select mono" id="coroa">
+            <option value="46">46t</option>
+            <option value="48">48t</option>
+            <option value="50">50t</option>
+            <option value="52">52t</option>
+            <option value="54" selected>54t (1x aero)</option>
+            <option value="56">56t (TT extremo)</option>
+            <option value="50_34">50/34 (compact 2x)</option>
+            <option value="52_36">52/36 (semi-compact)</option>
+            <option value="53_39">53/39 (standard)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Cassete</label>
+          <select class="select mono" id="cassete">
+            <option value="10_28">10-28 (TT plano)</option>
+            <option value="10_30">10-30 (race plana)</option>
+            <option value="10_33" selected>10-33 (race ondulada)</option>
+            <option value="10_36">10-36 (race montanhosa)</option>
+            <option value="10_44">10-44 (XPLR ultra range)</option>
+            <option value="11_28">11-28 (clássico)</option>
+            <option value="11_30">11-30</option>
+            <option value="11_32">11-32 (subidas)</option>
+            <option value="11_34">11-34 (granfondo)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Pedivela <span class="hint">mm</span></label>
+          <select class="select mono" id="pedivela">
+            <option value="155">155</option>
+            <option value="160">160</option>
+            <option value="165" selected>165 (TT moderno)</option>
+            <option value="167.5">167.5</option>
+            <option value="170">170</option>
+            <option value="172.5">172.5</option>
+            <option value="175">175 (clássico)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Cadência preferida <span class="hint">rpm em ritmo Z3</span></label>
+          <input class="input mono" type="number" id="cadencia" min="60" max="110" value="88" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 PROVA -->
+    <section class="section" id="section-prova">
+      <div class="section-head">
+        <span class="section-num">07</span>
+        <span class="section-title">Perfil da prova</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="section-sub">Para recomendações de gearing e estratégia. Sobre a distância principal que você vai competir.</div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Distância</label>
+          <select class="select mono" id="distancia">
+            <option value="40">TT 40 km</option>
+            <option value="90" selected>Half / 70.3 (90 km)</option>
+            <option value="180">Ironman / full (180 km)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Perfil do percurso</label>
+          <select class="select mono" id="perfil">
+            <option value="plano" selected>Plano (Roth, Cozumel, Florianópolis)</option>
+            <option value="ondulado">Ondulado (Wisconsin, Mont-Tremblant)</option>
+            <option value="montanhoso">Montanhoso (Nice, Lake Placid)</option>
+            <option value="velódromo">Velódromo / 40k TT pista</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="cta-wrap">
+      <button type="button" class="cta" id="run">
+        Calcular Avaliação
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- RESULT -->
+  <div class="result hidden" id="result">
+
+    <div class="verdict tcorners">
+      <div class="score-label">Score Aerodinâmico Global</div>
+      <div class="score mono"><span id="score-v">0</span><span class="score-suffix">/100</span></div>
+      <div class="verdict-label" id="verdict-label">—</div>
+      <div class="verdict-blurb" id="verdict-blurb">—</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" data-t="aero">Aero</button>
+      <button class="tab" data-t="drive">Drivetrain</button>
+      <button class="tab" data-t="ganho">Ganho</button>
+    </div>
+
+    <div class="tab-content active" id="t-aero">
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="metric-label">CdA estimado · atual</div>
+          <div class="metric-value mono"><span id="cda-atual">0.000</span><span class="unit">m²</span></div>
+          <div class="metric-detail" id="cda-atual-bench">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">CdA otimizado · alvo</div>
+          <div class="metric-value mono"><span id="cda-alvo">0.000</span><span class="unit">m²</span></div>
+          <div class="metric-detail good" id="cda-alvo-delta">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Velocidade a FTP · atual</div>
+          <div class="metric-value mono"><span id="v-atual">0.0</span><span class="unit">km/h</span></div>
+          <div class="metric-detail" id="v-atual-detail">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Velocidade a FTP · otimizada</div>
+          <div class="metric-value mono"><span id="v-alvo">0.0</span><span class="unit">km/h</span></div>
+          <div class="metric-detail good" id="v-alvo-delta">—</div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">Decomposição do CdA atual</div>
+        <div id="cda-breakdown"></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="t-drive">
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="metric-label">Crr efetivo do pneu</div>
+          <div class="metric-value mono"><span id="crr-v">0.0000</span></div>
+          <div class="metric-detail" id="crr-detail">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Eficiência do drivetrain</div>
+          <div class="metric-value mono"><span id="eta-v">0.0</span><span class="unit">%</span></div>
+          <div class="metric-detail" id="eta-detail">—</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Watts perdidos · rolamento</div>
+          <div class="metric-value mono"><span id="watts-roll">0</span><span class="unit">W</span></div>
+          <div class="metric-detail" id="roll-detail">a velocidade de prova</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Watts perdidos · transmissão</div>
+          <div class="metric-value mono"><span id="watts-drive">0</span><span class="unit">W</span></div>
+          <div class="metric-detail" id="drive-detail">vs ideal</div>
+        </div>
+      </div>
+
+      <div class="gear-vis">
+        <div class="gear-vis-title">Análise de gearing para a prova selecionada</div>
+        <div id="gearing-analysis"></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="t-ganho">
+      <div class="gain-panel">
+        <div class="gain-head">
+          <div class="gain-title">Projeção de ganho</div>
+          <div class="gain-dist-select" id="dist-select">
+            <button data-d="40" class="active">40 km</button>
+            <button data-d="90">90 km</button>
+            <button data-d="180">180 km</button>
+          </div>
+        </div>
+        <div class="gain-row"><span class="k">Tempo atual</span><span class="v mono" id="g-t-atual">—</span></div>
+        <div class="gain-row"><span class="k">Tempo otimizado</span><span class="v mono amber" id="g-t-alvo">—</span></div>
+        <div class="gain-row"><span class="k">Ganho de tempo</span><span class="v mono amber" id="g-delta">—</span></div>
+        <div class="gain-row"><span class="k">Watts economizados (mesma v)</span><span class="v mono" id="g-watts">—</span></div>
+        <div class="gain-row"><span class="k">Pressão ótima estimada</span><span class="v mono" id="g-psi">—</span></div>
+      </div>
+    </div>
+
+    <!-- RECS -->
+    <div class="recs">
+      <div class="recs-head">
+        <span class="section-num">→</span>
+        <span class="recs-title">Recomendações priorizadas</span>
+      </div>
+      <div class="recs-list" id="recs-list"></div>
+    </div>
+
+    <!-- ========== ORDEM DE OPERAÇÕES · ROI STACK ========== -->
+    <div class="roi-stack">
+      <div class="roi-head">
+        <span class="section-num">$</span>
+        <span class="recs-title">Onde gastar primeiro · $/min economizado</span>
+      </div>
+      <div class="roi-sub">Hierarquia validada por Best Bike Split (2026)<sup class="cite" data-ref="bbs2026" data-tip="Best Bike Split 2026 — Triathlon Bike Speed for the Money. Ranking de $/min economizado. Bike fit e pacing ficam ordens de magnitude à frente.">[4]</sup> e Triathlon Magazine<sup class="cite" data-ref="trimag" data-tip="Triathlon Magazine 2026 (Sauve) — Confirma 80% do drag é a posição. Big three do equipamento: cockpit, sela, rodas.">[8]</sup>. Atacar de cima pra baixo. O cheapest upgrade não é o que você pensa.</div>
+
+      <div class="roi-list">
+        <div class="roi-row tier-1">
+          <div class="roi-num">01</div>
+          <div class="roi-info">
+            <div class="roi-title">Bike fit profissional</div>
+            <div class="roi-desc">Posição é ~80% do drag. Move CdA 0.30 → 0.25-0.27 em meses, com mobilidade.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 800-2.000</div>
+            <div class="roi-time">5-15 min · 70.3</div>
+            <div class="roi-rate good">$25-80/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-1">
+          <div class="roi-num">02</div>
+          <div class="roi-info">
+            <div class="roi-title">Estratégia de pacing (BBS, TrainerRoad, coach)</div>
+            <div class="roi-desc">Pacing variável por terreno. 5-9 min na bike + corrida sai inteira.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">~R$ 600/ano</div>
+            <div class="roi-time">5-9 min · 90 km</div>
+            <div class="roi-rate good">$13-24/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-2">
+          <div class="roi-num">03</div>
+          <div class="roi-info">
+            <div class="roi-title">Capacete aero TT</div>
+            <div class="roi-desc">Melhor retorno em equipamento. Rudy Wingdream, Giro Aerohead, Kask Mistral.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 1.500-3.500</div>
+            <div class="roi-time">1.5-3 min · 90 km</div>
+            <div class="roi-rate">$100-150/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-2">
+          <div class="roi-num">04</div>
+          <div class="roi-info">
+            <div class="roi-title">Skinsuit/trisuit + acessórios</div>
+            <div class="roi-desc">Cobre-sapatilha, meias aero, luvas. Detalhes baratos.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 800-2.500</div>
+            <div class="roi-time">1-3 min · 90 km</div>
+            <div class="roi-rate">$100-200/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-3">
+          <div class="roi-num">05</div>
+          <div class="roi-info">
+            <div class="roi-title">TT/tri bike (se ainda está em road)</div>
+            <div class="roi-desc">Geometria habilita posição aero real. 80% do ganho vem disso, não do quadro em si.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 15-50 mil</div>
+            <div class="roi-time">8-12 min · 90 km</div>
+            <div class="roi-rate">$250-500/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-3">
+          <div class="roi-num">06</div>
+          <div class="roi-info">
+            <div class="roi-title">Rodas aero (50-80mm)</div>
+            <div class="roi-desc">Real, mas caro por minuto. Vai depois de tudo acima estar feito.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 8-20 mil</div>
+            <div class="roi-time">1-3 min · 90 km</div>
+            <div class="roi-rate warn">$700-1500/min</div>
+          </div>
+        </div>
+
+        <div class="roi-row tier-4">
+          <div class="roi-num">07</div>
+          <div class="roi-info">
+            <div class="roi-title">Upgrade de quadro superbike</div>
+            <div class="roi-desc">Sair de "tri bom" pra "superbike top". Último lugar a gastar.</div>
+          </div>
+          <div class="roi-meta">
+            <div class="roi-cost">R$ 25-60 mil</div>
+            <div class="roi-time">2-5 min · 90 km</div>
+            <div class="roi-rate bad">$1000-3000/min</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="roi-note">
+        <strong>O insight não-óbvio:</strong> capacete aero economiza <em>quase os mesmos minutos</em> que um par de rodas aero — a 1/10 do preço. Antes de pensar em rodas novas, pergunte se já tem capacete TT, skinsuit e bike fit.
+      </div>
+    </div>
+
+    <!-- ============ GRÁFICO 1: WATERFALL ============ -->
+    <div class="chart-section">
+      <div class="chart-head">
+        <span class="section-num">▦</span>
+        <span class="recs-title">Construção do CdA · waterfall</span>
+      </div>
+      <div class="chart-sub">Como seu CdA é construído camada por camada — começando do corpo + posição<sup class="cite" data-ref="crouch2017" data-tip="Crouch et al. 2017 — CFD analysis of cyclist position. Journal of Wind Engineering &amp; Industrial Aerodynamics.">[1]</sup> e somando o impacto de cada peça<sup class="cite" data-ref="cyclingnews2025" data-tip="Cyclingnews wind tunnel test 2024-2025 — 47 capacetes testados em mannequin, ±0.74W.">[2]</sup>.</div>
+      <div class="waterfall-wrap">
+        <svg id="waterfall-svg" class="waterfall-svg" viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <!-- ============ GRÁFICO 2: BARRAS HORIZONTAIS ============ -->
+    <div class="chart-section">
+      <div class="chart-head">
+        <span class="section-num">▥</span>
+        <span class="recs-title">Impacto em watts · cada componente</span>
+      </div>
+      <div class="chart-sub">Ranking das peças por contribuição em watts (a 40 km/h)<sup class="cite" data-ref="martin1998" data-tip="Martin et al. 1998 — Validation of a Mathematical Model for Road Cycling Power. Journal of Applied Biomechanics 14, 245–259.">[3]</sup>. Verde = economia, vermelho = penalidade vs baseline.</div>
+      <div class="bars-wrap" id="bars-wrap"></div>
+    </div>
+
+    <!-- ============ SIMULADOR ANTES/DEPOIS ============ -->
+    <div class="sim-section">
+      <div class="chart-head">
+        <span class="section-num">⇄</span>
+        <span class="recs-title">Simulador · vale a pena trocar?</span>
+      </div>
+      <div class="chart-sub">Escolha um componente atual e uma alternativa — veja em tempo real o ganho em CdA, watts, minutos por prova e quanto custa cada minuto economizado<sup class="cite" data-ref="bbs2026" data-tip="Best Bike Split 2026 — Triathlon Bike Speed for the Money. Ranking de $/minuto economizado para cada upgrade.">[4]</sup>.</div>
+      <div class="sim-wrap">
+        <div class="sim-controls">
+          <div class="sim-field">
+            <label>Componente a simular</label>
+            <select id="sim-component">
+              <option value="capacete">Capacete</option>
+              <option value="vest">Vestuário</option>
+              <option value="quadro">Quadro TT</option>
+              <option value="basebar">Base bar</option>
+              <option value="extensions">Extensions</option>
+              <option value="armcups">Arm cups</option>
+              <option value="rodaf">Roda dianteira</option>
+              <option value="rodat">Roda traseira</option>
+              <option value="pneu">Pneu</option>
+            </select>
+          </div>
+          <div class="sim-field">
+            <label>Trocar para</label>
+            <select id="sim-target"><option>Selecione um componente acima</option></select>
+          </div>
+        </div>
+
+        <div class="sim-compare">
+          <div class="sim-card">
+            <div class="sim-card-label">Atual</div>
+            <div class="sim-card-name" id="sim-current-name">—</div>
+            <div class="sim-card-metric"><span class="k">CdA</span><span class="v" id="sim-current-cda">—</span></div>
+            <div class="sim-card-metric"><span class="k">Vel @ FTP</span><span class="v" id="sim-current-vel">—</span></div>
+            <div class="sim-card-metric"><span class="k">Tempo na prova</span><span class="v" id="sim-current-time">—</span></div>
+          </div>
+          <div class="sim-arrow">→</div>
+          <div class="sim-card target">
+            <div class="sim-card-label">Depois do upgrade</div>
+            <div class="sim-card-name" id="sim-target-name">—</div>
+            <div class="sim-card-metric"><span class="k">CdA</span><span class="v" id="sim-target-cda">—</span></div>
+            <div class="sim-card-metric"><span class="k">Vel @ FTP</span><span class="v" id="sim-target-vel">—</span></div>
+            <div class="sim-card-metric"><span class="k">Tempo na prova</span><span class="v" id="sim-target-time">—</span></div>
+          </div>
+        </div>
+
+        <div class="sim-verdict">
+          <div class="sim-verdict-icon" id="sim-verdict-icon">—</div>
+          <div class="sim-verdict-text" id="sim-verdict-text">Selecione um componente e uma alternativa pra ver a análise.</div>
+          <div class="sim-verdict-rate" id="sim-verdict-rate"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-note">
+      <strong>Como calculamos:</strong> CdA do corpo via Crouch 2017 CFD<sup class="cite" data-ref="crouch2017" data-tip="Crouch et al. 2017 — CFD analysis of cyclist position. Journal of Wind Engineering & Industrial Aerodynamics. Análise CFD do ângulo de tronco vs CdA.">[1]</sup> (ângulo de tronco × área frontal antropométrica), modulado por flexibilidade e drop. Equipamento via deltas medidos<sup class="cite" data-ref="cyclingnews2025" data-tip="Cyclingnews wind tunnel 2024-2025 — 47 capacetes testados em mannequin com repetibilidade ±0.74W.">[2]</sup> (Cyclingnews wind tunnel 2024/25, AeroCoach 2024, fabricantes). Crr dos pneus de bicyclerollingresistance.com<sup class="cite" data-ref="brr" data-tip="BicycleRollingResistance.com — Crr medido em drum a 100 psi, 25mm, 36 km/h. Base de 150+ pneus.">[7]</sup> a 100 psi. Equação Martin 1998<sup class="cite" data-ref="martin1998" data-tip="Martin et al. 1998 — Validation of a Mathematical Model for Road Cycling Power. J Applied Biomechanics 14, 245-259.">[3]</sup>: P = ½·CdA·ρ·v³ + Crr·m·g·v + perdas. Ar 20°C/nível do mar/vento zero. Precisão estimada ±8-12%.<br/><br/>
+      <strong>Trade-off potência-posição</strong><sup class="cite" data-ref="birmingham" data-tip="Birmingham University · School of Sport — tronco 24°→0° pode custar até 15% da potência sustentável. Citado por Best Bike Split.">[5]</sup>: estudo Birmingham mostra que reduzir tronco de 24° para 0° pode custar até 15% da potência sustentável. Nossa fórmula aplica essa perda crescente, modulada por flexibilidade e adaptação. Atletas rígidos forçando posição plana ficam <em>mais lentos</em>, não mais rápidos.<br/><br/>
+      <strong>Hierarquia de impacto</strong><sup class="cite" data-ref="bbs2026" data-tip="Best Bike Split 2026 + Triathlon Magazine 2026 — Posição é ~80-85% do drag em curso plano. Ordem: bike fit → pacing → capacete → skinsuit → tri bike → rodas → quadro.">[4]</sup>: (1) Fitness, (2) Posição — ~80-85% do drag, (3) Equipamento. <strong>Ordem de gasto</strong><sup class="cite" data-ref="tridoc" data-tip="TriDoc Coaching (Sankoff 2016) — conceito de $/segundo. Top 3 baratos: trisuit, aerobars, capacete aero.">[6]</sup>: bike fit → pacing → capacete aero → skinsuit → tri bike → rodas → quadro.<br/><br/>
+      <strong>Banco de equipamentos</strong><sup class="cite" data-ref="kona2025" data-tip="Slowtwitch + Triathlete — ~4.000 bikes contadas em Kona+Nice 2025. Dados de market share por categoria.">[9]</sup>: top brands Kona/Nice 2025: Canyon 20% (Nice), Cervelo, Trek; aerobars Profile Design ~30%, Bontrager, Vision; rodas DT Swiss 20% (líder novo), Zipp; drivetrain Shimano 2/3, SRAM 1/3.
+    </div>
+
+    <div style="text-align:center"><button class="reset-btn" id="reset">↻ Nova avaliação</button></div>
+  </div>
+
+  <!-- ============ REFERÊNCIAS ============ -->
+  <section class="refs-section">
+    <div class="refs-head">Referências</div>
+    <div class="refs-sub">Estudos · fontes · base científica do modelo</div>
+    <div class="refs-list">
+      <div class="ref-item" id="ref-1">
+        <div class="ref-num">[1]</div>
+        <div class="ref-body">
+          <div class="ref-title">Crouch et al. 2017 — CFD da posição</div>
+          <div class="ref-cite">Riding against the wind: a review of competition cycling aerodynamics. <em>Journal of Wind Engineering &amp; Industrial Aerodynamics</em>. Análise CFD do impacto do ângulo de tronco e posição no CdA.</div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-2">
+        <div class="ref-num">[2]</div>
+        <div class="ref-body">
+          <div class="ref-title">Cyclingnews Wind Tunnel 2024-2025</div>
+          <div class="ref-cite">47 capacetes testados em túnel de vento com mannequin, repetibilidade ±0.74W. <a href="https://www.cyclingnews.com" target="_blank" rel="noopener">cyclingnews.com</a></div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-3">
+        <div class="ref-num">[3]</div>
+        <div class="ref-body">
+          <div class="ref-title">Martin et al. 1998 — Modelo de potência</div>
+          <div class="ref-cite">Validation of a Mathematical Model for Road Cycling Power. <em>Journal of Applied Biomechanics</em> 14, 245-259. Equação fundamental: P = ½·CdA·ρ·v³ + Crr·m·g·v + perdas.</div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-4">
+        <div class="ref-num">[4]</div>
+        <div class="ref-body">
+          <div class="ref-title">Best Bike Split — Speed for the Money</div>
+          <div class="ref-cite">Cooper, R. (2026) — Ranking de upgrades por minuto economizado. <a href="https://www.bestbikesplit.com/blog/triathlon-bike-speed-for-the-money" target="_blank" rel="noopener">bestbikesplit.com</a></div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-5">
+        <div class="ref-num">[5]</div>
+        <div class="ref-body">
+          <div class="ref-title">Birmingham University · Power-Aero Trade-off</div>
+          <div class="ref-cite">School of Sport, Exercise and Rehabilitation Sciences. Reduzir tronco de 24° → 0° pode custar até 15% da potência sustentável. Citado por <a href="https://www.bestbikesplit.com/blog/bike-fit-aerodynamics-cda-cycling-triathlon" target="_blank" rel="noopener">Best Bike Split (2015)</a>.</div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-6">
+        <div class="ref-num">[6]</div>
+        <div class="ref-body">
+          <div class="ref-title">TriDoc Coaching · Cost per Second</div>
+          <div class="ref-cite">Sankoff, J. (2016) — Resisting the Urge to Buy Speed. Conceito de $/segundo economizado. <a href="https://tridoccoaching.com/tdcblog/2016/eget-convallis-eros-metus-non-neque-ll39w" target="_blank" rel="noopener">tridoccoaching.com</a></div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-7">
+        <div class="ref-num">[7]</div>
+        <div class="ref-body">
+          <div class="ref-title">BicycleRollingResistance.com</div>
+          <div class="ref-cite">Banco de dados de Crr medido em drum a 100 psi, 25mm, 36 km/h. Mais de 150 pneus testados. <a href="https://www.bicyclerollingresistance.com" target="_blank" rel="noopener">bicyclerollingresistance.com</a></div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-8">
+        <div class="ref-num">[8]</div>
+        <div class="ref-body">
+          <div class="ref-title">Triathlon Magazine 2026 · Marginal Gains</div>
+          <div class="ref-cite">Sauve, M. — Marginal Gains or Just Marginally Cooler? Confirma 80% do drag é a posição. <a href="https://triathlonmagazine.ca/gear/bike-gear/marginal-gains-or-just-marginally-cooler/" target="_blank" rel="noopener">triathlonmagazine.ca</a></div>
+        </div>
+      </div>
+      <div class="ref-item" id="ref-9">
+        <div class="ref-num">[9]</div>
+        <div class="ref-body">
+          <div class="ref-title">Kona/Nice 2025 Bike Counts</div>
+          <div class="ref-cite">Triathlete + Slowtwitch — ~4.000 bikes contadas. Canyon 20% Nice, Cervelo Kona women, Profile Design ~30% aerobars, DT Swiss 20% rodas. <a href="https://www.slowtwitch.com/industry/insights-from-the-combined-2025-im-world-championship-bike-counts/" target="_blank" rel="noopener">slowtwitch.com</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p class="disclaimer">
+      LMAeroFit · Ferramenta gratuita · Estimativas para autoavaliação.<br/>
+      Banco de dados: Cyclingnews, AeroCoach, BicycleRollingResistance, Crouch et al. 2017, fabricantes.
+    </p>
+    <p class="signature">
+      Construído por Leandro Martinez · piloto, triatleta, engenheiro de performance
+      <a href="https://www.lmaerofit.com.br" target="_blank">lmaerofit.com.br</a>
+    </p>
+  </footer>
+
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   BANCO DE DADOS DE EQUIPAMENTOS
+   Todos os deltas em m² relativos à baseline calibrada
+   Fontes: ver formula-note no rodapé
+   ============================================================ */
+
+// CdA do CORPO+QUADRO de referência por posição (ciclista 175cm/42cm ombros, quadro tri médio)
+const CDA_REF_TRONCO = {
+  'vertical': 0.345,
+  'medio':    0.290,
+  'baixo':    0.250,
+  'superman': 0.220
+};
+
+// QUADROS - delta de CdA relativo ao "genérico tri" (0.000)
+const DB_QUADRO = {
+  // Superbike
+  'cervelo_p5':         {nome:'Cervelo P5',          delta:-0.010, nota:'UCI-WT, super integrado, geometria estável'},
+  'trek_sc_slr':        {nome:'Trek Speed Concept SLR 9', delta:-0.012, nota:'Bento integrado, IsoSpeed, T47 BB'},
+  'cadex_tri':          {nome:'Cadex Tri',           delta:-0.011, nota:'Tri-puro (não-UCI), hidratação integrada'},
+  'canyon_speedmax_cfr':{nome:'Canyon Speedmax CFR', delta:-0.011, nota:'Vencedor Kona age-group de fato'},
+  'cube_aerium_slt':    {nome:'Cube Aerium C:68X SLT', delta:-0.010, nota:'Hidratação in-frame, ótimo custo-benefício'},
+  // Premium
+  'cervelo_pseries':    {nome:'Cervelo P-Series',    delta: 0.000, nota:'Tri puro, não-UCI, mais hidratação'},
+  'giant_trinity_sl':   {nome:'Giant Trinity Advanced SL', delta:-0.008, nota:'-5.9W vs geração anterior'},
+  'spec_shiv':          {nome:'Specialized Shiv Disc', delta:-0.007, nota:'Fuel Cell integrado'},
+  'felt_ia':            {nome:'Felt IA Advanced',    delta:-0.005, nota:'Aero road/tri híbrido'},
+  'argon_e119':         {nome:'Argon 18 E-119 Tri+', delta:-0.006, nota:'Storage integrado'},
+  'bmc_tm01':           {nome:'BMC Timemachine 01',  delta:-0.008, nota:'Profiling avançado'},
+  'qr_prsix':           {nome:'Quintana Roo PRsix2', delta:-0.007, nota:'Shift+ stays, tri-puro'},
+  'ventum_one':         {nome:'Ventum One',          delta:-0.006, nota:'Sem down tube, hidratação 1.4L'},
+  'ventum_tempus':      {nome:'Ventum Tempus',       delta:-0.009, nota:'Top splits Kona 2025, evolução do One'},
+  'scott_plasma':       {nome:'Scott Plasma RC',     delta:-0.007, nota:'Geometria flexível'},
+  'pinarello_bolide':   {nome:'Pinarello Bolide F',  delta:-0.010, nota:'UCI-WT, Ineos/Ganna'},
+  // Intermediário
+  'a2_sp':              {nome:'A2 Bikes SP',         delta:-0.002, nota:'Custo-benefício, ajustável'},
+  'generico_tri':       {nome:'Tri genérico',        delta: 0.000, nota:'Baseline'},
+  'road_aero':          {nome:'Road aero (com clip-on)', delta:+0.020, nota:'Quadro road com tubos aero'},
+  'road_classico':      {nome:'Road clássico',       delta:+0.040, nota:'Tubos redondos tradicionais'}
+};
+
+// ============== COCKPIT EM 3 CAMADAS ==============
+// Cada camada (base bar + extensions + arm cups) tem delta independente.
+
+// BASE BAR - parte horizontal que segura os freios
+const DB_BASEBAR = {
+  'stock_quadro':   {nome:'Stock do quadro (padrão fabricante)', delta: 0.000, nota:'Vem com o quadro'},
+  'sem_clip':       {nome:'Apenas base bar sem clip-on',         delta:+0.030, nota:'Triatlo sem extensions entrega 25-40 W'},
+  'aluminio_gen':   {nome:'Alumínio genérico aftermarket',       delta:+0.005, nota:'Substituto barato'},
+  'carbono_gen':    {nome:'Carbono aftermarket genérico',        delta:-0.002, nota:'Tubo redondo carbono'},
+  'fasttt_xenos':   {nome:'FastTT Xenos318 base bar',            delta:-0.008, nota:'Perfil aero, BTA integrado'},
+  'vision_tfa_evo': {nome:'Vision Metron TFA EVO base bar',      delta:-0.007, nota:'€725, parte do kit Metron'},
+  'tririg_alpha_bb':{nome:'TriRig Alpha Prime base bar',         delta:-0.007, nota:'Single-bolt adjust'},
+  'cervelo_ex14_bb':{nome:'Cervelo EX14 monoriser (P5 2024+)',   delta:-0.012, nota:'Integrado nova geração'},
+  '3t_aduro_bb':    {nome:'3T Aduro base bar (Cervelo orig)',    delta:-0.008, nota:'"Copo de peixe" original'},
+  'spec_shiv_bb':   {nome:'Specialized Shiv base bar integrado', delta:-0.009, nota:'Stock Shiv Disc'},
+  'trinity_bb':     {nome:'Giant Trinity Mono base bar',         delta:-0.010, nota:'Trinity Adv SL 2025'},
+  'swissside_bb':   {nome:'Swiss Side AERO base bar',            delta:-0.008, nota:'Parte do kit AERO'},
+  'kucycle_tf1_bb': {nome:'Kú Cycle TF1 PRO base bar',           delta:-0.011, nota:'F-Ducts patenteados'},
+  'fasttt_20_full': {nome:'FastTT 2.0 cockpit completo',         delta:-0.012, nota:'#1 pro bar count Slowtwitch'},
+  'integrado_uci':  {nome:'Outro integrado UCI WT',              delta:-0.008, nota:'Superbike genérico'}
+};
+
+// EXTENSIONS - os tubos onde apoia as mãos
+const DB_EXTENSIONS = {
+  'sem_ext':         {nome:'Sem extensions (apenas base bar)',   delta:+0.030, nota:'Não competitivo em TT'},
+  'aluminio_basico': {nome:'Alumínio L-bend ou S-bend básico',   delta:+0.008, nota:'Entrada nível'},
+  'carbono_generico':{nome:'Carbono ski/S-bend genérico',        delta: 0.000, nota:'Baseline (carbono generic)'},
+  // Profile Design (líder absoluto no Kona 2025 — ~30% das aerobars)
+  'pd_wing_pro':     {nome:'Profile Design Wing Pro',            delta:-0.006, nota:'#1 share Kona 2025, premium PD'},
+  'pd_aeria':        {nome:'Profile Design Aeria',               delta:-0.005, nota:'Profile Design Aeria Ultimate'},
+  'pd_aerobeam':     {nome:'Profile Design AeroBeam',            delta:-0.004, nota:'Entry premium PD'},
+  // Vision Metron
+  'metron_tfe_pro':  {nome:'Vision Metron TFE Pro',              delta:-0.007, nota:'€673, premium Vision'},
+  'metron_tfe_evo':  {nome:'Vision Metron TFE EVO',              delta:-0.006, nota:'€679, geração anterior'},
+  'metron_replica':  {nome:'Réplica Metron TFE (chinesa)',       delta:-0.004, nota:'Geometria similar, qualidade variável'},
+  // 51 Speedshop
+  '51_rev_pro':      {nome:'51 Speedshop Rev Aero Pro',          delta:-0.008, nota:'USD $479, super extensions'},
+  '51_rev':          {nome:'51 Speedshop Rev Aero (120/70mm)',   delta:-0.006, nota:'USD $229, airfoil shape'},
+  '51_rev_light':    {nome:'51 Speedshop Rev Aero Light',        delta:-0.005, nota:'USD $189, entry premium'},
+  '51_ski_carbon':   {nome:'51 Speedshop Ski Carbon',            delta:-0.004, nota:'High target hands, Mat Steinmetz'},
+  '51_ultimate':     {nome:'51 Speedshop Ultimate Carbon',       delta:-0.004, nota:'USD $159'},
+  '51_alloy_120':    {nome:'51 Speedshop Ultimate Alloy 120',    delta:+0.002, nota:'USD $79, alumínio'},
+  // Sync Ergonomics (visto nos top finishers Kona)
+  'sync_aerobar3':   {nome:'Sync Ergonomics Aerobar 3',          delta:-0.008, nota:'Pros Kona 2025 (Trek Speed Concept)'},
+  'sync_aerobar2':   {nome:'Sync Ergonomics Aerobar 2',          delta:-0.007, nota:'Versão anterior, popular pros'},
+  // First Wheel (visto em top splits Kona)
+  'firstwheel_ext':  {nome:'First Wheel Extensions',             delta:-0.007, nota:'Pros Kona 2025 (Cervelo P5)'},
+  // Drag2Zero (boutique)
+  'drag2zero':       {nome:'Drag2Zero (boutique pro)',           delta:-0.009, nota:'Custom UK, pros (LCB, Frodeno hist.)'},
+  // TriRig / outros
+  'tririg_scoops':   {nome:'TriRig Scoops',                      delta:-0.007, nota:'Drop bar style integrado'},
+  'wattshop_anemoi': {nome:'Wattshop Anemoi',                    delta:-0.008, nota:'Aero pole agressivo'},
+  'zipp_vuka':       {nome:'Zipp Vuka Stealth',                  delta:-0.005, nota:'Carbono Zipp premium'},
+  // Combos
+  'fasttt_2_ext':    {nome:'FastTT 2.0 full forearm',            delta:-0.010, nota:'Combina cup + extension, fecha gap'},
+  'triwings_ext':    {nome:'Triwings extensions (BR/Curitiba)',  delta:-0.006, nota:'Brasileiro premium'},
+  'aerogain_custom': {nome:'AeroGain 3D custom',                 delta:-0.011, nota:'3D-printed sob medida'},
+  // House brands
+  'bontrager_ext':   {nome:'Bontrager extensions (Trek)',        delta:-0.005, nota:'Padrão Trek Speed Concept'},
+  'canyon_ext':      {nome:'Canyon extensions (stock)',          delta:-0.005, nota:'Padrão Speedmax'}
+};
+
+// ARM CUPS - apoio de cotovelo
+const DB_ARMCUPS = {
+  'stock_quadro':    {nome:'Stock do quadro',                    delta: 0.000, nota:'Padrão de fábrica'},
+  'pad_basico':      {nome:'Pad básico de alumínio',             delta:+0.003, nota:'Sem suporte lateral'},
+  'cup_padrao':      {nome:'Cup padrão (low-sided)',             delta: 0.000, nota:'Baseline'},
+  'cup_high_sided':  {nome:'Cup high-sided (suporte lateral)',   delta:-0.002, nota:'Mais estabilidade, perdas mínimas'},
+  '51_std':          {nome:'51 Speedshop Standard',              delta:-0.001, nota:'USD $80, pros field'},
+  '51_high':         {nome:'51 Speedshop High Sided',            delta:-0.003, nota:'USD $119, máximo suporte'},
+  '51_high_wedge':   {nome:'51 Speedshop High + Wedge 15°',      delta:-0.005, nota:'Combo: ângulo + suporte'},
+  'vision_pad':      {nome:'Vision Metron pads stock',           delta: 0.000, nota:'Padrão Vision'},
+  'fasttt_full':     {nome:'FastTT full-length forearm (parte do cockpit)', delta:-0.004, nota:'Suporte cotovelo→pulso'},
+  'aerogain_3d_arm': {nome:'AeroGain 3D custom (parte do cockpit)', delta:-0.005, nota:'Custom 3D, fecha gap'},
+  'custom_3d':       {nome:'Custom 3D-printed (outras marcas)',  delta:-0.004, nota:'Personalizado'}
+};
+
+const DB_CABOS = {
+  'externos': {nome:'Externos visíveis', delta:+0.005},
+  'parciais': {nome:'Parcialmente internos', delta:+0.002},
+  'totais':   {nome:'Totalmente internos', delta: 0.000}
+};
+
+const DB_GARRAFA = {
+  'nao':     {nome:'Sem garrafa BTA',  delta: 0.000},
+  'redonda': {nome:'Garrafa redonda BTA', delta:+0.005},
+  'aero':    {nome:'BTA aero (Torhans/Speedfil)', delta:-0.005}
+};
+
+// RODAS - delta m² da DIANTEIRA (traseira × 0.6 no cálculo)
+const DB_RODA = {
+  'box':           {nome:'Alumínio <30mm',         depth:25, delta: 0.000, peso:1800},
+  'r40':           {nome:'Carbono 40mm genérico',  depth:40, delta:-0.005, peso:1500},
+  'zipp404':       {nome:'Zipp 404 Firecrest',     depth:58, delta:-0.009, peso:1545},
+  'enve45':        {nome:'Enve SES 4.5',           depth:53, delta:-0.008, peso:1410},
+  'roval_clx':     {nome:'Roval Rapide CLX II',    depth:55, delta:-0.008, peso:1400},
+  'cadex50':       {nome:'Cadex 50 Ultra',         depth:50, delta:-0.007, peso:1280},
+  'bontrager_51':  {nome:'Bontrager Aeolus RSL 51', depth:51, delta:-0.008, peso:1420},
+  'zipp808_60':    {nome:'Zipp 808 Firecrest (~60)', depth:60, delta:-0.010, peso:1640},
+  'enve65':        {nome:'Enve SES 6.7',           depth:63, delta:-0.010, peso:1530},
+  'hunt_60':       {nome:'Hunt 60 Limitless',      depth:60, delta:-0.010, peso:1670},
+  'dt_arc_62':     {nome:'DT Swiss ARC 62',        depth:62, delta:-0.010, peso:1583},
+  'dt_arc1100_62': {nome:'DT Swiss ARC 1100 DICUT 62', depth:62, delta:-0.011, peso:1607, nota:'#1 wheel Kona 2025'},
+  'vision_metron60':{nome:'Vision Metron 60 SL',   depth:60, delta:-0.010, peso:1640},
+  'hed_v84':       {nome:'HED Vanquish V84',       depth:80, delta:-0.013, peso:1640, nota:'Top splits Kona 2025'},
+  'hed_v62':       {nome:'HED Vanquish V62 Pro',   depth:62, delta:-0.011, peso:1500},
+  'zipp808':       {nome:'Zipp 808 NSW',           depth:82, delta:-0.013, peso:1690},
+  'enve78':        {nome:'Enve SES 7.8',           depth:80, delta:-0.013, peso:1735},
+  'princeton_blur':{nome:'Princeton Blur 633',     depth:63, delta:-0.011, peso:1505},
+  'princeton_mach':{nome:'Princeton Mach 7580',    depth:75, delta:-0.013, peso:1620, nota:'Pros (e.g., Bolide F TR)'},
+  'dt_arc_80':     {nome:'DT Swiss ARC 80',        depth:80, delta:-0.013, peso:1735},
+  'dt_arc1100_80': {nome:'DT Swiss ARC 1100 DICUT 80', depth:80, delta:-0.014, peso:1735, nota:'Top tier DT Swiss'},
+  'cadex_aero':    {nome:'Cadex Aero 65 Ultra',    depth:65, delta:-0.012, peso:1450},
+  'cadex_4spoke':  {nome:'Cadex Aero 4-Spoke',     depth:80, delta:-0.014, peso:1380, nota:'Top splits Kona 2025'},
+  // Traseiras especiais (legal só atrás)
+  'hed_jet180':    {nome:'HED Jet 180 (trilobe)',  depth:90, delta:-0.016, peso:1240, nota:'Top splits Kona 2025 (rear)'},
+  'disc_zipp':     {nome:'Zipp Super-9 Disc',      depth:99, delta:-0.018, peso:1230},
+  'disc_dt':       {nome:'DT Swiss ARC DICUT Disc', depth:99, delta:-0.018, peso:1290},
+  'disc_capa':     {nome:'Capa de disc adaptada',  depth:99, delta:-0.014, peso:2100}
+};
+
+// PNEUS - Crr a 100 psi, 25mm, butil, 36 km/h em drum (BicycleRollingResistance)
+const DB_PNEU = {
+  'vit_corsa_speed':    {nome:'Vittoria Corsa Speed 2.0', crr:0.00254, durab:1, nota:'TT puro, durabilidade baixa'},
+  'vit_corsa_pro_speed':{nome:'Vittoria Corsa Pro Speed TLR', crr:0.00248, durab:2, nota:'O mais rápido em lab atualmente'},
+  'gp5000_tt':          {nome:'Continental GP5000 TT TR', crr:0.00265, durab:3, nota:'TT com proteção razoável'},
+  'conti_aero111':      {nome:'Continental Aero 111',   crr:0.00270, durab:3, nota:'Frontal aero (Conti)'},
+  'veloflex_record':    {nome:'Veloflex Record',         crr:0.00260, durab:1, nota:'Cotton, TT puro'},
+  'gp5000_str':         {nome:'Continental GP5000 S TR', crr:0.00273, durab:5, nota:'Padrão ouro race+treino'},
+  'vit_corsa_pro':      {nome:'Vittoria Corsa Pro TLR',  crr:0.00297, durab:5, nota:'Cotton, comportamento sublime'},
+  'pirelli_prrs':       {nome:'Pirelli P Zero Race RS',  crr:0.00295, durab:5, nota:'Boa aderência em wet'},
+  'michelin_powercup':  {nome:'Michelin Power Cup TLR',  crr:0.00310, durab:5, nota:'Equilíbrio honesto'},
+  'schwalbe_proone':    {nome:'Schwalbe Pro One TLE',    crr:0.00320, durab:5, nota:'Confiável'},
+  'specialized_rapid':  {nome:'Specialized Rapid Air',   crr:0.00305, durab:5, nota:'Quase nível GP5000'},
+  'gp5000_classic':     {nome:'GP5000 (clincher)',       crr:0.00298, durab:5, nota:'Versão com câmara'},
+  'gatorskin':          {nome:'Gatorskin / 4Season',     crr:0.00450, durab:9, nota:'Pneu de treino robusto'},
+  'conti_treino':       {nome:'Pneu treino genérico',    crr:0.00500, durab:8, nota:'Substitua antes de provas'}
+};
+
+// CAPACETES - delta m² (Cyclingnews 2025 wind tunnel)
+const DB_CAPACETE = {
+  // TT dedicado (mais rápidos)
+  'rudy_wingdream': {nome:'Rudy Project Wingdream',  delta:-0.027, cat:'TT', nota:'Bahrain Victorious 2024, -16.6W vs road @45km/h'},
+  'vanrysel_xcr':   {nome:'Van Rysel XCR TT',        delta:-0.025, cat:'TT', nota:'#1 Cyclingnews 2025'},
+  'giro_aerohead':  {nome:'Giro Aerohead 2',         delta:-0.024, cat:'TT', nota:'Sem visor é mais rápido'},
+  'trek_ballista_tt':{nome:'Trek Ballista TT',       delta:-0.023, cat:'TT'},
+  'met_drone':      {nome:'MET Drone MIPS',          delta:-0.022, cat:'TT', nota:'Pogačar 2025, populares Kona'},
+  'rudy_wing':      {nome:'Rudy Project The Wing',   delta:-0.021, cat:'TT', nota:'Co-dev Swiss Side, -12.6W @45km/h'},
+  'kask_bambino':   {nome:'Kask Bambino Pro',        delta:-0.020, cat:'TT', nota:'Clássico Kona, longo histórico'},
+  'kask_mistral':   {nome:'Kask Mistral',            delta:-0.020, cat:'TT', nota:'Confiável em qualquer cabeça'},
+  'lazer_victor':   {nome:'Lazer Victor KinetiCore', delta:-0.019, cat:'TT'},
+  'rudy_wingspan':  {nome:'Rudy Project Wingspan',   delta:-0.018, cat:'TT', nota:'Antecessor do The Wing'},
+  'poc_tempor':     {nome:'POC Tempor',              delta:-0.018, cat:'TT', nota:'Performance varia muito por atleta'},
+  // Aero road / TT-curto
+  'poc_procen':     {nome:'POC Procen Air',          delta:-0.014, cat:'TT-curto', nota:'#1 a 50km/h'},
+  'oakley_velomach':{nome:'Oakley Velo Mach',        delta:-0.013, cat:'aero', nota:'#1 aero road Cyclingnews 2025'},
+  'rudy_volantis':  {nome:'Rudy Project Volantis',   delta:-0.012, cat:'aero', nota:'Aero road Rudy Project'},
+  'giro_eclipse':   {nome:'Giro Eclipse',            delta:-0.011, cat:'aero'},
+  'trek_ballista':  {nome:'Trek Ballista',           delta:-0.011, cat:'aero'},
+  'sworks_evade':   {nome:'S-Works Evade III',       delta:-0.010, cat:'aero'},
+  'kask_utopia':    {nome:'Kask Utopia Y',           delta:-0.008, cat:'aero', nota:'Design 2018, defasado'},
+  'poc_ventral':    {nome:'POC Ventral',             delta:-0.008, cat:'aero'},
+  // Road
+  'road_aero_gen':  {nome:'Road aero genérico',      delta:-0.005, cat:'road'},
+  'road_vented':    {nome:'Road vented (Aether/Z1)', delta: 0.000, cat:'road', nota:'Confortável mas lento'}
+};
+
+const DB_VEST = {
+  'bib':         {nome:'Bib + jersey',           delta: 0.000},
+  'trisuit':     {nome:'Trisuit',                delta:-0.010},
+  'skinsuit':    {nome:'Skinsuit aero',          delta:-0.018},
+  'skinsuit_pro':{nome:'Skinsuit pro + luvas',   delta:-0.024}
+};
+
+// DRIVETRAIN - eficiência (% perda)
+const DB_GRUPO = {
+  'sram_red_axs':   {nome:'SRAM Red AXS',          eta:0.972, nota:'Eletrônico topo, leve'},
+  'sram_force_axs': {nome:'SRAM Force AXS',        eta:0.968, nota:'Eletrônico, custo-benefício'},
+  'sram_rival_axs': {nome:'SRAM Rival AXS',        eta:0.964, nota:'Eletrônico entrada'},
+  'shim_dura_di2':  {nome:'Shimano Dura-Ace Di2',  eta:0.973, nota:'Eletrônico topo'},
+  'shim_ultegra_di2':{nome:'Shimano Ultegra Di2',  eta:0.969, nota:'Eletrônico'},
+  'campa_super':    {nome:'Campagnolo Super Record WRL', eta:0.971},
+  'shim_mec':       {nome:'Shimano mecânico',      eta:0.962, nota:'Trocas mais lentas em prova'},
+  'sram_mec':       {nome:'SRAM mecânico',         eta:0.960}
+};
+
+/* ============================================================
+   FÍSICA
+   ============================================================ */
+
+const RHO = 1.225;
+const G = 9.81;
+
+function getInputs(){
+  const $ = id => document.getElementById(id);
+  return {
+    altura: +$('altura').value,
+    peso: +$('peso').value,
+    ombros: +$('ombros').value,
+    idade: +$('idade').value,
+    sexo: $('sexo').value,
+    ftp: +$('ftp').value,
+    flex: +$('flex').value,
+    aerotempo: +$('aerotempo').value,
+    drop: +$('drop').value,
+    tronco: document.querySelector('input[name=tronco]:checked').value,
+    quadro: $('quadro').value,
+    tamanho: +$('tamanho').value,
+    basebar: $('basebar').value,
+    extensions: $('extensions').value,
+    armcups: $('armcups').value,
+    cabos: $('cabos').value,
+    garrafa: $('garrafa').value,
+    rodaf: $('rodaf').value,
+    rodat: $('rodat').value,
+    pneu: $('pneu').value,
+    pneul: +$('pneul').value,
+    psi: +$('psi').value,
+    camara: document.querySelector('input[name=camara]:checked').value,
+    capacete: $('capacete').value,
+    vest: document.querySelector('input[name=vest]:checked').value,
+    overshoe: document.querySelector('input[name=overshoe]:checked').value,
+    socks: document.querySelector('input[name=socks]:checked').value,
+    grupo: $('grupo').value,
+    config: document.querySelector('input[name=config]:checked').value,
+    coroa: $('coroa').value,
+    cassete: $('cassete').value,
+    pedivela: +$('pedivela').value,
+    cadencia: +$('cadencia').value,
+    distancia: +$('distancia').value,
+    perfil: $('perfil').value
+  };
+}
+
+/* ---------- POWER TRADE-OFF POR POSIÇÃO ---------- */
+// Birmingham University 2017 (citado por Best Bike Split):
+// Tronco 24° → 0° pode reduzir potência sustentável em até 15%
+// Tradeoff depende de: posição declarada, flexibilidade, aerotempo
+function ftpEfetivoNaPosicao(d){
+  // Perda base por posição vs tronco médio (referência)
+  const perdaBase = {
+    'vertical':  0.00,  // road position, sem perda
+    'medio':     0.02,  // -2% (TT confortável)
+    'baixo':     0.06,  // -6% (TT agressivo)
+    'superman':  0.12   // -12% (pro elite, hip closure extremo)
+  }[d.tronco] || 0.02;
+
+  // Flexibilidade modera a perda: atleta flexível mantém mais potência
+  const fatorFlex = (6 - d.flex) / 5;  // flex 5 → 0.2 (multiplica perda por 0.2); flex 1 → 1.0
+
+  // Aerotempo: quanto mais adaptado, menor a perda em prova
+  let fatorAdapt = 1.0;
+  if (d.aerotempo >= 180) fatorAdapt = 0.5;
+  else if (d.aerotempo >= 90) fatorAdapt = 0.7;
+  else if (d.aerotempo >= 30) fatorAdapt = 0.9;
+  else fatorAdapt = 1.3;  // atleta não consegue manter
+
+  const perdaTotal = perdaBase * fatorFlex * fatorAdapt;
+  return {
+    ftpEfetivo: d.ftp * (1 - perdaTotal),
+    perdaPct: perdaTotal * 100
+  };
+}
+
+/* ---------- CdA DO CORPO ---------- */
+function cdaCorpo(d){
+  const af_atleta = (d.altura/100) * (d.ombros/100);
+  const af_ref = 1.75 * 0.42;
+  let cda = CDA_REF_TRONCO[d.tronco] * (af_atleta / af_ref);
+  const flexMax = (d.flex - 1) * 4 + 4;
+  const dropEf = Math.min(d.drop, flexMax);
+  cda *= (1 - dropEf * 0.003);
+  if (d.drop > flexMax) cda *= 1 + (d.drop - flexMax) * 0.012;
+  if (d.aerotempo < 30) cda *= 1.08;
+  else if (d.aerotempo < 60) cda *= 1.04;
+  if (d.sexo === 'f') cda *= 0.92;
+  return cda;
+}
+
+/* ---------- CdA TOTAL (com breakdown) ---------- */
+function calcularCdA(d, retornarBreakdown = false){
+  const corpo = cdaCorpo(d);
+  const q = DB_QUADRO[d.quadro].delta;
+  // COCKPIT em 3 camadas - cada uma soma independente, mas saturação se todos extremos
+  const bb = DB_BASEBAR[d.basebar].delta;
+  const ex = DB_EXTENSIONS[d.extensions].delta;
+  const ac = DB_ARMCUPS[d.armcups].delta;
+  // Se a pessoa escolher "FastTT 2.0 completo" no basebar, e ainda escolher FastTT no extensions,
+  // não soma duas vezes. Detecta integrado:
+  let cockpitTotal = bb + ex + ac;
+  // Combos integrados (FastTT, AeroGain) já têm tudo: zera dupla-contagem
+  if (d.basebar === 'fasttt_20_full' && d.extensions === 'fasttt_2_ext') cockpitTotal = -0.013;
+  if (d.basebar === 'kucycle_tf1_bb' && d.extensions === 'fasttt_2_ext') cockpitTotal = -0.014;
+
+  const ca = DB_CABOS[d.cabos].delta;
+  const g = DB_GARRAFA[d.garrafa].delta;
+  const rf = DB_RODA[d.rodaf].delta;
+  const rt = DB_RODA[d.rodat].delta * 0.6;
+  const cap = DB_CAPACETE[d.capacete].delta;
+  const v = DB_VEST[d.vest].delta;
+  const ov = d.overshoe === 'sim' ? -0.002 : 0;
+  const sk = d.socks === 'sim' ? -0.001 : 0;
+  const pn = (d.pneul - 25) * 0.0008;
+
+  let total = corpo + q + cockpitTotal + ca + g + rf + rt + cap + v + ov + sk + pn;
+  const totalEquip = q + cockpitTotal + ca + g + rf + rt + cap + v + ov + sk + pn;
+  if (totalEquip < -0.04){
+    const excesso = -totalEquip - 0.04;
+    const equipSat = -0.04 - excesso * 0.5;
+    total = corpo + equipSat;
+  }
+  total = Math.max(total, 0.17);
+
+  if (retornarBreakdown){
+    return {
+      total,
+      breakdown: [
+        {k:'Corpo + posição', v:corpo, group:'body'},
+        {k:'Quadro: ' + DB_QUADRO[d.quadro].nome, v:q, group:'frame'},
+        {k:'Base bar: ' + DB_BASEBAR[d.basebar].nome, v:bb, group:'cockpit'},
+        {k:'Extensions: ' + DB_EXTENSIONS[d.extensions].nome, v:ex, group:'cockpit'},
+        {k:'Arm cups: ' + DB_ARMCUPS[d.armcups].nome, v:ac, group:'cockpit'},
+        {k:'Cabos: ' + DB_CABOS[d.cabos].nome, v:ca, group:'frame'},
+        {k:'Garrafa BTA: ' + DB_GARRAFA[d.garrafa].nome, v:g, group:'frame'},
+        {k:'Roda dianteira: ' + DB_RODA[d.rodaf].nome, v:rf, group:'wheel'},
+        {k:'Roda traseira: ' + DB_RODA[d.rodat].nome + ' (×0.6)', v:rt, group:'wheel'},
+        {k:'Capacete: ' + DB_CAPACETE[d.capacete].nome, v:cap, group:'kit'},
+        {k:'Vestuário: ' + DB_VEST[d.vest].nome, v:v, group:'kit'},
+        {k:'Cobre-sapatilha', v:ov, group:'kit'},
+        {k:'Meias aero', v:sk, group:'kit'},
+        {k:'Ajuste pneu (' + d.pneul + 'mm)', v:pn, group:'wheel'}
+      ]
+    };
+  }
+  return total;
+}
+
+/* ---------- CRR EFETIVO DO PNEU ---------- */
+function crrEfetivo(d){
+  let crr = DB_PNEU[d.pneu].crr;
+  // Largura: maior largura geralmente diminui Crr no asfalto real
+  // bicyclerollingresistance: ~0.0001 por 3mm
+  const deltaLargura = (d.pneul - 25) * (-0.00003);
+  crr += deltaLargura;
+  // Pressão: lab usa 100 psi como base; vida real otimiza por peso/largura
+  // Crr aumenta cerca de 0.00003 por psi abaixo de ~70, sobe pouco acima
+  const psiOtimo = pressaoOtima(d.peso, d.pneul);
+  const desvioPsi = Math.abs(d.psi - psiOtimo);
+  crr += desvioPsi * 0.00003;
+  // Câmara
+  const camMult = {butil: 1.10, latex: 0.95, tpu: 0.97, tubeless: 1.00};
+  crr *= camMult[d.camara];
+  return Math.max(crr, 0.0020);
+}
+
+function pressaoOtima(peso, largura){
+  // Aproximação SILCA/ENVE: pressão decresce com largura, sobe com peso
+  // base: 70 kg, 28mm → ~75 psi (otimizado para estradas reais)
+  const base = 75;
+  const ajustePeso = (peso - 70) * 0.8;
+  const ajusteLargura = (28 - largura) * 3.5;
+  return Math.round(base + ajustePeso + ajusteLargura);
+}
+
+/* ---------- POTÊNCIA ---------- */
+function potencia(v_kmh, cda, peso, crr, eta){
+  const v = v_kmh / 3.6;
+  const pAero = 0.5 * cda * RHO * Math.pow(v, 3);
+  const pRoll = crr * peso * G * v;
+  return (pAero + pRoll) / eta;
+}
+
+function velocidadeParaPotencia(p, cda, peso, crr, eta){
+  let lo = 5, hi = 80, mid;
+  for (let i = 0; i < 60; i++){
+    mid = (lo + hi) / 2;
+    if (potencia(mid, cda, peso, crr, eta) < p) lo = mid; else hi = mid;
+  }
+  return mid;
+}
+
+/* ---------- CdA OTIMIZADO ---------- */
+function calcularAlvo(d){
+  const alvo = {...d};
+  const niveis = ['vertical','medio','baixo','superman'];
+  const idx = niveis.indexOf(d.tronco);
+  if (d.flex >= 3 && idx < 3 && d.aerotempo >= 30) alvo.tronco = niveis[idx + 1];
+  const flexMax = (d.flex - 1) * 4 + 4;
+  alvo.drop = Math.min(Math.max(d.drop, flexMax * 0.85), flexMax);
+  alvo.cabos = 'totais';
+  if (d.vest === 'bib') alvo.vest = 'trisuit';
+  if (d.garrafa === 'redonda') alvo.garrafa = 'aero';
+  // 3 camadas de cockpit
+  if (d.basebar === 'sem_clip' || d.basebar === 'aluminio_gen') alvo.basebar = 'carbono_gen';
+  if (d.extensions === 'sem_ext' || d.extensions === 'aluminio_basico') alvo.extensions = 'carbono_generico';
+  if (d.armcups === 'pad_basico' || d.armcups === 'cup_padrao') alvo.armcups = 'cup_high_sided';
+  if (d.capacete === 'road_vented' || d.capacete === 'road_aero_gen') alvo.capacete = 'kask_mistral';
+  alvo.socks = 'sim';
+  return alvo;
+}
+
+/* ---------- DRIVETRAIN: ANÁLISE DE GEARING ---------- */
+function analisarGearing(d){
+  // Velocidades em ritmo de prova
+  const cda = calcularCdA(d);
+  const crr = crrEfetivo(d);
+  const eta = DB_GRUPO[d.grupo].eta;
+  // ritmo de prova: 95% FTP para 40k, 80% para 90k, 70% para 180k
+  const intRatio = d.distancia === 40 ? 0.95 : d.distancia === 90 ? 0.80 : 0.70;
+  const pProva = d.ftp * intRatio;
+  const vProva = velocidadeParaPotencia(pProva, cda, d.peso, crr, eta);
+
+  // Coroas e cassetes
+  const coroa = d.coroa.includes('_') ? d.coroa.split('_').map(Number) : [+d.coroa];
+  const cassete = d.cassete.split('_').map(Number);
+  // gera lista de cogs
+  const cogsMap = {
+    '10_28':[10,11,12,13,14,15,17,19,21,24,28],
+    '10_30':[10,11,12,13,14,15,17,19,21,24,27,30],
+    '10_33':[10,11,12,13,14,15,17,19,21,24,28,33],
+    '10_36':[10,11,12,13,15,17,19,21,24,28,32,36],
+    '10_44':[10,11,12,13,15,17,19,21,24,28,32,38,44],
+    '11_28':[11,12,13,14,15,16,17,19,21,24,28],
+    '11_30':[11,12,13,14,15,17,19,21,24,27,30],
+    '11_32':[11,12,13,14,15,17,19,21,24,27,32],
+    '11_34':[11,12,13,15,17,19,21,24,27,30,34]
+  };
+  const cogs = cogsMap[d.cassete] || [11,12,13,14,15,17,19,21,24,28];
+
+  // Velocidade por marcha: V = (pi × diametroRoda × cadencia × (coroa/cog)) / (60 × 1000) * 3.6 km/h
+  // Diâmetro da roda 700C com pneu 28mm = ~2.105m
+  const circunferencia = 2.105;
+  // cadência alvo do usuário
+  const cadAlvo = d.cadencia;
+
+  // marcha ideal para velocidade de prova
+  let melhor = null;
+  for (const c of coroa){
+    for (const cog of cogs){
+      const ratio = c / cog;
+      const v_at_cad = ratio * circunferencia * cadAlvo / 60 * 3.6;
+      const diff = Math.abs(v_at_cad - vProva);
+      if (!melhor || diff < melhor.diff) melhor = {coroa: c, cog, ratio, v: v_at_cad, diff};
+    }
+  }
+
+  // verificar limites
+  const ratioMax = Math.max(...coroa) / Math.min(...cogs);
+  const ratioMin = Math.min(...coroa) / Math.max(...cogs);
+  const vMaxCad = ratioMax * circunferencia * 95 / 60 * 3.6;  // cadência alta
+  const vMinCad = ratioMin * circunferencia * 70 / 60 * 3.6;  // cadência baixa
+  const vMinClimb = ratioMin * circunferencia * cadAlvo / 60 * 3.6;
+
+  // problemas?
+  const problemas = [];
+  if (d.perfil === 'montanhoso' && ratioMin > 1.3){
+    problemas.push({tipo:'climb', msg:'Marcha mínima alta para perfil montanhoso. Risco de andar acima de 1.0 W/kg em subidas longas a cadência baixa.'});
+  }
+  if (d.perfil === 'velódromo' && d.config === '2x'){
+    problemas.push({tipo:'config', msg:'Configuração 2x desnecessária em velódromo. 1x com coroa 54-58 elimina peso do desviador e da segunda coroa.'});
+  }
+  if (vMaxCad < 55 && d.distancia === 40){
+    problemas.push({tipo:'top', msg:'Marcha máxima limitada. Em descidas/vento favorável você vai esticar a cadência.'});
+  }
+
+  return {
+    vProva, pProva,
+    melhorMarcha: melhor,
+    ratioMax, ratioMin, vMaxCad, vMinClimb,
+    problemas,
+    cogs, coroa
+  };
+}
+
+/* ---------- SCORE ---------- */
+function calcularScore(d, cda){
+  const dElite = {
+    ...d, tronco: 'superman', drop: Math.min(22, (d.flex-1)*4+4 + 4), flex: 5, aerotempo: 240,
+    quadro: 'cervelo_p5',
+    basebar: 'cervelo_ex14_bb', extensions: 'metron_tfe_pro', armcups: '51_high_wedge',
+    cabos: 'totais', garrafa: 'aero',
+    rodaf: 'enve78', rodat: 'disc_zipp', pneu: 'vit_corsa_pro_speed', pneul: 25, camara: 'tubeless',
+    capacete: 'vanrysel_xcr', vest: 'skinsuit_pro', overshoe: 'sim', socks: 'sim'
+  };
+  const cda_elite = calcularCdA(dElite);
+  const dWorst = {
+    ...d, tronco: 'vertical', drop: 0, flex: 1, aerotempo: 5,
+    quadro: 'road_classico',
+    basebar: 'sem_clip', extensions: 'sem_ext', armcups: 'pad_basico',
+    cabos: 'externos', garrafa: 'redonda',
+    rodaf: 'box', rodat: 'box', pneu: 'conti_treino', pneul: 28, camara: 'butil',
+    capacete: 'road_vented', vest: 'bib', overshoe: 'nao', socks: 'nao'
+  };
+  const cda_pior = calcularCdA(dWorst);
+  const score = 100 * (cda_pior - cda) / (cda_pior - cda_elite);
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+/* ---------- RECOMENDAÇÕES ---------- */
+function gerarRecs(d){
+  const recs = [];
+  const cdaAtual = calcularCdA(d);
+  const eta = DB_GRUPO[d.grupo].eta;
+  const crr = crrEfetivo(d);
+
+  function deltaCda(novoD){ return cdaAtual - calcularCdA(novoD); }
+  function wattsAt40(dCda){ const v = 40/3.6; return 0.5 * dCda * RHO * v*v*v; }
+
+  // POSIÇÃO
+  const niveis = ['vertical','medio','baixo','superman'];
+  const idx = niveis.indexOf(d.tronco);
+  if (idx < 3 && d.flex >= 3 && d.aerotempo >= 30){
+    const dn = {...d, tronco: niveis[idx+1]};
+    const dc = deltaCda(dn);
+    if (dc > 0.005){
+      recs.push({
+        title: 'Baixar tronco um nível',
+        body: `Flexibilidade ${d.flex}/5 e ${d.aerotempo} min em aero permitem posição mais agressiva. Trabalho progressivo: 20-30 min Z2 + alongamento pós. Estimativa: ${wattsAt40(dc).toFixed(1)} W a 40 km/h.`,
+        impact: 'hi', tag: dc
+      });
+    }
+  } else if (d.flex < 3){
+    recs.push({
+      title: 'Mobilidade lombar/isquiotibiais',
+      body: `Flex ${d.flex}/5 limita posição. 15 min/dia de mobilidade (gato-vaca, isquios, cobra) por 8-12 semanas costuma destravar 2-3 cm de drop útil. Investimento mais barato do esporte — só tempo.`,
+      impact: 'md', tag: 0.012
+    });
+  }
+  if (d.aerotempo < 30){
+    recs.push({
+      title: 'Volume em aero',
+      body: `Apenas ${d.aerotempo} min confortável. 70.3 exige ${d.distancia >= 90 ? '2-3h' : '1h+'}. Adicione 1-2 sessões/semana com blocos progressivos 10/20/30 min, mesmo em rolo.`,
+      impact: 'hi', tag: 0.020
+    });
+  }
+
+  // QUADRO
+  if (d.quadro === 'road_classico' || d.quadro === 'road_aero'){
+    recs.push({
+      title: 'Quadro tri/TT dedicado',
+      body: `Road com clip-on adiciona 0.020-0.040 CdA vs quadro tri. Diferença em prova = 5-10 min em Ironman. Se for competir sério, é o investimento que mais paga em watts/real.`,
+      impact: 'hi', tag: 0.025
+    });
+  }
+  if (d.tamanho > 56 && d.altura < 175){
+    recs.push({
+      title: 'Verificar tamanho do quadro',
+      body: `Quadro 56+ em atleta <175 cm geralmente sobra alcance. Tamanho menor permite cockpit mais baixo e posição mais aero sem forçar lombar.`,
+      impact: 'md', tag: 0.005
+    });
+  }
+
+  // COCKPIT - 3 camadas
+  if (d.basebar === 'sem_clip' || d.extensions === 'sem_ext'){
+    recs.push({
+      title: 'Instalar extensions aero (clip-on)',
+      body: 'Triatlo/TT sem extensions entrega 25-40 W. Mesmo um clip-on de alumínio básico (R$ 400-800) é a maior transformação possível.',
+      impact: 'hi', tag: 0.030
+    });
+  } else if (d.extensions === 'aluminio_basico'){
+    const dn = {...d, extensions: 'carbono_generico'};
+    const dc = deltaCda(dn);
+    recs.push({
+      title: 'Upgrade extensions de alumínio para carbono',
+      body: `Extensions de carbono economizam ~${wattsAt40(dc).toFixed(1)} W e permitem ajuste fino de ângulo. Opções: Vision Metron TFE, 51 Speedshop Rev Aero, TriRig Scoops. R$ 1500-3500.`,
+      impact: 'md', tag: dc
+    });
+  } else if (d.extensions === 'carbono_generico'){
+    const dn = {...d, extensions: 'metron_tfe_pro'};
+    const dc = deltaCda(dn);
+    if (dc > 0.005){
+      recs.push({
+        title: 'Extensions premium (Metron TFE Pro / 51 Rev Aero Pro)',
+        body: `Sair do carbono genérico para extensions de elite (Vision Metron TFE Pro, 51 Speedshop Rev Aero Pro) ganha ~${wattsAt40(dc).toFixed(1)} W. €500-700.`,
+        impact: 'md', tag: dc
+      });
+    }
+  } else if (d.extensions === 'metron_replica'){
+    recs.push({
+      title: 'Réplica chinesa Metron: aero similar, segurança duvidosa',
+      body: 'Geometria do Vision TFE replicada com qualidade variável. Aerodinâmica decente, mas estrutura/segurança não testada. Para prova longa séria, vale o investimento na original.',
+      impact: 'lo', tag: 0.003
+    });
+  }
+
+  // Arm cups upgrade
+  if (d.armcups === 'pad_basico' || d.armcups === 'cup_padrao'){
+    const dn = {...d, armcups: 'cup_high_sided'};
+    const dc = deltaCda(dn);
+    if (dc > 0.001){
+      recs.push({
+        title: 'Arm cups high-sided',
+        body: `Cups com suporte lateral (51 Speedshop High Sided, similar) economizam ~${wattsAt40(dc).toFixed(1)} W via estabilidade + perfil aero. USD $80-120.`,
+        impact: 'lo', tag: dc
+      });
+    }
+  }
+
+  // CAPACETE
+  const capAtual = DB_CAPACETE[d.capacete];
+  if (capAtual.cat === 'road'){
+    const dn = {...d, capacete: 'kask_mistral'};
+    const dc = deltaCda(dn);
+    recs.push({
+      title: 'Capacete TT (Kask Mistral ou similar)',
+      body: `Capacete road custa ${wattsAt40(dc).toFixed(1)} W vs Mistral. TT-curto tolera melhor variação de cabeça que cauda longa. R$ 2000-3500.`,
+      impact: 'hi', tag: dc
+    });
+  } else if (capAtual.cat === 'aero'){
+    if (d.distancia >= 90){
+      recs.push({
+        title: 'Considerar TT dedicado para 70.3+',
+        body: `Para provas longas (>2h), TT dedicado (Mistral, Aerohead, Drone) economiza 5-10 W vs aero road. Em IM são 3-5 min finais.`,
+        impact: 'md', tag: 0.010
+      });
+    }
+  } else if (d.capacete === 'kask_utopia'){
+    recs.push({
+      title: 'Atualizar capacete aero (Utopia tem 2018)',
+      body: 'Kask Utopia Y é design antigo. Velo Mach, Eclipse, Procen Air são 4-6 W mais rápidos pelo mesmo dinheiro.',
+      impact: 'md', tag: 0.008
+    });
+  }
+
+  // VESTUÁRIO
+  if (d.vest === 'bib'){
+    const dn = {...d, vest: 'skinsuit'};
+    const dc = deltaCda(dn);
+    recs.push({
+      title: 'Skinsuit/trisuit',
+      body: `Bib + jersey custa ~${wattsAt40(dc).toFixed(1)} W. Trisuit bem cortado já resolve 60% disso. R$ 600-2000.`,
+      impact: 'hi', tag: dc
+    });
+  }
+  if (d.socks === 'nao'){
+    recs.push({title:'Meias aero acima do tornozelo', body:'Detalhe que custa R$ 50 e economiza 1-2 W. Sem desculpa.', impact:'lo', tag:0.001});
+  }
+
+  // RODAS
+  if (DB_RODA[d.rodaf].depth < 50){
+    const dn = {...d, rodaf: 'enve65'};
+    const dc = deltaCda(dn);
+    recs.push({
+      title: 'Roda dianteira mais profunda (60+ mm)',
+      body: `Dianteira atual é rasa demais para TT. Enve 6.7, Zipp 808 Firecrest ou Hunt 60 Limitless: ${wattsAt40(dc).toFixed(1)} W mais rápida. Atenção a ventos laterais >25 km/h.`,
+      impact: 'md', tag: dc
+    });
+  }
+  if (DB_RODA[d.rodat].depth < 65 && d.perfil !== 'montanhoso'){
+    const dn = {...d, rodat: 'disc_zipp'};
+    const dc = deltaCda(dn);
+    recs.push({
+      title: 'Roda traseira disc',
+      body: `Disc atrás tem o melhor watts/real do esporte: ~${wattsAt40(dc).toFixed(1)} W. Sem problema de vento lateral (vai na rabeira). Capa de disc adaptada em 80mm dá 80% do ganho a 1/3 do custo.`,
+      impact: 'md', tag: dc
+    });
+  }
+
+  // PNEU
+  if (DB_PNEU[d.pneu].crr > 0.0035){
+    recs.push({
+      title: 'Pneu de prova de verdade',
+      body: `${DB_PNEU[d.pneu].nome} é pneu de treino. GP5000 S TR ou Corsa Pro economizam ~8-12 W por pneu vs treino. Reserve um par só pra prova.`,
+      impact: 'hi', tag: 0.015
+    });
+  } else if (DB_PNEU[d.pneu].crr > 0.0028 && d.distancia <= 90){
+    recs.push({
+      title: 'Pneu TT dedicado para prova',
+      body: `${DB_PNEU[d.pneu].nome} é ótimo mas há mais rápidos. Vittoria Corsa Pro Speed ou GP5000 TT TR são 2-4 W mais rápidos por pneu. Trade-off: durabilidade. Use só em prova.`,
+      impact: 'md', tag: 0.005
+    });
+  }
+
+  // PRESSÃO
+  const psiOpt = pressaoOtima(d.peso, d.pneul);
+  if (Math.abs(d.psi - psiOpt) > 8){
+    recs.push({
+      title: `Pressão dos pneus: ajustar para ${psiOpt} psi`,
+      body: `Atual ${d.psi} psi vs ótimo ${psiOpt} psi para seu peso (${d.peso} kg) e largura (${d.pneul}mm). Cada 5 psi de desvio custa ~1-2 W em Crr.`,
+      impact: 'md', tag: 0.003
+    });
+  }
+
+  // CÂMARA
+  if (d.camara === 'butil'){
+    recs.push({
+      title: 'Câmara látex ou TPU (ou tubeless)',
+      body: 'Câmara butil custa ~3 W por pneu vs látex. Tubeless é o ideal pra prova. Látex precisa calibrar antes de cada ride.',
+      impact: 'md', tag: 0.003
+    });
+  }
+
+  // PEDIVELA + POSIÇÃO
+  if (d.pedivela >= 170 && d.flex < 4 && d.altura < 180){
+    recs.push({
+      title: `Pedivela ${d.pedivela}mm é longo para sua altura/flex`,
+      body: `Migração geral: pedivela menor (165 ou 160) permite hip closure menor → tronco mais baixo. Não muda potência, mas destrava 2-4 cm de drop útil. Pesquisa Ferrer-Roca 2017.`,
+      impact: 'md', tag: 0.006
+    });
+  }
+
+  // CADÊNCIA + GEARING
+  const gear = analisarGearing(d);
+  for (const p of gear.problemas){
+    recs.push({title: 'Drivetrain: ' + (p.tipo === 'climb' ? 'range insuficiente' : p.tipo === 'top' ? 'top end limitado' : 'configuração'), body: p.msg, impact: 'lo', tag: 0.002});
+  }
+
+  // GARRAFA
+  if (d.garrafa === 'redonda'){
+    recs.push({title:'Trocar garrafa BTA redonda por aero', body:'Garrafa redonda entre braços quebra o fluxo. BTA aero (Torhans, Speedfil) tem perfil ovalado e até reduz CdA. R$ 250-500.', impact:'md', tag:0.010});
+  } else if (d.garrafa === 'nao' && d.distancia >= 90){
+    recs.push({title:'Instalar BTA aero (prova longa exige)', body:'>90 km sem hidratação acessível é furada. BTA aero resolve hidratação E limpa fluxo aerodinâmico.', impact:'md', tag:0.005});
+  }
+
+  // CABOS
+  if (d.cabos === 'externos'){
+    recs.push({title:'Esconder cabos', body:'Cabos visíveis no cockpit custam ~2 W. Se quadro não permite roteamento interno, ao menos use spacers com canal.', impact:'lo', tag:0.005});
+  }
+
+  // GRUPO
+  if (d.grupo === 'shim_mec' || d.grupo === 'sram_mec'){
+    if (d.distancia >= 90){
+      recs.push({title:'Migrar para eletrônico', body:'Mecânico em provas >2h: trocas piores quando cansado, sem trocas no extension, ~1-2% menos eficiente. AXS Rival ou Ultegra Di2 são opções com bom custo.', impact:'lo', tag:0.002});
+    }
+  }
+
+  recs.sort((a,b) => b.tag - a.tag);
+  return recs.slice(0, 10);
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function bindSlider(id, displayId, suffix){
+  const el = $(id);
+  const disp = $(displayId);
+  function update(){
+    const min = +el.min, max = +el.max, val = +el.value;
+    const p = ((val - min) / (max - min)) * 100;
+    el.style.setProperty('--p', p + '%');
+    disp.textContent = suffix ? val + suffix : val;
+  }
+  el.addEventListener('input', update);
+  update();
+}
+bindSlider('flex', 'flex-v', '');
+bindSlider('aerotempo', 'aero-v', ' min');
+bindSlider('drop', 'drop-v', ' cm');
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    $('t-' + t.dataset.t).classList.add('active');
+  });
+});
+
+function fmtTempo(seg){
+  const h = Math.floor(seg/3600), m = Math.floor((seg%3600)/60), s = Math.floor(seg%60);
+  if (h>0) return `${h}h ${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}"`;
+  return `${m}'${String(s).padStart(2,'0')}"`;
+}
+function fmtDelta(seg){
+  const m = Math.floor(seg/60), s = Math.floor(seg%60);
+  if (m>0) return `-${m}'${String(s).padStart(2,'0')}"`;
+  return `-${s}"`;
+}
+function veredito(score){
+  if (score >= 85) return ['Setup de elite', 'Sua configuração e posição estão em padrão pro. Ganhos só com túnel de vento, Aerosensor ou ajustes biomecânicos específicos.'];
+  if (score >= 70) return ['Competitiva', 'Boa base. Há ajustes finos que separam um bom age-grouper de pódio.'];
+  if (score >= 55) return ['Boa, com margem', 'Sólida mas com pontos óbvios pra atacar. Os 2-3 primeiros itens da lista somam 15-25 W.'];
+  if (score >= 35) return ['Abaixo do potencial', 'Watts sendo desperdiçados. Ganhos visíveis em poucas semanas após ajustes.'];
+  return ['Custosa', 'Cada watt produzido sendo desperdiçado no ar. Organize aerodinâmica antes de pensar em ganhar potência.'];
+}
+
+let _ctx = {};
+
+function renderizar(){
+  const d = getInputs();
+  const eta = DB_GRUPO[d.grupo].eta;
+  const crr = crrEfetivo(d);
+  const cdaR = calcularCdA(d, true);
+  const cda = cdaR.total;
+  const alvo = calcularAlvo(d);
+  const cdaAlvo = calcularCdA(alvo);
+  const score = calcularScore(d, cda);
+  const v_atual = velocidadeParaPotencia(d.ftp, cda, d.peso, crr, eta);
+  const v_alvo = velocidadeParaPotencia(d.ftp, cdaAlvo, d.peso, crr, eta);
+  const gear = analisarGearing(d);
+
+  _ctx = {d, cda, cdaAlvo, crr, eta, v_atual, v_alvo, score, gear};
+
+  // SCORE
+  animar('score-v', 0, score, 800, 0);
+  const [vl, vb] = veredito(score);
+  $('verdict-label').textContent = vl;
+  $('verdict-blurb').textContent = vb;
+
+  // CDA TAB
+  $('cda-atual').textContent = cda.toFixed(3);
+  $('cda-alvo').textContent = cdaAlvo.toFixed(3);
+  const dc = cda - cdaAlvo;
+  $('cda-alvo-delta').textContent = `−${dc.toFixed(3)} m² (${(dc/cda*100).toFixed(1)}%)`;
+  let bench;
+  if (cda < 0.22) bench = '≈ pro de elite TT';
+  else if (cda < 0.26) bench = '≈ idade-grupo elite';
+  else if (cda < 0.30) bench = '≈ idade-grupo treinado';
+  else if (cda < 0.36) bench = '≈ idade-grupo intermediário';
+  else bench = '≈ amador iniciando em TT';
+  $('cda-atual-bench').textContent = bench;
+  $('v-atual').textContent = v_atual.toFixed(1);
+  $('v-alvo').textContent = v_alvo.toFixed(1);
+  $('v-alvo-delta').textContent = `+${(v_alvo-v_atual).toFixed(1)} km/h a ${d.ftp}W`;
+  $('v-atual-detail').textContent = `mantendo ${d.ftp} W`;
+
+  // BREAKDOWN
+  const bd = $('cda-breakdown');
+  bd.innerHTML = '';
+  for (const item of cdaR.breakdown){
+    if (item.group === 'body') continue; // pula corpo (mostra total dele)
+    const cls = item.v > 0 ? 'pos' : (item.v < 0 ? 'neg' : '');
+    const sig = item.v > 0 ? '+' : '';
+    bd.insertAdjacentHTML('beforeend', `
+      <div class="bd-row">
+        <span class="bd-k">${item.k}</span>
+        <span class="bd-v ${cls}">${sig}${item.v.toFixed(3)}</span>
+      </div>
+    `);
+  }
+  bd.insertAdjacentHTML('afterbegin', `
+    <div class="bd-row">
+      <span class="bd-k">Corpo + posição (linha de base)</span>
+      <span class="bd-v">${cdaR.breakdown[0].v.toFixed(3)}</span>
+    </div>
+  `);
+  bd.insertAdjacentHTML('beforeend', `
+    <div class="bd-row total">
+      <span class="bd-k">Total CdA</span>
+      <span class="bd-v">${cda.toFixed(3)} m²</span>
+    </div>
+  `);
+
+  // DRIVETRAIN TAB
+  $('crr-v').textContent = crr.toFixed(5);
+  $('crr-detail').textContent = `${DB_PNEU[d.pneu].nome} · ${d.psi} psi`;
+  $('eta-v').textContent = (eta*100).toFixed(1);
+  $('eta-detail').textContent = DB_GRUPO[d.grupo].nome;
+  const vMs = gear.vProva / 3.6;
+  const wRoll = crr * d.peso * G * vMs;
+  $('watts-roll').textContent = wRoll.toFixed(1);
+  $('roll-detail').textContent = `a ${gear.vProva.toFixed(1)} km/h (ritmo de prova)`;
+  // potência ideal (eta=0.975) vs atual
+  const pAt = potencia(gear.vProva, cda, d.peso, crr, eta);
+  const pId = potencia(gear.vProva, cda, d.peso, crr, 0.975);
+  $('watts-drive').textContent = (pAt - pId).toFixed(1);
+  $('drive-detail').textContent = `vs Dura-Ace Di2 ideal`;
+
+  // gearing analysis
+  const ga = $('gearing-analysis');
+  const psiOpt = pressaoOtima(d.peso, d.pneul);
+  ga.innerHTML = `
+    <div class="cadence-row"><span class="ck">Velocidade de prova projetada</span><span class="cv">${gear.vProva.toFixed(1)} km/h (${(gear.pProva).toFixed(0)} W)</span></div>
+    <div class="cadence-row optimal"><span class="ck">Marcha ideal nesta velocidade</span><span class="cv">${gear.melhorMarcha.coroa}×${gear.melhorMarcha.cog} (ratio ${gear.melhorMarcha.ratio.toFixed(2)})</span></div>
+    <div class="cadence-row"><span class="ck">Velocidade nesta marcha @ ${d.cadencia} rpm</span><span class="cv">${gear.melhorMarcha.v.toFixed(1)} km/h</span></div>
+    <div class="cadence-row ${gear.vMaxCad < 55 ? 'bad' : ''}"><span class="ck">Topo @ 95 rpm (marcha máxima)</span><span class="cv">${gear.vMaxCad.toFixed(1)} km/h</span></div>
+    <div class="cadence-row ${gear.ratioMin > 1.3 && d.perfil === 'montanhoso' ? 'bad' : ''}"><span class="ck">Subida @ ${d.cadencia} rpm (marcha mínima)</span><span class="cv">${gear.vMinClimb.toFixed(1)} km/h</span></div>
+    <div class="cadence-row"><span class="ck">Pressão ótima dos pneus</span><span class="cv">${psiOpt} psi</span></div>
+  `;
+
+  // GANHO TAB
+  atualizarGanho(d.distancia);
+  $('g-psi').textContent = psiOpt + ' psi';
+  document.querySelectorAll('#dist-select button').forEach(b => {
+    b.classList.toggle('active', +b.dataset.d === d.distancia);
+  });
+
+  // RECS
+  const recs = gerarRecs(d);
+  const rl = $('recs-list');
+  rl.innerHTML = '';
+  recs.forEach((r, i) => {
+    const impactLabel = r.impact === 'hi' ? 'ALTO' : r.impact === 'md' ? 'MÉDIO' : 'BAIXO';
+    rl.insertAdjacentHTML('beforeend', `
+      <div class="rec ${r.impact}" style="animation-delay:${i*40}ms">
+        <div class="rec-head">
+          <div class="rec-title">${i+1}. ${r.title}</div>
+          <div class="rec-tag">Impacto · <span class="impact ${r.impact}">${impactLabel}</span></div>
+        </div>
+        <div class="rec-body">${r.body}</div>
+      </div>
+    `);
+  });
+
+  $('result').classList.remove('hidden');
+  setTimeout(() => $('result').scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+function atualizarGanho(distKm){
+  if (!_ctx.v_atual) return;
+  const tA = (distKm * 1000) / (_ctx.v_atual / 3.6);
+  const tO = (distKm * 1000) / (_ctx.v_alvo / 3.6);
+  const dT = tA - tO;
+  const wA = _ctx.d.ftp;
+  const wO = potencia(_ctx.v_atual, _ctx.cdaAlvo, _ctx.d.peso, _ctx.crr, _ctx.eta);
+  const wEco = wA - wO;
+  $('g-t-atual').textContent = fmtTempo(tA);
+  $('g-t-alvo').textContent = fmtTempo(tO);
+  $('g-delta').textContent = fmtDelta(dT);
+  $('g-watts').textContent = `−${wEco.toFixed(1)} W`;
+}
+
+function animar(id, from, to, dur, dec){
+  const el = $(id);
+  const t0 = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t-t0)/dur);
+    const e = 1 - Math.pow(1-p, 3);
+    const v = from + (to-from)*e;
+    el.textContent = dec ? v.toFixed(dec) : Math.round(v);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+document.querySelectorAll('#dist-select button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#dist-select button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    atualizarGanho(+b.dataset.d);
+  });
+});
+
+$('run').addEventListener('click', renderizar);
+$('reset').addEventListener('click', () => {
+  $('result').classList.add('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ============ PAINEL DIAGNÓSTICO ============ */
+
+// Cada card click → vai pra section + foca no select indicado
+document.querySelectorAll('.panel-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const targetSection = card.dataset.target;
+    const targetField = card.dataset.field;
+    const section = document.getElementById(targetSection);
+    if (!section) return;
+    section.scrollIntoView({behavior:'smooth', block:'start'});
+    section.classList.add('section-highlight');
+    setTimeout(() => section.classList.remove('section-highlight'), 1200);
+    if (targetField){
+      const field = document.getElementById(targetField);
+      if (field){
+        setTimeout(() => {
+          field.focus({preventScroll: true});
+        }, 600);
+      }
+    }
+  });
+});
+
+// Helpers
+function deltaClass(delta){
+  if (delta < -0.005) return 'good';
+  if (delta < 0)      return 'good';
+  if (delta < 0.003)  return '';
+  if (delta < 0.010)  return 'warn';
+  return 'bad';
+}
+function fmtDelta(delta){
+  const v = delta * 1000; // m² -> milli-m² (mais legível)
+  if (Math.abs(v) < 0.5) return 'neutro · 0 W';
+  const sig = v > 0 ? '+' : '−';
+  const abs = Math.abs(v);
+  // Watts a 40 km/h por unidade de CdA
+  const w = Math.abs(delta) * 0.5 * 1.225 * Math.pow(40/3.6, 3);
+  return `${sig}${abs.toFixed(1)} m·m² · ${sig}${w.toFixed(1)} W`;
+}
+function descPosicao(d){
+  const t = {vertical:'Tronco alto (~50°)', medio:'Tronco médio (~35°)', baixo:'Tronco baixo (~22°)', superman:'Plano (~10°)'}[d.tronco];
+  return `${t} · drop ${d.drop}cm`;
+}
+function deltaPosicao(d){
+  // proxy: comparado ao tronco medio com drop ideal
+  const af = (d.altura/100) * (d.ombros/100);
+  const af_ref = 1.75 * 0.42;
+  const cdaAtual = CDA_REF_TRONCO[d.tronco] * (af / af_ref);
+  const cdaBaseline = CDA_REF_TRONCO['medio'] * (af / af_ref);
+  return cdaAtual - cdaBaseline;
+}
+
+/* ============ ATUALIZAÇÃO AO VIVO DO PAINEL ============ */
+function atualizarPainel(){
+  let d;
+  try { d = getInputs(); } catch(e){ return; }
+  if (!d) return;
+
+  const eta = DB_GRUPO[d.grupo].eta;
+  const crr = crrEfetivo(d);
+  const cda = calcularCdA(d);
+
+  // GAUGE
+  const gaugeVal = document.getElementById('gauge-cda-val');
+  if (gaugeVal) gaugeVal.textContent = cda.toFixed(3);
+
+  // Arco progressivo: mapear CdA [0.18, 0.50] → arco preenchido
+  const arc = document.getElementById('cda-arc');
+  if (arc){
+    const tot = 283;
+    const pct = Math.max(0, Math.min(1, (cda - 0.18) / (0.50 - 0.18)));
+    arc.setAttribute('stroke-dashoffset', tot * (1 - pct));
+  }
+
+  // Benchmark
+  let bench;
+  if (cda < 0.22) bench = 'Elite TT';
+  else if (cda < 0.26) bench = 'Idade-grupo elite';
+  else if (cda < 0.30) bench = 'Idade-grupo treinado';
+  else if (cda < 0.36) bench = 'Idade-grupo médio';
+  else bench = 'Amador iniciando';
+  const benchEl = document.getElementById('gauge-cda-bench');
+  if (benchEl) benchEl.textContent = bench;
+
+  // Strip embaixo do gauge - usar FTP efetivo (ajustado por perda potência na posição)
+  try {
+    const ftpInfo = ftpEfetivoNaPosicao(d);
+    const vAtFtp = velocidadeParaPotencia(ftpInfo.ftpEfetivo, cda, d.peso, crr, eta);
+    document.getElementById('strip-vel').textContent = vAtFtp.toFixed(1);
+    document.getElementById('strip-crr').textContent = crr.toFixed(5);
+    document.getElementById('strip-psi').textContent = pressaoOtima(d.peso, d.pneul);
+  } catch(e){}
+
+  // Cards individuais
+  const setCard = (id, val, delta) => {
+    const v = document.getElementById('card-' + id);
+    const dl = document.getElementById('card-' + id + '-delta');
+    if (v) v.textContent = val;
+    if (dl){
+      dl.textContent = fmtDelta(delta);
+      dl.className = 'panel-card-delta ' + deltaClass(delta);
+    }
+  };
+
+  // Card POSIÇÃO especial: mostra perda de FTP sustentável (Birmingham study)
+  const ftpInfo = ftpEfetivoNaPosicao(d);
+  const cardPosLabel = document.getElementById('card-posicao');
+  const cardPosDelta = document.getElementById('card-posicao-delta');
+  if (cardPosLabel) cardPosLabel.textContent = descPosicao(d);
+  if (cardPosDelta){
+    const dCda = deltaPosicao(d);
+    const wCda = Math.abs(dCda) * 0.5 * 1.225 * Math.pow(40/3.6, 3);
+    const sigCda = dCda > 0 ? '+' : '−';
+    if (ftpInfo.perdaPct > 1){
+      cardPosDelta.textContent = `aero ${sigCda}${wCda.toFixed(1)}W · pot −${ftpInfo.perdaPct.toFixed(1)}%`;
+      cardPosDelta.className = 'panel-card-delta ' + (ftpInfo.perdaPct > 8 ? 'warn' : '');
+    } else {
+      cardPosDelta.textContent = `aero ${sigCda}${wCda.toFixed(1)}W · pot mantida`;
+      cardPosDelta.className = 'panel-card-delta good';
+    }
+  }
+  setCard('capacete',   DB_CAPACETE[d.capacete].nome, DB_CAPACETE[d.capacete].delta);
+  setCard('vest',       DB_VEST[d.vest].nome, DB_VEST[d.vest].delta);
+  setCard('quadro',     DB_QUADRO[d.quadro].nome, DB_QUADRO[d.quadro].delta);
+  setCard('basebar',    DB_BASEBAR[d.basebar].nome, DB_BASEBAR[d.basebar].delta);
+  setCard('extensions', DB_EXTENSIONS[d.extensions].nome, DB_EXTENSIONS[d.extensions].delta);
+  setCard('armcups',    DB_ARMCUPS[d.armcups].nome, DB_ARMCUPS[d.armcups].delta);
+  setCard('rodaf',      DB_RODA[d.rodaf].nome, DB_RODA[d.rodaf].delta);
+  setCard('rodat',      DB_RODA[d.rodat].nome, DB_RODA[d.rodat].delta * 0.6);
+  setCard('pneu',       DB_PNEU[d.pneu].nome + ' · ' + d.pneul + 'mm', 0); // pneu: contribui via Crr
+  // pneu delta especial (Crr → equivalente em CdA virtual)
+  const cardPneuDelta = document.getElementById('card-pneu-delta');
+  if (cardPneuDelta) cardPneuDelta.textContent = `Crr ${crr.toFixed(5)} · ${d.camara}`;
+
+  setCard('drivetrain', DB_GRUPO[d.grupo].nome + ' · ' + d.pedivela + 'mm', 0);
+  const cardDtDelta = document.getElementById('card-drivetrain-delta');
+  if (cardDtDelta) cardDtDelta.textContent = `${(eta*100).toFixed(1)}% eficiência · ${d.config}`;
+
+  setCard('garrafa',    DB_GARRAFA[d.garrafa].nome, DB_GARRAFA[d.garrafa].delta);
+
+  // Renderizar gráficos avançados
+  renderWaterfall(d, cda);
+  renderBars(d);
+  // Simulador atualiza só quando user muda os selects dele, não a cada keystroke do form
+  if (window._simInitialized) atualizarSim();
+}
+
+/* ============================================================
+   GRÁFICO 1 · WATERFALL DO CdA
+   Mostra construção do CdA peça por peça
+   ============================================================ */
+function renderWaterfall(d, cda){
+  const svg = document.getElementById('waterfall-svg');
+  if (!svg) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  // Construir steps: cada step é {label, valor, tipo: 'base'|'add'|'sub'|'total'}
+  const corpo = cdaCorpo(d);
+  const bb = DB_BASEBAR[d.basebar].delta;
+  const ex = DB_EXTENSIONS[d.extensions].delta;
+  const ac = DB_ARMCUPS[d.armcups].delta;
+  let cockpitTotal = bb + ex + ac;
+  if (d.basebar === 'fasttt_20_full' && d.extensions === 'fasttt_2_ext') cockpitTotal = -0.013;
+
+  const steps = [
+    {label: 'Corpo + posição', delta: corpo,                                  tipo: 'base'},
+    {label: 'Quadro',          delta: DB_QUADRO[d.quadro].delta,             tipo: 'eq'},
+    {label: 'Cockpit (3 cam.)', delta: cockpitTotal,                         tipo: 'eq'},
+    {label: 'Cabos',           delta: DB_CABOS[d.cabos].delta,                tipo: 'eq'},
+    {label: 'Garrafa BTA',     delta: DB_GARRAFA[d.garrafa].delta,            tipo: 'eq'},
+    {label: 'Roda dianteira',  delta: DB_RODA[d.rodaf].delta,                 tipo: 'eq'},
+    {label: 'Roda traseira',   delta: DB_RODA[d.rodat].delta * 0.6,           tipo: 'eq'},
+    {label: 'Capacete',        delta: DB_CAPACETE[d.capacete].delta,          tipo: 'eq'},
+    {label: 'Vestuário',       delta: DB_VEST[d.vest].delta,                  tipo: 'eq'},
+    {label: 'Cobre-sapatilha', delta: d.overshoe === 'sim' ? -0.002 : 0,      tipo: 'eq'},
+    {label: 'Meias aero',      delta: d.socks === 'sim' ? -0.001 : 0,         tipo: 'eq'},
+    {label: 'Pneu (largura)',  delta: (d.pneul - 25) * 0.0008,                tipo: 'eq'}
+  ].filter(s => Math.abs(s.delta) > 0.0001 || s.tipo === 'base');
+
+  // Adicionar total no fim
+  let cumul = 0;
+  const positions = steps.map(s => {
+    const start = cumul;
+    cumul += s.delta;
+    return {...s, start, end: cumul};
+  });
+  positions.push({label: 'CdA TOTAL', delta: cda, start: 0, end: cda, tipo: 'total'});
+
+  // Dimensões e escala
+  const W = 720, H = 360;
+  const padL = 16, padR = 16, padTop = 30, padBot = 70;
+  const plotW = W - padL - padR;
+  const plotH = H - padTop - padBot;
+  const yMax = Math.max(0.50, cda * 1.15);
+  const yScale = (val) => padTop + plotH - (val / yMax) * plotH;
+
+  const barW = plotW / positions.length * 0.74;
+  const barGap = plotW / positions.length * 0.26;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const make = (tag, attrs) => {
+    const el = document.createElementNS(ns, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  };
+
+  // Eixo Y - linhas de referência
+  [0, 0.1, 0.2, 0.3, 0.4, 0.5].forEach(v => {
+    if (v > yMax) return;
+    const y = yScale(v);
+    svg.appendChild(make('line', {
+      x1: padL, y1: y, x2: W - padR, y2: y,
+      stroke: '#2a2a31', 'stroke-width': '0.5', 'stroke-dasharray': '2 3'
+    }));
+    const lbl = make('text', {
+      x: padL + 4, y: y - 2,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': '8.5',
+      'letter-spacing': '0.05em',
+      fill: '#5b5852'
+    });
+    lbl.textContent = v.toFixed(2);
+    svg.appendChild(lbl);
+  });
+
+  // Linha de referência elite (0.22) com label
+  const yElite = yScale(0.22);
+  svg.appendChild(make('line', {
+    x1: padL, y1: yElite, x2: W - padR, y2: yElite,
+    stroke: '#7fb069', 'stroke-width': '0.8', 'stroke-dasharray': '4 3', opacity: '0.5'
+  }));
+  const eliteLabel = make('text', {
+    x: W - padR - 4, y: yElite - 3,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': '8.5', fill: '#7fb069',
+    'text-anchor': 'end', 'letter-spacing': '0.1em'
+  });
+  eliteLabel.textContent = 'ELITE 0.22';
+  svg.appendChild(eliteLabel);
+
+  // Plotar barras
+  positions.forEach((p, i) => {
+    const x = padL + i * (barW + barGap) + barGap / 2;
+    let yTop, h, fill, stroke;
+    if (p.tipo === 'base' || p.tipo === 'total') {
+      yTop = yScale(p.end);
+      h = plotH - (yTop - padTop);
+      fill = p.tipo === 'base' ? '#9a978f' : '#ff8a1c';
+      stroke = p.tipo === 'base' ? '#9a978f' : '#ff8a1c';
+    } else {
+      const top = Math.max(p.start, p.end);
+      const bot = Math.min(p.start, p.end);
+      yTop = yScale(top);
+      h = yScale(bot) - yScale(top);
+      if (p.delta < 0){
+        fill = 'rgba(127,176,105,0.5)';
+        stroke = '#7fb069';
+      } else {
+        fill = 'rgba(212,80,74,0.5)';
+        stroke = '#d4504a';
+      }
+    }
+    h = Math.max(1, h);
+
+    // Connector dashed da barra anterior
+    if (i > 0 && p.tipo !== 'total'){
+      const prev = positions[i-1];
+      if (prev.tipo !== 'total'){
+        const ySrc = yScale(prev.end);
+        const xSrcEnd = padL + (i-1) * (barW + barGap) + barGap / 2 + barW;
+        const xDst = x;
+        svg.appendChild(make('line', {
+          x1: xSrcEnd, y1: ySrc, x2: xDst, y2: ySrc,
+          stroke: '#5b5852', 'stroke-width': '0.4', 'stroke-dasharray': '2 2'
+        }));
+      }
+    }
+
+    svg.appendChild(make('rect', {
+      x: x, y: yTop, width: barW, height: h,
+      fill: fill, stroke: stroke, 'stroke-width': '1'
+    }));
+
+    // Label do valor (em m·m²)
+    if (p.tipo === 'base' || p.tipo === 'total') {
+      const valLabel = make('text', {
+        x: x + barW/2, y: yTop - 4,
+        'font-family': 'JetBrains Mono, monospace',
+        'font-size': '10', fill: '#e8e6e1',
+        'text-anchor': 'middle', 'font-weight': '500'
+      });
+      valLabel.textContent = p.end.toFixed(3);
+      svg.appendChild(valLabel);
+    } else {
+      const v = p.delta * 1000;
+      const sig = v > 0 ? '+' : '−';
+      const valLabel = make('text', {
+        x: x + barW/2, y: yTop - 4,
+        'font-family': 'JetBrains Mono, monospace',
+        'font-size': '9', fill: p.delta < 0 ? '#7fb069' : '#d4504a',
+        'text-anchor': 'middle'
+      });
+      valLabel.textContent = `${sig}${Math.abs(v).toFixed(1)}`;
+      svg.appendChild(valLabel);
+    }
+
+    // Label x (componente) - rotacionado se muitos
+    const lblG = make('g', {
+      transform: `translate(${x + barW/2}, ${H - padBot + 10}) rotate(-45)`
+    });
+    const lbl = make('text', {
+      x: 0, y: 0,
+      'font-family': 'JetBrains Mono, monospace',
+      'font-size': '9', fill: '#9a978f',
+      'text-anchor': 'end',
+      'letter-spacing': '0.05em'
+    });
+    lbl.textContent = p.label;
+    lblG.appendChild(lbl);
+    svg.appendChild(lblG);
+  });
+
+  // Header
+  const head = make('text', {
+    x: padL, y: 18,
+    'font-family': 'JetBrains Mono, monospace',
+    'font-size': '9', fill: '#5b5852',
+    'letter-spacing': '0.2em'
+  });
+  head.textContent = 'CdA (m²) · CINZA = CORPO · LARANJA = TOTAL · VERDE = ECONOMIA · VERMELHO = PENALIDADE';
+  svg.appendChild(head);
+}
+
+/* ============================================================
+   GRÁFICO 2 · BARRAS HORIZONTAIS
+   Ranking por impacto em watts a 40 km/h
+   ============================================================ */
+function renderBars(d){
+  const wrap = document.getElementById('bars-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  const bb = DB_BASEBAR[d.basebar].delta;
+  const ex = DB_EXTENSIONS[d.extensions].delta;
+  const ac = DB_ARMCUPS[d.armcups].delta;
+
+  // Calcular contribuição de cada componente em watts
+  // 1W ≈ 0.0012 m² CdA a 40 km/h (ρ/2 · v³, v=11.11 m/s)
+  const wattFactor = 0.5 * 1.225 * Math.pow(40/3.6, 3); // ~840 W por m² CdA
+
+  const items = [
+    {label: 'CAPACETE',     delta: DB_CAPACETE[d.capacete].delta, nome: DB_CAPACETE[d.capacete].nome},
+    {label: 'VESTUÁRIO',    delta: DB_VEST[d.vest].delta,         nome: DB_VEST[d.vest].nome},
+    {label: 'QUADRO',       delta: DB_QUADRO[d.quadro].delta,     nome: DB_QUADRO[d.quadro].nome},
+    {label: 'BASE BAR',     delta: bb,                            nome: DB_BASEBAR[d.basebar].nome},
+    {label: 'EXTENSIONS',   delta: ex,                            nome: DB_EXTENSIONS[d.extensions].nome},
+    {label: 'ARM CUPS',     delta: ac,                            nome: DB_ARMCUPS[d.armcups].nome},
+    {label: 'CABOS',        delta: DB_CABOS[d.cabos].delta,       nome: DB_CABOS[d.cabos].nome},
+    {label: 'GARRAFA BTA',  delta: DB_GARRAFA[d.garrafa].delta,   nome: DB_GARRAFA[d.garrafa].nome},
+    {label: 'RODA DIANT.',  delta: DB_RODA[d.rodaf].delta,        nome: DB_RODA[d.rodaf].nome},
+    {label: 'RODA TRAS.',   delta: DB_RODA[d.rodat].delta * 0.6,  nome: DB_RODA[d.rodat].nome},
+    {label: 'COBRE-SAPAT.', delta: d.overshoe === 'sim' ? -0.002 : 0, nome: d.overshoe === 'sim' ? 'Sim' : 'Sem'},
+    {label: 'MEIAS AERO',   delta: d.socks === 'sim' ? -0.001 : 0, nome: d.socks === 'sim' ? 'Sim' : 'Sem'}
+  ].filter(i => Math.abs(i.delta) > 0.0001);
+
+  // Calcular watts e ordenar por magnitude
+  items.forEach(i => { i.watts = i.delta * wattFactor; });
+  items.sort((a, b) => Math.abs(b.watts) - Math.abs(a.watts));
+
+  // Maior valor absoluto pra escala
+  const maxAbs = Math.max(...items.map(i => Math.abs(i.watts)), 1);
+
+  items.forEach(i => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+
+    const label = document.createElement('div');
+    label.className = 'bar-label';
+    label.textContent = i.label;
+
+    const track = document.createElement('div');
+    track.className = 'bar-track';
+    const fill = document.createElement('div');
+    const isGood = i.delta < 0;
+    fill.className = 'bar-fill ' + (isGood ? 'good' : 'bad');
+    const pct = (Math.abs(i.watts) / maxAbs) * 50;
+    fill.style.width = pct + '%';
+    if (isGood) fill.style.right = '50%';
+    else fill.style.left = '50%';
+    track.appendChild(fill);
+
+    const value = document.createElement('div');
+    value.className = 'bar-value ' + (isGood ? 'good' : 'bad');
+    const sig = i.watts < 0 ? '−' : '+';
+    value.textContent = `${sig}${Math.abs(i.watts).toFixed(1)} W`;
+
+    row.appendChild(label);
+    row.appendChild(track);
+    row.appendChild(value);
+    wrap.appendChild(row);
+  });
+
+  if (items.length === 0){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--ink-3);font-family:JetBrains Mono;font-size:11px;text-align:center;padding:18px';
+    empty.textContent = 'Nenhuma peça com contribuição mensurável (setup neutra).';
+    wrap.appendChild(empty);
+  }
+}
+
+/* ============================================================
+   SIMULADOR · ANTES vs DEPOIS
+   ============================================================ */
+
+// Bancos com preço estimado em R$ (para cálculo $/min)
+// Valores em R$ para BR. Preços médios de mercado nacional ou importação.
+const PRECOS = {
+  capacete: {
+    'rudy_wingdream': 4500, 'vanrysel_xcr': 1200, 'giro_aerohead': 2800,
+    'trek_ballista_tt': 3500, 'met_drone': 2500, 'rudy_wing': 3500, 'kask_bambino': 2800,
+    'kask_mistral': 2200, 'lazer_victor': 2200, 'rudy_wingspan': 2400, 'poc_tempor': 2800,
+    'poc_procen': 2500, 'oakley_velomach': 2200, 'rudy_volantis': 2000, 'giro_eclipse': 1800,
+    'trek_ballista': 1800, 'sworks_evade': 2500, 'kask_utopia': 1500, 'poc_ventral': 1700,
+    'road_aero_gen': 600, 'road_vented': 400
+  },
+  vest: {
+    'skinsuit_pro': 2500, 'skinsuit': 1500, 'trisuit_pro': 1800, 'trisuit': 800,
+    'bib': 350, 'jersey': 250
+  },
+  quadro: {
+    'cervelo_p5': 55000, 'trek_sc_slr': 50000, 'cadex_tri': 48000, 'canyon_speedmax_cfr': 42000,
+    'cube_aerium_slt': 45000, 'cervelo_pseries': 28000, 'giant_trinity_sl': 32000,
+    'spec_shiv': 35000, 'felt_ia': 22000, 'argon_e119': 24000, 'bmc_tm01': 30000,
+    'qr_prsix': 25000, 'ventum_one': 28000, 'ventum_tempus': 30000, 'scott_plasma': 32000,
+    'pinarello_bolide': 45000, 'a2_sp': 12000, 'generico_tri': 8000,
+    'road_aero': 18000, 'road_classico': 6000
+  },
+  basebar: {
+    'stock_quadro': 0, 'sem_clip': 0, 'aluminio_gen': 400, 'carbono_gen': 1200,
+    'fasttt_xenos': 3500, 'vision_tfa_evo': 3800, 'tririg_alpha_bb': 4500,
+    'cervelo_ex14_bb': 0, '3t_aduro_bb': 0, 'spec_shiv_bb': 0, 'trinity_bb': 0,
+    'swissside_bb': 4200, 'kucycle_tf1_bb': 0, 'fasttt_20_full': 6500, 'integrado_uci': 0
+  },
+  extensions: {
+    'sem_ext': 0, 'aluminio_basico': 300, 'carbono_generico': 900,
+    'pd_wing_pro': 2200, 'pd_aeria': 1800, 'pd_aerobeam': 1400,
+    'metron_tfe_pro': 3600, 'metron_tfe_evo': 3400, 'metron_replica': 800,
+    '51_rev_pro': 2600, '51_rev': 1200, '51_rev_light': 1000, '51_ski_carbon': 900,
+    '51_ultimate': 850, '51_alloy_120': 450,
+    'sync_aerobar3': 2800, 'sync_aerobar2': 2400, 'firstwheel_ext': 2500, 'drag2zero': 5500,
+    'tririg_scoops': 3200, 'wattshop_anemoi': 3000, 'zipp_vuka': 2500, 'triwings_ext': 2200,
+    'fasttt_2_ext': 0, 'aerogain_custom': 4500, 'bontrager_ext': 0, 'canyon_ext': 0
+  },
+  armcups: {
+    'stock_quadro': 0, 'pad_basico': 100, 'cup_padrao': 300, 'cup_high_sided': 500,
+    '51_std': 450, '51_high': 650, '51_high_wedge': 800, 'vision_pad': 350,
+    'fasttt_full': 0, 'aerogain_3d_arm': 0, 'custom_3d': 1500
+  },
+  rodaf: {
+    'box': 600, 'r40': 2500, 'zipp404': 9000, 'enve45': 14000, 'roval_clx': 12000,
+    'cadex50': 10000, 'bontrager_51': 9000, 'zipp808_60': 10000, 'enve65': 16000,
+    'hunt_60': 5500, 'dt_arc_62': 12000, 'dt_arc1100_62': 14000, 'vision_metron60': 8500,
+    'hed_v62': 11000, 'zipp808': 12000, 'enve78': 17000, 'hed_v84': 13000,
+    'princeton_blur': 18000, 'princeton_mach': 20000, 'dt_arc_80': 13000,
+    'dt_arc1100_80': 15000, 'cadex_aero': 12500, 'cadex_4spoke': 24000,
+    'disc_zipp': 14000, 'disc_dt': 14500
+  },
+  rodat: {
+    'box': 600, 'r40': 2500, 'zipp404': 9000, 'enve45': 14000, 'roval_clx': 12000,
+    'cadex50': 10000, 'bontrager_51': 9000, 'zipp808_60': 10000, 'enve65': 16000,
+    'dt_arc1100_62': 14000, 'hed_v62': 11000, 'zipp808': 12000, 'enve78': 17000,
+    'hed_v84': 13000, 'dt_arc_80': 13000, 'dt_arc1100_80': 15000, 'cadex_aero': 12500,
+    'cadex_4spoke': 24000, 'princeton_mach': 20000, 'hed_jet180': 14000,
+    'disc_zipp': 14000, 'disc_dt': 14500, 'disc_capa': 800
+  },
+  pneu: {
+    'vit_corsa_speed': 280, 'vit_corsa_pro_speed': 320, 'gp5000_tt': 220, 'conti_aero111': 280,
+    'veloflex_record': 250, 'gp5000_str': 180, 'gp5000_s_tr': 200, 'pirelli_pzero_race_tlr': 280,
+    'schwalbe_pro_one_tt': 240, 'vit_corsa_pro': 280, 'vit_rubino': 130,
+    'conti_treino': 150, 'pirelli_p7': 200, 'gp5000_tube': 180
+  }
+};
+
+function precoEstimado(component, key){
+  return (PRECOS[component] && PRECOS[component][key] !== undefined) ? PRECOS[component][key] : null;
+}
+
+function popularSimTarget(){
+  const compSel = document.getElementById('sim-component');
+  const targetSel = document.getElementById('sim-target');
+  if (!compSel || !targetSel) return;
+  const comp = compSel.value;
+  const DB_MAP = {
+    capacete: DB_CAPACETE, vest: DB_VEST, quadro: DB_QUADRO,
+    basebar: DB_BASEBAR, extensions: DB_EXTENSIONS, armcups: DB_ARMCUPS,
+    rodaf: DB_RODA, rodat: DB_RODA, pneu: DB_PNEU
+  };
+  const db = DB_MAP[comp];
+  if (!db) return;
+
+  const d = getInputs();
+  const valorAtual = d[comp];
+
+  // Limpar target
+  while (targetSel.firstChild) targetSel.removeChild(targetSel.firstChild);
+
+  // Ordenar opções: melhor delta (mais negativo) primeiro, atual em destaque
+  const opts = Object.keys(db).map(k => ({
+    key: k,
+    nome: db[k].nome,
+    delta: db[k].delta !== undefined ? db[k].delta : (db[k].crr !== undefined ? db[k].crr : 0),
+    isCurrent: k === valorAtual
+  }));
+  if (comp === 'pneu'){
+    opts.sort((a, b) => a.delta - b.delta); // menor Crr é melhor
+  } else {
+    opts.sort((a, b) => a.delta - b.delta); // mais negativo (economia) primeiro
+  }
+
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.key;
+    opt.textContent = (o.isCurrent ? '✓ (atual) ' : '') + o.nome;
+    if (o.isCurrent) opt.selected = true;
+    targetSel.appendChild(opt);
+  });
+
+  atualizarSim();
+}
+
+function atualizarSim(){
+  const compSel = document.getElementById('sim-component');
+  const targetSel = document.getElementById('sim-target');
+  if (!compSel || !targetSel) return;
+  const comp = compSel.value;
+  const targetKey = targetSel.value;
+  if (!targetKey) return;
+
+  const dAtual = getInputs();
+  const dDepois = {...dAtual, [comp]: targetKey};
+
+  const DB_MAP = {
+    capacete: DB_CAPACETE, vest: DB_VEST, quadro: DB_QUADRO,
+    basebar: DB_BASEBAR, extensions: DB_EXTENSIONS, armcups: DB_ARMCUPS,
+    rodaf: DB_RODA, rodat: DB_RODA, pneu: DB_PNEU
+  };
+  const db = DB_MAP[comp];
+
+  const cdaAtual = calcularCdA(dAtual);
+  const cdaDepois = calcularCdA(dDepois);
+  const ftpInfoA = ftpEfetivoNaPosicao(dAtual);
+  const ftpInfoD = ftpEfetivoNaPosicao(dDepois);
+  const crrA = crrEfetivo(dAtual);
+  const crrD = crrEfetivo(dDepois);
+  const etaA = DB_GRUPO[dAtual.grupo].eta;
+  const etaD = DB_GRUPO[dDepois.grupo].eta;
+
+  const vA = velocidadeParaPotencia(ftpInfoA.ftpEfetivo, cdaAtual, dAtual.peso, crrA, etaA);
+  const vD = velocidadeParaPotencia(ftpInfoD.ftpEfetivo, cdaDepois, dDepois.peso, crrD, etaD);
+
+  // Tempo em prova - usa distância do perfil atual (default 90 km)
+  const distKm = dAtual.distancia || 90;
+  const tempoA_min = distKm / vA * 60;
+  const tempoD_min = distKm / vD * 60;
+  const deltaTempo_seg = (tempoA_min - tempoD_min) * 60;
+
+  const fmtTime = (min) => {
+    const h = Math.floor(min / 60);
+    const m = Math.floor(min - h * 60);
+    const s = Math.floor((min - h * 60 - m) * 60);
+    if (h > 0) return `${h}h${m.toString().padStart(2,'0')}min`;
+    return `${m}min${s.toString().padStart(2,'0')}`;
+  };
+
+  document.getElementById('sim-current-name').textContent = db[dAtual[comp]].nome;
+  document.getElementById('sim-current-cda').textContent = cdaAtual.toFixed(3) + ' m²';
+  document.getElementById('sim-current-vel').textContent = vA.toFixed(1) + ' km/h';
+  document.getElementById('sim-current-time').textContent = fmtTime(tempoA_min);
+
+  document.getElementById('sim-target-name').textContent = db[targetKey].nome;
+  document.getElementById('sim-target-cda').textContent = cdaDepois.toFixed(3) + ' m²';
+  document.getElementById('sim-target-vel').textContent = vD.toFixed(1) + ' km/h';
+  document.getElementById('sim-target-time').textContent = fmtTime(tempoD_min);
+
+  // Veredito
+  const verdictIcon = document.getElementById('sim-verdict-icon');
+  const verdictText = document.getElementById('sim-verdict-text');
+  const verdictRate = document.getElementById('sim-verdict-rate');
+
+  const precoAtual = precoEstimado(comp, dAtual[comp]) || 0;
+  const precoTarget = precoEstimado(comp, targetKey) || 0;
+  const upgradeCost = Math.max(0, precoTarget - precoAtual);
+
+  if (dAtual[comp] === targetKey){
+    verdictIcon.textContent = '=';
+    verdictIcon.className = 'sim-verdict-icon';
+    verdictText.innerHTML = `<strong>Componente igual ao atual.</strong> Selecione uma alternativa diferente acima pra simular um upgrade.`;
+    verdictRate.textContent = '';
+    return;
+  }
+
+  if (Math.abs(deltaTempo_seg) < 1){
+    verdictIcon.textContent = '~';
+    verdictIcon.className = 'sim-verdict-icon warn';
+    verdictText.innerHTML = `<strong>Diferença irrelevante</strong> (&lt; 1 segundo nos ${distKm} km). Pode trocar por outros critérios (estética, conforto, durabilidade), mas não pela aero.`;
+    verdictRate.textContent = '';
+    return;
+  }
+
+  if (deltaTempo_seg < 0){
+    // Upgrade piorou
+    verdictIcon.textContent = '✗';
+    verdictIcon.className = 'sim-verdict-icon bad';
+    verdictText.innerHTML = `<strong>Esse upgrade te deixa MAIS lento</strong> em ${Math.abs(deltaTempo_seg).toFixed(0)} s nos ${distKm} km. Não vale a troca em termos aerodinâmicos.`;
+    verdictRate.textContent = '';
+    return;
+  }
+
+  // Upgrade positivo
+  const deltaMinutos = deltaTempo_seg / 60;
+  const custoPorMin = upgradeCost > 0 ? upgradeCost / deltaMinutos : 0;
+
+  let veredito, classe, icone;
+  if (upgradeCost === 0){
+    veredito = 'Grátis! Faz a troca.';
+    classe = 'good';
+    icone = '✓';
+  } else if (custoPorMin < 500){
+    veredito = `<strong>Excelente investimento.</strong> Está na faixa "verde" do Best Bike Split — abaixo de R$500/min é equivalente a posição/pacing.`;
+    classe = 'good';
+    icone = '✓';
+  } else if (custoPorMin < 2500){
+    veredito = `<strong>Investimento médio.</strong> Faixa "amarela" — vale para quem já fez os upgrades baratos primeiro (capacete, skinsuit, bike fit).`;
+    classe = 'warn';
+    icone = '~';
+  } else if (custoPorMin < 8000){
+    veredito = `<strong>Caro por minuto.</strong> Faixa "vermelha" — só vale se você está brigando por pódio ou KQ. Para amador, dinheiro mal gasto.`;
+    classe = 'bad';
+    icone = '✗';
+  } else {
+    veredito = `<strong>Muito caro por minuto.</strong> Vai ganhar segundos a um custo absurdo. Aplique a regra do BBS: faz tudo barato primeiro.`;
+    classe = 'bad';
+    icone = '✗';
+  }
+
+  verdictIcon.textContent = icone;
+  verdictIcon.className = 'sim-verdict-icon ' + classe;
+
+  const sec = deltaTempo_seg.toFixed(0);
+  const watts = ((cdaAtual - cdaDepois) * 0.5 * 1.225 * Math.pow(40/3.6, 3)).toFixed(1);
+
+  verdictText.innerHTML = `
+    <strong>Ganho: ${sec}s nos ${distKm} km</strong> (${watts}W a 40 km/h).
+    ${upgradeCost > 0 ? `Custo do upgrade: R$ ${upgradeCost.toLocaleString('pt-BR')}.` : 'Sem custo extra.'}
+    ${veredito}
+  `;
+
+  if (upgradeCost > 0 && deltaMinutos > 0){
+    verdictRate.textContent = `R$ ${Math.round(custoPorMin).toLocaleString('pt-BR')}/min`;
+  } else {
+    verdictRate.textContent = '';
+  }
+}
+
+// Inicializar simulador
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const compSel = document.getElementById('sim-component');
+    const targetSel = document.getElementById('sim-target');
+    if (compSel) compSel.addEventListener('change', popularSimTarget);
+    if (targetSel) targetSel.addEventListener('change', atualizarSim);
+    if (compSel){
+      window._simInitialized = true;
+      popularSimTarget();
+    }
+  }, 200);
+});
+
+document.querySelectorAll('#form input, #form select').forEach(el => {
+  el.addEventListener('change', atualizarPainel);
+  el.addEventListener('input', atualizarPainel);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(atualizarPainel, 100);
+});
+
+</script>
+</body>
+</html>
