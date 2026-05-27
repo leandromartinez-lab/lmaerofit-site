@@ -2,8 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>LMAeroFit · Plataforma técnica de endurance</title>
+
+<!-- ============ PWA ============ -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#5a9c07">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LMAeroFit">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <meta name="description" content="Cinco ferramentas técnicas grátis para atletas brasileiros de endurance: comparador de tênis com 8 modelos, avaliação aerodinâmica de bike com modelagem CdA, plano de race fueling baseado em Jeukendrup e Burke, briefing meteorológico via GPX e debrief pós-treino com análise de aderência.">
 <meta name="robots" content="index, follow, noai, noimageai">
 <meta name="googlebot" content="index, follow">
@@ -915,6 +928,47 @@
   </div>
 </header>
 
+<!-- ============ PWA INSTALL BUTTON ============ -->
+<div id="pwa-install-zone" style="display:none;justify-content:center;margin:32px auto 0;padding:0 16px;">
+  <button id="pwa-install-btn" type="button" style="display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 24px;background:transparent;color:#f4b942;border:1px solid rgba(244,185,66,0.4);border-radius:8px;font-family:'Inter Tight',-apple-system,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 120ms ease,border-color 120ms ease;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    <span id="pwa-install-label">Instalar app</span>
+  </button>
+</div>
+
+<!-- ============ PWA iOS INSTRUCTION MODAL ============ -->
+<div id="pwa-ios-modal" role="dialog" aria-modal="true" aria-labelledby="pwa-ios-title" style="display:none;position:fixed;inset:0;z-index:9999;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.78);padding:16px;padding-bottom:max(16px, env(safe-area-inset-bottom));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+  <div style="width:100%;max-width:440px;background:#0a0c0e;border:1px solid rgba(244,185,66,0.22);border-radius:16px 16px 12px 12px;padding:24px;color:#ecedef;font-family:'Inter Tight',-apple-system,sans-serif;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#f4b942;margin-bottom:8px;">INSTALL · iOS</div>
+    <h2 id="pwa-ios-title" style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:500;line-height:1.25;margin:0 0 16px;color:#ecedef;">Instalar no <em style="font-style:italic;color:#f4b942;font-weight:400;font-family:'Fraunces',Georgia,serif;">iPhone / iPad</em></h2>
+    <ol style="list-style:none;padding:0;margin:0 0 20px;">
+      <li style="position:relative;padding:12px 0 12px 40px;font-size:14px;line-height:1.5;color:#b0b6bc;border-bottom:1px solid rgba(244,185,66,0.08);">
+        <span style="position:absolute;left:0;top:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(244,185,66,0.1);border:1px solid rgba(244,185,66,0.3);border-radius:50%;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f4b942;font-weight:600;">1</span>
+        Toque no botão <strong style="color:#ecedef;">Compartilhar</strong>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ecedef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin:0 2px;">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+         na barra do Safari.
+      </li>
+      <li style="position:relative;padding:12px 0 12px 40px;font-size:14px;line-height:1.5;color:#b0b6bc;border-bottom:1px solid rgba(244,185,66,0.08);">
+        <span style="position:absolute;left:0;top:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(244,185,66,0.1);border:1px solid rgba(244,185,66,0.3);border-radius:50%;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f4b942;font-weight:600;">2</span>
+        Role e selecione <strong style="color:#ecedef;">Adicionar à Tela de Início</strong>.
+      </li>
+      <li style="position:relative;padding:12px 0 12px 40px;font-size:14px;line-height:1.5;color:#b0b6bc;">
+        <span style="position:absolute;left:0;top:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(244,185,66,0.1);border:1px solid rgba(244,185,66,0.3);border-radius:50%;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f4b942;font-weight:600;">3</span>
+        Toque em <strong style="color:#ecedef;">Adicionar</strong>. Pronto — o ícone aparece na sua tela.
+      </li>
+    </ol>
+    <button id="pwa-ios-close" type="button" style="width:100%;min-height:48px;background:#f4b942;color:#0a0c0e;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;letter-spacing:0.02em;cursor:pointer;-webkit-tap-highlight-color:transparent;">Entendi</button>
+  </div>
+</div>
+
 <!-- ============ TRUST STRIP ============ -->
 <section class="trust">
   <div class="container">
@@ -1146,5 +1200,105 @@
 
   // Email submission (mock — substituir pela chamada real à API/Resend/Beehiiv)
   </script>
+
+<!-- ============ PWA REGISTRATION + INSTALL LOGIC ============ -->
+<script>
+  // 1. Registro do Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function (reg) {
+          reg.addEventListener('updatefound', function () {
+            var newSW = reg.installing;
+            if (!newSW) return;
+            newSW.addEventListener('statechange', function () {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                newSW.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+        })
+        .catch(function (err) {
+          if (location.hostname === 'localhost') console.warn('[SW] Registration failed:', err);
+        });
+
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    });
+  }
+
+  // 2. Botão "Instalar app" + modal iOS
+  (function () {
+    var zone   = document.getElementById('pwa-install-zone');
+    var btn    = document.getElementById('pwa-install-btn');
+    var label  = document.getElementById('pwa-install-label');
+    var modal  = document.getElementById('pwa-ios-modal');
+    var close  = document.getElementById('pwa-ios-close');
+    if (!zone || !btn) return;
+
+    var isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                       || window.navigator.standalone === true;
+    if (isStandalone) { zone.hidden = true; return; }
+
+    var ua = window.navigator.userAgent.toLowerCase();
+    var isIOS = /iphone|ipad|ipod/.test(ua) && !window.MSStream;
+    var isIPadOS = /macintosh/.test(ua) && 'ontouchend' in document;
+    var isAppleMobile = isIOS || isIPadOS;
+
+    var deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      label.textContent = 'Instalar app';
+      zone.style.display = 'flex';
+    });
+
+    if (isAppleMobile) {
+      label.textContent = 'Instalar no iPhone';
+      zone.style.display = 'flex';
+    }
+
+    btn.addEventListener('click', function () {
+      if (isAppleMobile) {
+        modal.hidden = false;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        return;
+      }
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choice) {
+          deferredPrompt = null;
+          if (choice.outcome === 'accepted') zone.style.display = 'none';
+        });
+      }
+    });
+
+    function closeModal() {
+      modal.hidden = true;
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    if (close) {
+      close.addEventListener('click', closeModal);
+    }
+    if (modal) {
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+    }
+    window.addEventListener('appinstalled', function () {
+      zone.hidden = true;
+      zone.style.display = 'none';
+      deferredPrompt = null;
+    });
+  })();
+</script>
 </body>
 </html>
