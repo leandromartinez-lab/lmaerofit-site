@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#5a9c07">
+  <meta name="robots" content="noai, noimageai">
+  <title>Sem conexão · LMAeroFit</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+  <style>
+    :root {
+      --bg:            #0a0c0e;
+      --green-aero:    #5a9c07;
+      --green-bright:  #7fb069;
+      --amber:         #ff8a1c;
+      --amber-dim:     #b8651a;
+      --text:          #e8e6e1;
+      --text-dim:      #9a978f;
+      --text-faint:    #5a5852;
+      --yellow:        #e6a23c;
+      --red:           #d4504a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 24px;
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      text-align: center;
+      background-image:
+        radial-gradient(ellipse at top, rgba(90, 156, 7, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom, rgba(255, 138, 28, 0.03) 0%, transparent 60%);
+    }
+
+    .cockpit-panel {
+      max-width: 440px;
+      width: 100%;
+      border: 1px solid rgba(255, 138, 28, 0.15);
+      border-radius: 12px;
+      padding: 32px 24px;
+      background: rgba(255, 255, 255, 0.015);
+      backdrop-filter: blur(4px);
+    }
+
+    .icon-wrap {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 138, 28, 0.08);
+      border: 1px solid rgba(255, 138, 28, 0.2);
+    }
+
+    .icon-wrap svg {
+      width: 44px;
+      height: 44px;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--amber);
+      font-weight: 400;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: rgba(255, 138, 28, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .status-cell {
+      padding: 12px 8px;
+      background: rgba(10, 12, 14, 0.85);
+      text-align: center;
+    }
+
+    .status-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+
+    .status-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--red);
+    }
+
+    .status-value.ok {
+      color: var(--green-bright);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background-color 120ms ease, border-color 120ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: var(--bg);
+    }
+
+    .btn-primary:active {
+      background: var(--amber-dim);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border-color: rgba(154, 151, 143, 0.2);
+    }
+
+    .btn-ghost:active {
+      background: rgba(154, 151, 143, 0.06);
+      color: var(--text);
+    }
+
+    .footer-line {
+      margin-top: 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cockpit-panel" role="alert" aria-live="polite">
+
+    <div class="icon-wrap" aria-hidden="true">
+      <!-- Ícone de sinal cortado -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff8a1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 8.82a15 15 0 0 1 20 0"/>
+        <path d="M5 12.859a10 10 0 0 1 14 0"/>
+        <path d="M8.5 16.429a5 5 0 0 1 7 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+        <line x1="2" y1="2" x2="22" y2="22" stroke="#d4504a" stroke-width="2.5"/>
+      </svg>
+    </div>
+
+    <div class="eyebrow">SIGNAL · LOST</div>
+
+    <h1>Sem <em>conexão</em></h1>
+
+    <p>
+      Não foi possível alcançar o servidor agora. Algumas ferramentas que já foram abertas neste dispositivo podem continuar funcionando offline.
+    </p>
+
+    <div class="status-grid" aria-label="Status do sistema">
+      <div class="status-cell">
+        <div class="status-label">NETWORK</div>
+        <div class="status-value" id="net-status">OFFLINE</div>
+      </div>
+      <div class="status-cell">
+        <div class="status-label">CACHE</div>
+        <div class="status-value ok">ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="window.location.reload()">
+        Tentar reconectar
+      </button>
+      <a class="btn btn-ghost" href="/">
+        Voltar à base
+      </a>
+    </div>
+
+    <div class="footer-line">LMAEROFIT · v1.0</div>
+
+  </div>
+
+  <script>
+    // Atualiza status em tempo real quando conexão volta
+    function updateStatus() {
+      const el = document.getElementById('net-status');
+      if (navigator.onLine) {
+        el.textContent = 'ONLINE';
+        el.classList.add('ok');
+      } else {
+        el.textContent = 'OFFLINE';
+        el.classList.remove('ok');
+      }
+    }
+    window.addEventListener('online', () => {
+      updateStatus();
+      // Auto-recarrega quando conexão volta
+      setTimeout(() => window.location.reload(), 800);
+    });
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+  </script>
+
+</body>
+</html>

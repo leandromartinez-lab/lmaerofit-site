@@ -1,0 +1,78 @@
+{
+  "name": "LMAeroFit · Plataforma técnica de endurance",
+  "short_name": "LMAeroFit",
+  "description": "Ferramentas técnicas grátis para atletas de corrida, ciclismo e triatlo. Decisão baseada em literatura científica, em português brasileiro.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0c0e",
+  "theme_color": "#5a9c07",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["sports", "health", "fitness", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Gear Lab",
+      "short_name": "Gear Lab",
+      "description": "Comparador técnico de tênis de corrida",
+      "url": "/gear-lab.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Aero Bike",
+      "short_name": "Aero Bike",
+      "description": "Diagnóstico aerodinâmico da setup",
+      "url": "/aero-bike-v3.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Race Fueling",
+      "short_name": "Fueling",
+      "description": "Estratégia de nutrição de prova",
+      "url": "/race-fueling.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Race Weather",
+      "short_name": "Weather",
+      "description": "Briefing meteorológico da prova",
+      "url": "/race-weather-briefing.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Session Debrief",
+      "short_name": "Debrief",
+      "description": "Análise pós-treino e pós-prova",
+      "url": "/session-debrief.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
