@@ -1,0 +1,2891 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="supported-color-schemes" content="dark">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LMAeroFit · Race Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#0a0a0c; --bg2:#121216; --panel:#15151a; --panel2:#1c1c22;
+    --ink:#e8e6e1; --ink-dim:#9a978f; --ink-low:#5a5852;
+    --amber:#ff8a1c; --amber-dim:#b8651a;
+    --green:#7fb069; --yellow:#e8b84a; --red:#d4504a; --blue:#4a90c2;
+    --rule:#2a2a32; --rule-soft:#1f1f25;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#0a0a0c !important;color-scheme:dark}
+  html,body{background:#0a0a0c;color:#e8e6e1;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  body{min-height:100vh;background-color:#0a0a0c;background-image:
+    radial-gradient(circle at 10% 10%,rgba(255,138,28,.04),transparent 40%),
+    radial-gradient(circle at 90% 80%,rgba(74,144,194,.03),transparent 40%);
+  }
+
+  /* HEADER */
+  .header{border-bottom:1px solid var(--rule);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,12,.85);backdrop-filter:blur(6px);position:sticky;top:0;z-index:100}
+  .brand{display:flex;align-items:center;gap:18px}
+  .brand-logo{display:flex;align-items:center;line-height:0;text-decoration:none}
+  .brand-logo img{height:34px;width:auto;display:block}
+  .brand-tag{font-size:10px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;padding-left:18px;border-left:1px solid var(--rule)}
+  .header-right{font-size:10px;color:var(--ink-low);letter-spacing:1.5px;text-transform:uppercase}
+  @media(max-width:600px){
+    .brand-tag{display:none}
+    .brand-logo img{height:28px}
+  }
+
+  /* HERO */
+  .hero{padding:54px 28px 32px;max-width:1280px;margin:0 auto}
+  .hero-num{font-size:11px;color:var(--amber);letter-spacing:3px;margin-bottom:18px}
+  .hero h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(34px,5vw,56px);line-height:1.05;letter-spacing:-1px;margin-bottom:18px;color:#e8e6e1}
+  .hero h1 em{font-style:italic;color:#ff8a1c;font-weight:500}
+  .hero-sub{color:#9a978f;font-size:14px;max-width:680px;line-height:1.7}
+  .hero-rule{height:1px;background:linear-gradient(90deg,#ff8a1c,transparent);margin-top:36px}
+
+  /* CONTAINER */
+  .container{max-width:1280px;margin:0 auto;padding:0 28px 80px}
+  .section{margin-top:48px}
+  .section-head{display:flex;align-items:baseline;gap:18px;margin-bottom:24px}
+  .section-num{font-size:11px;color:#ff8a1c;letter-spacing:3px;font-weight:500}
+  .section-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:26px;color:#e8e6e1}
+  .section-rule{flex:1;height:1px;background:#2a2a32}
+
+  /* GUIDE */
+  .guide{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  .guide-card{background:var(--panel);border:1px solid var(--rule);padding:22px 22px 24px;position:relative}
+  .guide-step{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:3px;margin-bottom:14px;font-weight:500}
+  .guide-title{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:20px;color:var(--ink);margin-bottom:12px;line-height:1.2}
+  .guide-text{font-size:12px;line-height:1.7;color:var(--ink-dim)}
+  .guide-text strong{color:var(--ink);font-weight:500}
+  .guide-foot{font-size:11px;color:var(--ink-low);letter-spacing:.5px;line-height:1.6;padding:14px 18px;background:var(--bg2);border-left:2px solid var(--ink-low)}
+  @media(max-width:880px){
+    .guide{grid-template-columns:1fr}
+  }
+
+  /* COCKPIT INPUTS */
+  .inputs-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .input-card{grid-column:span 6;background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--amber);padding:20px}
+  .input-card.solo{grid-column:span 4}
+  .input-card.trio{grid-column:span 4}
+  .input-card.span4{grid-column:span 4}
+  .input-card.span6{grid-column:span 6}
+  .input-card.span12{grid-column:span 12}
+
+  .toggle-mini{display:inline-flex;gap:0;border:1px solid var(--rule);background:var(--bg2);padding:0;border-radius:0;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500;font-family:'JetBrains Mono',monospace}
+  .toggle-mini span{padding:5px 10px;cursor:pointer;color:var(--ink-dim);transition:all .15s;border-right:1px solid var(--rule)}
+  .toggle-mini span:last-child{border-right:none}
+  .toggle-mini span.active{background:var(--amber);color:#0a0a0c;font-weight:700}
+  .toggle-mini.blue span.active{background:var(--blue);color:#0a0a0c}
+  .toggle-mini span:hover:not(.active){background:rgba(255,138,28,.08);color:var(--ink)}
+  .toggle-mini.blue span:hover:not(.active){background:rgba(74,144,194,.08)}
+
+  .btn-small{padding:10px 18px;font-size:10px;letter-spacing:1.5px}
+  .loc-result{margin-top:10px;font-size:11px;color:var(--green);letter-spacing:.5px;min-height:14px}
+  .loc-result.err{color:var(--red)}
+  .loc-result .spinner{display:inline-block;width:9px;height:9px;border:1.5px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:middle}
+
+  /* PERFORMANCE SECTION (estimador de posição) */
+  .perf-section{margin-top:18px;background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--green)}
+  .perf-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;gap:18px}
+  .perf-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:18px;color:#e8e6e1}
+  .perf-badge{display:inline-block;font-size:9px;color:var(--green);background:rgba(127,176,105,.12);padding:2px 7px;border:1px solid rgba(127,176,105,.3);letter-spacing:1.5px;margin-left:8px;vertical-align:middle;font-family:'JetBrains Mono',monospace;font-style:normal;font-weight:500}
+  .perf-sub{font-size:11px;color:var(--ink-dim);margin-top:4px;letter-spacing:.3px;line-height:1.5}
+  .btn-toggle-perf{background:transparent;color:var(--green);border:1px solid var(--green);padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;cursor:pointer;transition:all .15s}
+  .btn-toggle-perf:hover{background:rgba(127,176,105,.1)}
+  .btn-toggle-perf.active{background:var(--green);color:var(--bg)}
+  .perf-body{padding:18px 22px;border-top:1px solid var(--rule)}
+
+  /* POSITION ESTIMATE SECTION */
+  .pos-headline{background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--green);padding:28px 32px;margin-bottom:22px}
+  .pos-headline-label{font-size:10px;color:var(--ink-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}
+  .pos-time{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:48px;line-height:1;color:var(--ink);margin-bottom:6px}
+  .pos-time .unit{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:18px;color:var(--ink-dim);margin-left:4px}
+  .pos-statement{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-dim);line-height:1.6;margin-top:10px}
+  .pos-statement strong{color:var(--green);font-weight:600;font-family:'Fraunces',serif;font-style:italic;font-size:16px}
+  .pos-statement em{color:var(--amber);font-style:normal;font-weight:500}
+
+  /* SPLITS BREAKDOWN */
+  .splits-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
+  .split-card{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;border-top:2px solid var(--ink-low)}
+  .split-card.swim{border-top-color:var(--blue)}
+  .split-card.t1,.split-card.t2{border-top-color:var(--ink-dim)}
+  .split-card.bike{border-top-color:var(--amber)}
+  .split-card.run{border-top-color:var(--green)}
+  .split-label{font-size:9px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  .split-value{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:22px;color:var(--ink);line-height:1}
+  .split-value .small{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;color:var(--ink-dim);margin-left:3px}
+  .split-pct{font-size:9px;color:var(--ink-low);letter-spacing:1px;margin-top:6px}
+
+  /* PERCENTILE BAR */
+  .pct-bar-wrap{background:var(--panel);border:1px solid var(--rule);padding:24px 28px;margin-bottom:22px}
+  .pct-bar-title{font-size:10px;color:var(--ink-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+  .pct-bar-sub{font-size:11px;color:var(--ink-dim);margin-bottom:18px}
+  .pct-bar{position:relative;height:36px;background:linear-gradient(90deg,#7fb069 0%,#e8b84a 35%,#d4504a 65%,#5a5852 100%);border-radius:0;margin:18px 0}
+  .pct-marker{position:absolute;top:-8px;bottom:-8px;width:3px;background:var(--ink);box-shadow:0 0 0 2px var(--bg)}
+  .pct-marker::before{content:attr(data-label);position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--ink);background:var(--bg);padding:1px 6px;letter-spacing:1px;white-space:nowrap;border:1px solid var(--rule)}
+  .pct-marker::after{content:attr(data-time);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--ink-dim);letter-spacing:1px;white-space:nowrap}
+  .pct-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--ink-dim);letter-spacing:1.5px;margin-top:32px;text-transform:uppercase}
+
+  /* GAP ANALYSIS */
+  .gap-card{background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--amber);padding:22px 26px}
+  .gap-title{font-size:10px;color:var(--amber);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+  .gap-headline{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:20px;color:var(--ink);margin-bottom:16px;line-height:1.3}
+  .gap-rows{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .gap-row{padding:12px 14px;background:var(--bg2);border-left:2px solid var(--rule)}
+  .gap-row.priority{border-left-color:var(--amber)}
+  .gap-stage{font-size:9px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .gap-delta{font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--ink)}
+  .gap-delta.priority{color:var(--amber)}
+  .gap-hint{font-size:10px;color:var(--ink-dim);margin-top:4px;line-height:1.4}
+
+  @media(max-width:880px){
+    .splits-grid{grid-template-columns:repeat(2,1fr)}
+    .gap-rows{grid-template-columns:1fr}
+    .pos-time{font-size:40px}
+  }
+  .input-label{font-size:10px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .input-label .badge{font-size:9px;color:var(--amber);background:rgba(255,138,28,.1);padding:2px 7px;border:1px solid rgba(255,138,28,.3);border-radius:2px;letter-spacing:1.5px}
+
+  .drop-zone{border:1.5px dashed var(--rule);background:var(--bg2);padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s;min-height:110px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px}
+  .drop-zone:hover{border-color:var(--amber);background:rgba(255,138,28,.03)}
+  .drop-zone.has-file{border-color:var(--green);background:rgba(127,176,105,.05);border-style:solid}
+  .drop-zone.dragover{border-color:var(--amber);background:rgba(255,138,28,.08)}
+  .drop-icon{font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--ink-dim)}
+  .drop-text{font-size:11px;color:var(--ink-dim);letter-spacing:1px}
+  .drop-text strong{color:var(--ink);display:block;margin-bottom:3px;font-weight:500}
+  .drop-stats{display:none;font-size:10px;color:var(--green);letter-spacing:1px;margin-top:6px}
+  .drop-zone.has-file .drop-icon{color:var(--green)}
+  .drop-zone.has-file .drop-stats{display:block}
+
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field input,.field select{background:var(--bg2);border:1px solid var(--rule);color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 12px;border-radius:0;outline:none;transition:border-color .15s}
+  .field input:focus,.field select:focus{border-color:var(--amber)}
+  .field input[type="number"]{font-variant-numeric:tabular-nums}
+  .field-hint{font-size:9px;color:var(--ink-low);letter-spacing:1px;margin-top:3px}
+
+  .btn-row{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .btn{background:var(--amber);color:var(--bg);border:none;padding:14px 28px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;cursor:pointer;transition:all .15s}
+  .btn:hover{background:#ffa040}
+  .btn:disabled{background:var(--rule);color:var(--ink-low);cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--ink-dim);border:1px solid var(--rule)}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--ink)}
+
+  /* STATUS BAR */
+  .status-bar{margin-top:18px;padding:12px 16px;background:var(--panel);border-left:2px solid var(--blue);font-size:11px;color:var(--ink-dim);letter-spacing:.5px;display:none}
+  .status-bar.show{display:block}
+  .status-bar.error{border-left-color:var(--red);color:var(--red)}
+  .status-bar .spinner{display:inline-block;width:10px;height:10px;border:1.5px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* RESULTS */
+  #results{display:none;margin-top:48px}
+  #results.show{display:block}
+
+  .mode-banner{padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:14px;border:1px solid var(--rule);background:var(--panel)}
+  .mode-banner.forecast-hi{border-left:2px solid var(--green)}
+  .mode-banner.forecast-mid{border-left:2px solid var(--yellow)}
+  .mode-banner.historic{border-left:2px solid var(--blue)}
+  .mode-icon{font-family:'Fraunces',serif;font-style:italic;font-size:22px}
+  .forecast-hi .mode-icon{color:var(--green)}
+  .forecast-mid .mode-icon{color:var(--yellow)}
+  .historic .mode-icon{color:var(--blue)}
+  .mode-text{flex:1;font-size:12px;line-height:1.6}
+  .mode-text strong{color:var(--ink);letter-spacing:1px}
+  .mode-text small{color:var(--ink-dim);display:block;font-size:10px;margin-top:3px}
+
+  /* SUMMARY GRID */
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
+  .summary-card{background:var(--panel);border:1px solid var(--rule);padding:18px;border-left:2px solid var(--ink-low)}
+  .summary-card.bike{border-left-color:var(--amber)}
+  .summary-card.run{border-left-color:var(--blue)}
+  .summary-label{font-size:10px;color:var(--ink-dim);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:8px}
+  .summary-value{font-family:'Fraunces',serif;font-weight:400;font-size:28px;color:var(--ink)}
+  .summary-value .unit{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);margin-left:4px}
+  .summary-sub{font-size:10px;color:var(--ink-low);letter-spacing:1px;margin-top:4px}
+
+  /* MAP */
+  #map-bike,#map-run{height:380px;background:var(--panel);border:1px solid var(--rule);margin-bottom:14px}
+  .map-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:10px;color:var(--ink-dim);letter-spacing:1px;padding:10px 4px;margin-bottom:20px}
+  .legend-item{display:flex;align-items:center;gap:6px}
+  .legend-swatch{width:18px;height:3px}
+  .leaflet-container{background:#0f0f12 !important;font-family:'JetBrains Mono',monospace !important}
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel2) !important;color:var(--ink) !important;border-radius:2px !important;box-shadow:0 6px 20px rgba(0,0,0,.5) !important}
+  .leaflet-popup-content{font-size:11px;line-height:1.6;margin:10px 14px}
+  .leaflet-popup-content strong{color:var(--amber);font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:13px;display:block;margin-bottom:4px}
+  .leaflet-control-attribution{background:rgba(10,10,12,.85) !important;color:var(--ink-low) !important;font-size:9px !important}
+  .leaflet-control-attribution a{color:var(--ink-dim) !important}
+  .leaflet-control-zoom a{background:var(--panel) !important;color:var(--ink) !important;border-color:var(--rule) !important}
+
+  /* TIMELINE */
+  .timeline-wrap{background:var(--panel);border:1px solid var(--rule);padding:0;overflow:hidden}
+  .timeline-head{display:grid;grid-template-columns:60px 70px 1.6fr 80px 80px 90px 1.2fr;gap:0;padding:14px 18px;background:var(--bg2);border-bottom:1px solid var(--rule);font-size:9px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;font-weight:500}
+  .timeline-row{display:grid;grid-template-columns:60px 70px 1.6fr 80px 80px 90px 1.2fr;gap:0;padding:14px 18px;border-bottom:1px solid var(--rule-soft);font-size:12px;align-items:center;transition:background .15s}
+  .timeline-row:hover{background:rgba(255,138,28,.02)}
+  .timeline-row:last-child{border-bottom:none}
+  .tl-modality{font-size:9px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+  .tl-modality.bike{color:var(--amber)}
+  .tl-modality.run{color:var(--blue)}
+  .tl-time{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  .tl-segment{color:var(--ink-dim);font-size:11px;line-height:1.4}
+  .tl-segment strong{color:var(--ink);font-weight:500}
+  .tl-temp{font-family:'Fraunces',serif;font-size:18px;font-weight:400}
+  .tl-temp.cold{color:var(--blue)}
+  .tl-temp.mild{color:var(--green)}
+  .tl-temp.warm{color:var(--yellow)}
+  .tl-temp.hot{color:var(--red)}
+  .tl-wind{font-variant-numeric:tabular-nums;font-size:11px}
+  .tl-wind .wdir{display:inline-block;padding:2px 6px;font-size:9px;letter-spacing:1px;font-weight:700;margin-left:4px}
+  .wdir.tail{background:rgba(127,176,105,.15);color:var(--green)}
+  .wdir.head{background:rgba(212,80,74,.15);color:var(--red)}
+  .wdir.cross{background:rgba(232,184,74,.15);color:var(--yellow)}
+  .tl-flag{font-size:10px;letter-spacing:1px;font-weight:700;padding:3px 8px;display:inline-block}
+  .tl-flag.green{color:var(--green);background:rgba(127,176,105,.1)}
+  .tl-flag.yellow{color:var(--yellow);background:rgba(232,184,74,.1)}
+  .tl-flag.red{color:var(--red);background:rgba(212,80,74,.1)}
+  .tl-action{font-size:10px;color:var(--ink-dim);line-height:1.45;letter-spacing:.3px}
+  .tl-action strong{color:var(--ink);font-weight:500}
+
+  /* WHEEL SELECTION */
+  .wheel-drivers{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+  .driver-card{background:var(--panel);border:1px solid var(--rule);padding:14px;border-top:2px solid var(--ink-low)}
+  .driver-card.dom{border-top-color:var(--amber)}
+  .driver-label{font-size:9px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .driver-value{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:20px;line-height:1.2}
+  .driver-value .v-unit{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;color:var(--ink-dim);margin-left:3px}
+  .driver-sub{font-size:9px;color:var(--ink-low);letter-spacing:1px;margin-top:4px}
+  .driver-flag{display:inline-block;margin-top:8px;font-size:9px;letter-spacing:1.5px;padding:2px 7px;font-weight:700}
+  .driver-flag.green{background:rgba(127,176,105,.12);color:var(--green)}
+  .driver-flag.yellow{background:rgba(232,184,74,.12);color:var(--yellow)}
+  .driver-flag.red{background:rgba(212,80,74,.12);color:var(--red)}
+  .driver-flag.blue{background:rgba(74,144,194,.12);color:var(--blue)}
+
+  .wheel-section-label{font-size:10px;color:#ff8a1c;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;font-weight:500}
+  .wheel-cards-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:6px}
+  .wheel-grid{margin-bottom:18px}
+  .wheel-card{background:var(--panel);border:1px solid var(--rule);padding:24px;position:relative;overflow:hidden}
+  .wheel-card.front{border-left:2px solid var(--amber)}
+  .wheel-card.rear{border-left:2px solid var(--blue)}
+  .wheel-pos{font-size:9px;color:var(--ink-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+  .wheel-title{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:30px;line-height:1.1;margin-bottom:6px;color:#e8e6e1}
+  .wheel-title .depth{font-weight:500;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:-1px;color:var(--amber)}
+  .wheel-card.rear .wheel-title .depth{color:var(--blue)}
+  .wheel-spec{font-size:11px;color:var(--ink-dim);letter-spacing:.5px;line-height:1.7;margin-bottom:14px}
+  .wheel-rationale{font-size:12px;color:var(--ink);line-height:1.65;padding:12px 14px;background:var(--bg2);border-left:2px solid var(--rule)}
+  .wheel-rationale strong{color:var(--amber)}
+  .wheel-card.rear .wheel-rationale strong{color:var(--blue)}
+  .wheel-svg-wrap{position:absolute;top:18px;right:18px;width:68px;height:68px;opacity:.7}
+  .wheel-svg-wrap svg{width:100%;height:100%}
+
+  /* TIRE CARDS */
+  .tire-card{background:var(--panel);border:1px solid var(--rule);padding:24px;position:relative;overflow:hidden}
+  .tire-card.front{border-left:2px solid var(--amber-dim)}
+  .tire-card.rear{border-left:2px solid var(--amber-dim)}
+  .tire-card .wheel-title .depth{color:#b8651a}
+  .tire-psi{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);margin-bottom:14px;letter-spacing:1px}
+  .tire-psi strong{font-family:'Fraunces',serif;font-style:italic;font-weight:500;font-size:28px;color:#e8e6e1;margin-right:4px;letter-spacing:-1px}
+  .tire-psi span{color:var(--ink-dim);font-size:12px}
+  .tire-psi small{color:var(--ink-low);font-size:10px;margin-left:8px}
+  .tire-rationale{font-size:12px;color:var(--ink);line-height:1.65;padding:14px 16px;background:var(--bg2);border-left:2px solid #b8651a;margin-top:12px}
+  .tire-rationale strong{color:#b8651a}
+
+  .wheel-alt{padding:16px 18px;background:var(--panel);border:1px solid var(--rule);font-size:11px;color:var(--ink-dim);line-height:1.7;margin-bottom:6px}
+  .wheel-alt strong{color:var(--ink);letter-spacing:1.5px;display:block;font-size:10px;text-transform:uppercase;margin-bottom:8px}
+  .wheel-alt .alt-line{display:flex;gap:12px;padding:4px 0;border-bottom:1px dotted var(--rule)}
+  .wheel-alt .alt-line:last-child{border-bottom:none}
+  .wheel-alt .alt-cond{flex:0 0 32%;color:var(--amber);font-size:10px;letter-spacing:.5px}
+  .wheel-alt .alt-rec{flex:1;color:var(--ink-dim)}
+
+  /* VALIDATION MODAL */
+  .validation-modal{position:fixed;inset:0;background:rgba(10,10,12,.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;animation:fadeIn .15s ease-out}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .validation-card{background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--yellow);max-width:540px;width:100%;padding:28px 32px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .validation-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+  .validation-sub{font-size:12px;color:var(--ink-dim);margin-bottom:18px;letter-spacing:.3px}
+  .validation-list{list-style:none;padding:0;margin:0 0 22px}
+  .validation-list li{padding:14px 16px;background:var(--bg2);border-left:2px solid var(--yellow);margin-bottom:10px}
+  .val-msg{font-size:13px;color:var(--ink);line-height:1.55;letter-spacing:.2px}
+  .val-sug{font-size:11px;color:var(--green);margin-top:6px;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+  .validation-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .validation-actions .btn{padding:10px 18px;font-size:10px;letter-spacing:1.5px}
+  .val-fix{background:var(--green)!important;color:var(--bg)!important}
+  .val-fix:hover{background:#95c47e!important}
+  .val-continue{background:var(--amber)}
+
+  /* CUTOFF VALIDATION CARD */
+  .cutoff-card{background:var(--panel);border:1px solid var(--rule);border-left:2px solid var(--green);padding:22px 26px;margin-top:18px}
+  .cutoff-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+  .cutoff-sub{font-size:11px;color:var(--ink-dim);margin-bottom:18px;line-height:1.5}
+  .cutoff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .cutoff-row{padding:14px 16px;background:var(--bg2);border-left:2px solid var(--rule)}
+  .cutoff-row.green{border-left-color:var(--green)}
+  .cutoff-row.yellow{border-left-color:var(--yellow)}
+  .cutoff-row.red{border-left-color:var(--red)}
+  .cutoff-stage{font-size:9px;color:var(--ink-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+  .cutoff-times{font-family:'Fraunces',serif;font-size:18px;font-style:italic;color:var(--ink);margin-bottom:4px;line-height:1}
+  .cutoff-actual{color:var(--ink);font-weight:500}
+  .cutoff-sep{color:var(--ink-low);margin:0 4px;font-style:normal}
+  .cutoff-limit{color:var(--ink-dim);font-size:14px;font-weight:400}
+  .cutoff-margin{font-size:10px;letter-spacing:.5px;margin-top:6px;font-family:'JetBrains Mono',monospace}
+  .cutoff-row.green .cutoff-margin{color:var(--green)}
+  .cutoff-row.yellow .cutoff-margin{color:var(--yellow)}
+  .cutoff-row.red .cutoff-margin{color:var(--red);font-weight:600}
+  .cutoff-alert{margin-top:14px;padding:12px 16px;background:rgba(212,80,74,.08);color:var(--red);font-size:11px;letter-spacing:.3px;line-height:1.5;border-left:2px solid var(--red)}
+
+  @media(max-width:880px){
+    .cutoff-grid{grid-template-columns:1fr}
+  }
+
+  /* BRIEFING — escuro, coerente com o resto */
+  .briefing{background:var(--panel);color:var(--ink);padding:36px 42px;margin-top:14px;font-family:'JetBrains Mono',monospace;max-width:820px;margin-left:auto;margin-right:auto;border:1px solid var(--rule);position:relative}
+  .briefing::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--amber)}
+  .br-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;gap:24px;flex-wrap:wrap}
+  .br-title{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:30px;line-height:1.1;color:var(--ink)}
+  .br-title small{display:block;font-family:'JetBrains Mono',monospace;font-style:normal;font-size:9px;letter-spacing:3px;color:var(--amber);margin-top:8px;text-transform:uppercase;font-weight:500}
+  .br-meta{text-align:right;font-size:10px;letter-spacing:1.5px;color:var(--ink-dim);text-transform:uppercase;line-height:1.8}
+  .br-meta strong{color:var(--ink);display:block;font-size:11px;font-weight:500}
+  .br-section{margin-bottom:24px}
+  .br-section-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);border-bottom:1px solid var(--rule);padding-bottom:6px;margin-bottom:12px;font-weight:500}
+  .br-vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:11px}
+  .br-vital{padding:12px 14px;background:var(--bg2);border-left:2px solid var(--amber)}
+  .br-vital small{display:block;font-size:8px;letter-spacing:1.8px;color:var(--ink-dim);text-transform:uppercase;margin-bottom:4px}
+  .br-vital strong{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:18px;color:var(--ink)}
+  .br-list{font-size:12px;line-height:1.75;list-style:none;padding-left:0;color:var(--ink-dim)}
+  .br-list li{padding:6px 0;border-bottom:1px solid var(--rule-soft)}
+  .br-list li:last-child{border-bottom:none}
+  .br-list li::before{content:"▸";color:var(--amber);margin-right:10px;font-weight:700}
+  .br-list li strong{color:var(--ink);font-weight:500}
+  .br-foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);font-size:9px;letter-spacing:2px;color:var(--ink-low);text-transform:uppercase;text-align:center;line-height:1.7}
+
+  .print-btn-wrap{text-align:center;margin-top:14px}
+
+  /* REFERENCES */
+  .refs{margin-top:60px;padding-top:30px;border-top:1px solid var(--rule)}
+  .refs-title{font-size:10px;color:var(--ink-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px}
+  .refs ol{font-size:11px;color:var(--ink-dim);line-height:1.8;padding-left:22px}
+  .refs li{margin-bottom:4px}
+  .refs a{color:var(--amber);text-decoration:none;border-bottom:1px dotted var(--amber-dim)}
+  .refs a:hover{color:#ffa040}
+
+  /* FOOTER */
+  .footer{padding:32px 28px;border-top:1px solid var(--rule);text-align:center;font-size:10px;color:var(--ink-low);letter-spacing:2px;text-transform:uppercase}
+  .footer a{color:var(--amber);text-decoration:none}
+
+  /* RESPONSIVE */
+  @media(max-width:880px){
+    .input-card,.input-card.solo,.input-card.trio{grid-column:span 12}
+    .summary-grid{grid-template-columns:repeat(2,1fr)}
+    .timeline-head,.timeline-row{grid-template-columns:55px 60px 1fr;gap:8px;font-size:11px}
+    .timeline-head .h-temp,.timeline-head .h-wind,.timeline-head .h-flag,.timeline-head .h-action,
+    .timeline-row .tl-temp,.timeline-row .tl-wind,.timeline-row .tl-flag-cell,.timeline-row .tl-action{display:none}
+    .briefing{padding:24px 22px}
+    .br-vitals{grid-template-columns:repeat(2,1fr)}
+    .wheel-grid{grid-template-columns:1fr}
+    .wheel-cards-row{grid-template-columns:1fr}
+    .wheel-drivers{grid-template-columns:repeat(2,1fr)}
+  }
+
+  /* PRINT — briefing only, invertido para papel */
+  @media print{
+    body *{visibility:hidden}
+    .briefing,.briefing *{visibility:visible}
+    .briefing{position:absolute;left:0;top:0;width:100%;padding:24px 30px;background:#fff !important;color:#0a0a0c !important;border:none}
+    .briefing::before{background:#0a0a0c !important;height:3px}
+    .br-title,.br-vital strong,.br-meta strong,.br-list li strong{color:#0a0a0c !important}
+    .br-title small,.br-section-title,.br-list li::before,.br-vital{border-color:#0a0a0c}
+    .br-section-title,.br-title small{color:#b8651a !important}
+    .br-vital{background:#f5f3ee !important;border-left-color:#0a0a0c !important}
+    .br-vital small,.br-meta,.br-list,.br-foot{color:#444 !important}
+    .br-list li{border-bottom-color:#cdc9bf}
+    .br-list li::before{color:#b8651a !important}
+    .br-head,.br-section-title{border-bottom-color:#0a0a0c !important}
+    .br-foot{border-top-color:#cdc9bf !important}
+    .print-btn-wrap{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="brand">
+    <a href="https://lmaerofit.com.br" target="_blank" class="brand-logo">
+      <img src="https://raw.githubusercontent.com/leandromartinez-lab/lmaerofit-site/main/assets/lmaerofit-logo.png"
+           alt="LMAeroFit"
+           referrerpolicy="no-referrer">
+    </a>
+    <div class="brand-tag">Race Briefing</div>
+  </div>
+  <div class="header-right">Tool 04 / 05</div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-num">FERRAMENTA 04 · GPX + METEOROLOGIA</div>
+  <h1>Race <em>Briefing</em>.</h1>
+  <p class="hero-sub">
+    O briefing pré-prova que cruza sua rota GPX com a previsão meteorológica
+    hora a hora. Vento, temperatura e umidade projetados em cada trecho da
+    sua prova — transformados em decisões objetivas de pace, hidratação,
+    ritmo, escolha de equipamento e estimativa de posição.
+  </p>
+  <div class="hero-rule"></div>
+</section>
+
+<!-- GUIDE -->
+<div class="container">
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">00</span>
+      <span class="section-title">O que é o Race Briefing</span>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="guide">
+      <div class="guide-card">
+        <div class="guide-step">01</div>
+        <div class="guide-title">A ideia</div>
+        <div class="guide-text">
+          Em qualquer prova longa, as duas variáveis que mais mexem com seu
+          plano são <strong>o que vai estar no céu</strong> e <strong>o que
+          está debaixo das rodas</strong>. Calor, umidade, vento e
+          altimetria mudam quanto fluido você precisa, em que trecho atacar,
+          em que trecho segurar, e até qual roda usar. Esta ferramenta
+          junta os dois lados num único documento que você consulta antes
+          da prova e leva impresso pra área de transição.
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-step">02</div>
+        <div class="guide-title">O que você precisa preencher</div>
+        <div class="guide-text">
+          Escolha a <strong>modalidade</strong> (Sprint, Olímpico, 70.3, Ironman, Granfondo, Maratona).
+          Para bike e run, você pode subir o <strong>GPX</strong> do percurso
+          ou escolher o modo <strong>Manual</strong> — informa só
+          a distância, terreno e localidade da prova. <strong>Data e hora
+          de largada</strong> definem qual previsão usar. <strong>Potência
+          média alvo (W)</strong> alimenta o modelo físico Martin 1998 que
+          calcula sua velocidade em cada trecho considerando vento,
+          gradiente e densidade do ar. <strong>Peso corporal e da bike</strong>
+          entram no cálculo. <strong>Handling</strong> ajusta a recomendação de rodas.
+        </div>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-step">03</div>
+        <div class="guide-title">Como ler o resultado</div>
+        <div class="guide-text">
+          Você recebe seis blocos. <strong>Sumário</strong> com tempo total e velocidade
+          média que a potência informada vai render no dia. <strong>Mapa</strong> com a
+          rota colorida por tipo de vento. <strong>Timeline</strong> com cada trecho
+          hora-a-hora. <strong>Setup da bike</strong> com rodas e pneus recomendados.
+          <strong>Posição estimada na categoria</strong> (se você preencher os performance inputs).
+          <strong>Briefing impresso</strong> pronto para levar no bolso.
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-foot">
+      Tudo roda no seu navegador. Os GPX não saem do seu computador. A
+      meteorologia vem do Open-Meteo (gratuito, sem cadastro).
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <span class="section-title">Entrada de dados</span>
+      <span class="section-rule"></span>
+    </div>
+
+    <div class="inputs-grid">
+
+      <!-- MODALIDADE — define defaults de distância -->
+      <div class="input-card span12">
+        <div class="input-label"><span>Modalidade da prova</span><span class="badge">defina aqui primeiro</span></div>
+        <div class="field">
+          <select id="modality">
+            <option value="">— selecione —</option>
+            <option value="sprint">Triathlon Sprint · 20km bike + 5km run</option>
+            <option value="olympic">Triathlon Olímpico · 40km bike + 10km run</option>
+            <option value="70.3">Meio Ironman / 70.3 · 90km bike + 21.1km run</option>
+            <option value="im">Ironman · 180km bike + 42.2km run</option>
+            <option value="granfondo">Gran Fondo · só bike (100km padrão)</option>
+            <option value="marathon">Maratona · só run (42.2km)</option>
+            <option value="other">Outra · defino as distâncias manualmente</option>
+          </select>
+          <div class="field-hint">PRÉ-PREENCHE DISTÂNCIAS DA BIKE E DO RUN</div>
+        </div>
+      </div>
+
+      <!-- BIKE — GPX ou Manual -->
+      <div class="input-card">
+        <div class="input-label">
+          <span>Bike</span>
+          <span class="toggle-mini" id="toggle-bike">
+            <span data-mode="gpx" class="active">GPX</span>
+            <span data-mode="manual">Manual</span>
+            <span data-mode="off">Sem bike</span>
+          </span>
+        </div>
+
+        <div class="mode-block" id="mode-bike-gpx">
+          <div class="drop-zone" id="dz-bike" data-mode="bike">
+            <input type="file" id="file-bike" accept=".gpx" hidden>
+            <div class="drop-icon">↓</div>
+            <div class="drop-text"><strong>Solte o GPX da bike</strong>ou clique para selecionar</div>
+            <div class="drop-stats" id="stats-bike"></div>
+          </div>
+        </div>
+
+        <div class="mode-block" id="mode-bike-manual" hidden>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field">
+              <input type="number" id="bike-dist-manual" value="40" min="5" max="300" step="0.5">
+              <div class="field-hint">DISTÂNCIA · KM</div>
+            </div>
+            <div class="field">
+              <select id="bike-terrain-manual">
+                <option value="flat">Plano (&lt;5 m/km)</option>
+                <option value="rolling" selected>Ondulado (5–10 m/km)</option>
+                <option value="hilly">Montanhoso (10–18 m/km)</option>
+                <option value="mountain">Alta montanha (&gt;18 m/km)</option>
+              </select>
+              <div class="field-hint">PERFIL DO TERRENO</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px" class="mode-shared" id="bike-shared">
+          <div class="field">
+            <input type="time" id="bike-start" value="07:00">
+            <div class="field-hint">LARGADA</div>
+          </div>
+          <div class="field">
+            <input type="number" id="bike-power" value="200" min="80" max="500" step="5">
+            <div class="field-hint">POTÊNCIA MÉDIA · W</div>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="field">
+            <input type="number" id="bike-cda" value="" min="0.18" max="0.45" step="0.01" placeholder="auto · TT 0.28 / Road 0.34">
+            <div class="field-hint">CdA · m² · OPCIONAL · DEIXE VAZIO PARA AUTO</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RUN — GPX ou Manual -->
+      <div class="input-card" style="border-left-color:var(--blue)">
+        <div class="input-label" style="--accent:var(--blue)">
+          <span>Run</span>
+          <span class="toggle-mini blue" id="toggle-run">
+            <span data-mode="gpx" class="active">GPX</span>
+            <span data-mode="manual">Manual</span>
+            <span data-mode="off">Sem run</span>
+          </span>
+        </div>
+
+        <div class="mode-block" id="mode-run-gpx">
+          <div class="drop-zone" id="dz-run" data-mode="run">
+            <input type="file" id="file-run" accept=".gpx" hidden>
+            <div class="drop-icon">↓</div>
+            <div class="drop-text"><strong>Solte o GPX do run</strong>ou clique para selecionar</div>
+            <div class="drop-stats" id="stats-run"></div>
+          </div>
+        </div>
+
+        <div class="mode-block" id="mode-run-manual" hidden>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field">
+              <input type="number" id="run-dist-manual" value="10" min="1" max="100" step="0.1">
+              <div class="field-hint">DISTÂNCIA · KM</div>
+            </div>
+            <div class="field">
+              <select id="run-terrain-manual">
+                <option value="flat" selected>Plano</option>
+                <option value="rolling">Ondulado</option>
+                <option value="hilly">Montanhoso</option>
+                <option value="mountain">Alta montanha (trail)</option>
+              </select>
+              <div class="field-hint">PERFIL DO TERRENO</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px" class="mode-shared" id="run-shared">
+          <div class="field">
+            <input type="time" id="run-start" value="11:00">
+            <div class="field-hint">LARGADA</div>
+          </div>
+          <div class="field">
+            <input type="number" id="run-pace" value="5.0" min="3" max="10" step="0.1">
+            <div class="field-hint">PACE · MIN/KM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCALIDADE — necessário se algum modo for Manual -->
+      <div class="input-card span6" id="card-location">
+        <div class="input-label"><span>Localidade da prova</span><span class="badge" id="location-badge">opcional</span></div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
+          <div class="field">
+            <input type="text" id="location-name" placeholder="Ex: Florianópolis, SC · Búzios · Ironman Brasil">
+            <div class="field-hint">USADO QUANDO NÃO HÁ GPX</div>
+          </div>
+          <button class="btn btn-ghost btn-small" id="btn-geocode">Buscar</button>
+        </div>
+        <div class="loc-result" id="loc-result"></div>
+      </div>
+
+      <!-- DATE -->
+      <div class="input-card span6">
+        <div class="input-label">Data da prova</div>
+        <div class="field">
+          <input type="date" id="race-date">
+          <div class="field-hint">DEFINE FORECAST OU HISTÓRICO</div>
+        </div>
+      </div>
+
+      <!-- WEIGHT BODY -->
+      <div class="input-card span4">
+        <div class="input-label">Peso corporal</div>
+        <div class="field">
+          <input type="number" id="weight" value="70" min="40" max="120" step="0.5">
+          <div class="field-hint">KG · ESTIMADO PARA O DIA DA PROVA</div>
+        </div>
+      </div>
+
+      <!-- WEIGHT BIKE -->
+      <div class="input-card span4">
+        <div class="input-label">Peso da bike</div>
+        <div class="field">
+          <input type="number" id="weight-bike" value="9" min="5" max="20" step="0.1">
+          <div class="field-hint">KG · BIKE + GARRAFAS + ACESSÓRIOS</div>
+        </div>
+      </div>
+
+      <!-- BIKE TYPE -->
+      <div class="input-card span4" style="border-left-color:var(--blue)">
+        <div class="input-label">Tipo de bike</div>
+        <div class="field">
+          <select id="bike-type">
+            <option value="tt" selected>TT / Triathlon</option>
+            <option value="road">Road / Estrada</option>
+          </select>
+          <div class="field-hint">CLEARANCE DE PNEU E ROTA MÁX</div>
+        </div>
+      </div>
+
+      <!-- HANDLING -->
+      <div class="input-card span12" style="border-left-color:var(--blue)">
+        <div class="input-label">Handling em vento <span class="badge" style="color:var(--blue);background:rgba(74,144,194,.1);border-color:rgba(74,144,194,.3)">rodas</span></div>
+        <div class="field">
+          <select id="handling">
+            <option value="conservative">Conservador — prefiro estabilidade</option>
+            <option value="balanced" selected>Equilibrado — confortável até vento médio</option>
+            <option value="aggressive">Agressivo — handling treinado, vou no limite</option>
+          </select>
+          <div class="field-hint">TOLERÂNCIA A CROSSWIND</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PERFORMANCE INPUTS — opcional, ativa estimativa de posição -->
+    <div class="perf-section">
+      <div class="perf-head">
+        <div>
+          <div class="perf-title">Performance inputs <span class="perf-badge">opcional</span></div>
+          <div class="perf-sub">Preencha pra receber estimativa de tempo total e posição esperada na sua categoria.</div>
+        </div>
+        <button class="btn-toggle-perf" id="toggle-perf">Mostrar</button>
+      </div>
+      <div class="perf-body" id="perf-body" hidden>
+        <div class="inputs-grid">
+
+          <div class="input-card span4" style="border-left-color:var(--green)">
+            <div class="input-label">Categoria</div>
+            <div class="field">
+              <select id="age-category">
+                <option value="">— selecione —</option>
+                <optgroup label="Masculino">
+                  <option value="M18-29">M 18–29</option>
+                  <option value="M30-34">M 30–34</option>
+                  <option value="M35-39">M 35–39</option>
+                  <option value="M40-44">M 40–44</option>
+                  <option value="M45-49">M 45–49</option>
+                  <option value="M50-54" selected>M 50–54</option>
+                  <option value="M55-59">M 55–59</option>
+                  <option value="M60-64">M 60–64</option>
+                  <option value="M65-69">M 65–69</option>
+                  <option value="M70+">M 70+</option>
+                </optgroup>
+                <optgroup label="Feminino">
+                  <option value="F18-29">F 18–29</option>
+                  <option value="F30-34">F 30–34</option>
+                  <option value="F35-39">F 35–39</option>
+                  <option value="F40-44">F 40–44</option>
+                  <option value="F45-49">F 45–49</option>
+                  <option value="F50-54">F 50–54</option>
+                  <option value="F55-59">F 55–59</option>
+                  <option value="F60-64">F 60–64</option>
+                  <option value="F65-69">F 65–69</option>
+                  <option value="F70+">F 70+</option>
+                </optgroup>
+              </select>
+              <div class="field-hint">FAIXA ETÁRIA · GÊNERO</div>
+            </div>
+          </div>
+
+          <div class="input-card span4" style="border-left-color:var(--green)">
+            <div class="input-label">5K recente</div>
+            <div class="field">
+              <input type="text" id="run-5k-time" placeholder="22:30" pattern="^\d{1,2}:\d{2}$">
+              <div class="field-hint">MM:SS · BASE PRA EXTRAPOLAÇÃO RIEGEL</div>
+            </div>
+          </div>
+
+          <div class="input-card span4" style="border-left-color:var(--green)">
+            <div class="input-label">Transições</div>
+            <div class="field">
+              <input type="number" id="transition-total" value="6" min="1" max="20" step="0.5">
+              <div class="field-hint">T1 + T2 · MIN TOTAL</div>
+            </div>
+          </div>
+
+          <div class="input-card span6" style="border-left-color:var(--green)">
+            <div class="input-label">Pace natação · piscina</div>
+            <div class="field">
+              <input type="text" id="swim-pace-pool" placeholder="1:45" pattern="^\d{1,2}:\d{2}$">
+              <div class="field-hint">MIN:SS POR 100M · CT 25m OU 50m</div>
+            </div>
+          </div>
+
+          <div class="input-card span6" style="border-left-color:var(--green)">
+            <div class="input-label">Pace natação · águas abertas</div>
+            <div class="field">
+              <input type="text" id="swim-pace-open" placeholder="2:00" pattern="^\d{1,2}:\d{2}$">
+              <div class="field-hint">MIN:SS POR 100M · USADO NA ESTIMATIVA</div>
+            </div>
+          </div>
+
+          <div class="input-card span12" style="border-left-color:var(--green)">
+            <div class="input-label">Wetsuit permitido na prova?</div>
+            <div class="field">
+              <select id="wetsuit-allowed">
+                <option value="no" selected>Não — ou não vou usar</option>
+                <option value="yes">Sim — vou usar wetsuit (-5% no swim)</option>
+              </select>
+              <div class="field-hint">REGRA WORLD TRIATHLON: PERMITIDO ABAIXO DE 24.5°C (PRO) / 28.8°C (AMADOR)</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="run-analysis">Gerar Briefing</button>
+      <button class="btn btn-ghost" id="load-demo">Carregar demo</button>
+    </div>
+
+    <div class="status-bar" id="status"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <div id="results">
+
+    <!-- MODE BANNER -->
+    <div id="mode-banner" class="mode-banner forecast-hi">
+      <div class="mode-icon">◐</div>
+      <div class="mode-text" id="mode-text"></div>
+    </div>
+
+    <!-- SUMMARY -->
+    <section class="section">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <span class="section-title">Sumário da prova</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+    </section>
+
+    <!-- MAP -->
+    <section class="section">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <span class="section-title">Rota · vento por trecho</span>
+        <span class="section-rule"></span>
+      </div>
+      <div id="map-section-bike" style="display:none">
+        <div style="font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">▸ Bike</div>
+        <div id="map-bike"></div>
+      </div>
+      <div id="map-section-run" style="display:none">
+        <div style="font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase">▸ Run</div>
+        <div id="map-run"></div>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--green)"></div>Vento favorável (tail)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--yellow)"></div>Vento lateral (cross)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--red)"></div>Vento contra (head)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--ink-low)"></div>Vento fraco (&lt;8km/h)</div>
+      </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section class="section">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <span class="section-title">Timeline · trecho a trecho</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="timeline-wrap">
+        <div class="timeline-head">
+          <span>Esporte</span>
+          <span>Hora</span>
+          <span>Trecho</span>
+          <span class="h-temp">Temp</span>
+          <span class="h-wind">Vento</span>
+          <span class="h-flag">Heat Flag</span>
+          <span class="h-action">Decisão</span>
+        </div>
+        <div id="timeline-body"></div>
+      </div>
+    </section>
+
+    <!-- WHEEL + TIRE SELECTION -->
+    <section class="section">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <span class="section-title">Setup da bike · rodas e pneus para esse dia</span>
+        <span class="section-rule"></span>
+      </div>
+      <div id="wheel-drivers" class="wheel-drivers"></div>
+      <div id="wheel-grid" class="wheel-grid"></div>
+      <div id="wheel-alt" class="wheel-alt"></div>
+    </section>
+
+    <!-- POSITION ESTIMATE -->
+    <section class="section" id="position-section" style="display:none">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <span class="section-title">Posição estimada na categoria</span>
+        <span class="section-rule"></span>
+      </div>
+      <div id="position-content"></div>
+    </section>
+
+    <!-- BRIEFING -->
+    <section class="section">
+      <div class="section-head">
+        <span class="section-num" id="briefing-section-num">06</span>
+        <span class="section-title">Race briefing · pronto pra imprimir</span>
+        <span class="section-rule"></span>
+      </div>
+      <div class="briefing" id="briefing"></div>
+      <div class="print-btn-wrap">
+        <button class="btn" onclick="window.print()">Imprimir briefing</button>
+      </div>
+    </section>
+
+    <!-- REFERENCES -->
+    <section class="refs">
+      <div class="refs-title">Fontes técnicas</div>
+      <ol>
+        <li>Open-Meteo — Forecast API (até 16 dias, modelo ECMWF/ICON) · <a href="https://open-meteo.com/en/docs" target="_blank">open-meteo.com/docs</a></li>
+        <li>Open-Meteo — Historical Weather API (ERA5 reanalysis, 1940+) · <a href="https://open-meteo.com/en/docs/historical-weather-api" target="_blank">historical-weather-api</a></li>
+        <li>OpenStreetMap contributors — base cartográfica · <a href="https://www.openstreetmap.org/copyright" target="_blank">openstreetmap.org</a></li>
+        <li>Leaflet 1.9.4 — JS mapping library · <a href="https://leafletjs.com" target="_blank">leafletjs.com</a></li>
+        <li>Sawka et al., ACSM Position Stand on Exercise and Fluid Replacement, MSSE 2007 — base para fluido e sódio</li>
+        <li>Jeukendrup A., Carbohydrate intake during exercise and performance, Nutrition 2004 — base para carbo/hora</li>
+        <li>Martin J.C. et al. (1998) — "Validation of a Mathematical Model for Road Cycling Power", J Appl Biomech 14(3): modelo P = ½ρCdA(v+vw)²v + mg·sinθ·v + Crr·mg·cosθ·v usado para calcular velocidade resultante por trecho</li>
+        <li>Crouch T. et al., Riding against the wind: a review of competition cycling aerodynamics, Sports Eng 2017 — base para custo aerodinâmico</li>
+        <li>Périard et al., Exercise under heat stress, Physiol Rev 2021 — base para heat flag</li>
+        <li>Reanálise ERA5 — ECMWF Copernicus Climate Change Service · <a href="https://climate.copernicus.eu" target="_blank">climate.copernicus.eu</a></li>
+        <li>Triathlete — Wheel Depth Guide (jul/2025): regra crosswind 15-20 mph para front 40-60mm · <a href="https://www.triathlete.com/gear/bike/ask-a-gear-guru-which-wheel-depth-should-i-be-riding/" target="_blank">triathlete.com</a></li>
+        <li>Slowtwitch Forum — Yaw Angle vs Rim Depth: 60 vs 90mm break-even em ~7.5° yaw · <a href="https://forum.slowtwitch.com/t/yaw-angle-and-depth-of-wheel/719751" target="_blank">slowtwitch.com</a></li>
+        <li>Velo (Outside) — Aero vs Lightweight Wheels: break-even em 6.8% @ 300W para mudar para roda leve</li>
+        <li>Parcours / Astle &amp; Siddall — Wheel choice Nice vs Kona: "deepest front you can confidently handle" · <a href="https://www.parcours.cc/blogs/news/choosing-the-right-wheels-for-ironman-world-championships-in-nice-and-kona" target="_blank">parcours.cc</a></li>
+        <li>Quintana Roo — Aero Matters: When to Choose a Disc Rear Wheel (abr/2026)</li>
+        <li>Triathlon Magazine Canada — Crosswinds of Kona: análise quantitativa de 40 km/h crosswind</li>
+        <li>Triathlete — "Should All Triathletes Be Running 28mm Tires?" (set/2022): ENVE recomenda 27-28mm como ótimo · <a href="https://www.triathlete.com/gear/bike/should-all-triathletes-be-running-28mm-tires/" target="_blank">triathlete.com</a></li>
+        <li>Schwalbe / Magnus Ditlev — 28mm Pro One Aero em Nice 2025 World Championships</li>
+        <li>FLO Cycling — Rule of 105% (rim deve ser ≥105% do pneu para vantagem aerodinâmica)</li>
+        <li>SILCA Tire Pressure Calculator — metodologia de PSI ótimo (distribuição 55% rear / 45% front) · <a href="https://silca.cc/blogs/silca/tire-pressure-calculator-explained" target="_blank">silca.cc</a></li>
+        <li>Superteam Wheels — "28mm vs 30mm Tires: Is Wider Always Faster?" (mar/2026): tradeoff aero vs rolling em &gt;35 km/h</li>
+        <li>Riegel P. (1981) — "Athletic Records and Human Endurance": fórmula T2 = T1 × (D2/D1)^1.06 para extrapolar performance entre distâncias de corrida</li>
+        <li>AthletePath — Triathlon Cut-off Time Calculator: regras oficiais Ironman/70.3 (swim 2h20, bike 10h30, total 17h para IM; swim 1h10, bike 5h30, total 8h30 para 70.3) · <a href="https://www.athletepath.com/triathlon-cutoff-calculator/" target="_blank">athletepath.com</a></li>
+        <li>AthletePath — Triathlon Pace Calculator: brick effect (pace do run no tri 5-15% mais lento que standalone), wetsuit savings tipicamente 3-7% no swim · <a href="https://www.athletepath.com/triathlon-pace-calculator/" target="_blank">athletepath.com</a></li>
+        <li>AthletePath — Weather-Adjusted Pace Calculator: +2-4% no tempo total por 6°C acima de 21°C para manter esforço constante na corrida</li>
+        <li>Tanaka H. &amp; Seals D.R. (2008) — "Endurance exercise performance in Masters athletes: age-associated changes and underlying physiological mechanisms", J Physiol — base para multiplicadores de declínio por idade</li>
+        <li>Ironman / IRONMAN 70.3 finisher data &amp; CBTri statistics — base de percentis por categoria etária × modalidade</li>
+      </ol>
+    </section>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  LM·AeroFit · <a href="https://lmaerofit.com.br">lmaerofit.com.br</a> · ferramentas grátis para atletas de endurance
+</div>
+
+<script>
+/* ============================================================
+   LMAEROFIT · RACE WEATHER BRIEFING
+   Standalone HTML/JS · sem backend · sem login
+   ============================================================ */
+
+// ---------- STATE ----------
+const state = {
+  bike: null,  // {points, distKm, ascentM, segments}
+  run:  null,
+  weather: null,
+  mode: null,  // 'forecast-hi' | 'forecast-mid' | 'historic'
+};
+
+// ---------- DEFAULT DATE: today + 5 ----------
+(() => {
+  const d = new Date(); d.setDate(d.getDate() + 5);
+  document.getElementById('race-date').value = d.toISOString().slice(0,10);
+})();
+
+// ---------- FILE UPLOAD ----------
+function setupDropZone(mode){
+  const dz = document.getElementById('dz-'+mode);
+  const input = document.getElementById('file-'+mode);
+  dz.addEventListener('click', () => input.click());
+  input.addEventListener('change', e => handleFile(e.target.files[0], mode));
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0], mode);
+  });
+}
+setupDropZone('bike'); setupDropZone('run');
+
+// ---------- INPUT MODE TOGGLES (GPX / Manual / Off) ----------
+state.bikeMode = 'gpx';
+state.runMode = 'gpx';
+state.location = null;  // {lat, lon, label}
+
+function setMode(modality, mode){
+  state[modality+'Mode'] = mode;
+  // visual toggle
+  document.querySelectorAll(`#toggle-${modality} span`).forEach(s => {
+    s.classList.toggle('active', s.dataset.mode === mode);
+  });
+  // show/hide blocks
+  document.getElementById(`mode-${modality}-gpx`).hidden    = (mode !== 'gpx');
+  const manualEl = document.getElementById(`mode-${modality}-manual`);
+  if (manualEl) manualEl.hidden = (mode !== 'manual');
+  // shared (time/speed) only when not off
+  document.getElementById(`${modality}-shared`).style.display = (mode === 'off') ? 'none' : 'grid';
+  // clear data if turned off
+  if (mode === 'off') state[modality] = null;
+  updateLocationRequired();
+}
+
+document.querySelectorAll('.toggle-mini').forEach(toggle => {
+  toggle.addEventListener('click', e => {
+    const span = e.target.closest('span[data-mode]');
+    if (!span) return;
+    const modality = toggle.id.replace('toggle-', '');
+    setMode(modality, span.dataset.mode);
+  });
+});
+
+// ---------- LOCATION REQUIREMENT ----------
+function updateLocationRequired(){
+  // Localidade fica obrigatória se algum modo for "manual" sem GPX
+  const needsLoc = (state.bikeMode === 'manual' && !state.bike) ||
+                   (state.runMode === 'manual' && !state.run);
+  const badge = document.getElementById('location-badge');
+  if (needsLoc){
+    badge.textContent = 'obrigatório p/ modo manual';
+    badge.style.color = 'var(--amber)';
+    badge.style.background = 'rgba(255,138,28,.1)';
+    badge.style.borderColor = 'rgba(255,138,28,.3)';
+  } else {
+    badge.textContent = 'opcional';
+    badge.style.color = '';
+    badge.style.background = '';
+    badge.style.borderColor = '';
+  }
+}
+
+// ---------- MODALITY AUTO-FILL ----------
+const MODALITY_DEFAULTS = {
+  // bikePower em watts: potência média que atleta amador típico sustenta na prova
+  sprint:    {bike: 20,  run: 5,   bikePower: 230, runPace: 5.0},
+  olympic:   {bike: 40,  run: 10,  bikePower: 220, runPace: 4.8},
+  '70.3':    {bike: 90,  run: 21.1,bikePower: 200, runPace: 5.0},
+  im:        {bike: 180, run: 42.2,bikePower: 175, runPace: 5.5},
+  granfondo: {bike: 100, run: 0,   bikePower: 210, runPace: 5.0},
+  marathon:  {bike: 0,   run: 42.2,bikePower: 0,   runPace: 5.0},
+  other:     null,
+};
+
+document.getElementById('modality').addEventListener('change', e => {
+  const m = MODALITY_DEFAULTS[e.target.value];
+  if (!m) return;
+  if (state.bikeMode === 'manual' && m.bike > 0){
+    document.getElementById('bike-dist-manual').value = m.bike;
+    document.getElementById('bike-power').value = m.bikePower;
+  }
+  if (state.runMode === 'manual' && m.run > 0){
+    document.getElementById('run-dist-manual').value = m.run;
+    document.getElementById('run-pace').value = m.runPace;
+  }
+  if (m.bike === 0) setMode('bike', 'off');
+  if (m.run === 0) setMode('run', 'off');
+});
+
+// ---------- GEOCODING via Open-Meteo ----------
+async function geocodeLocation(){
+  const input = document.getElementById('location-name').value.trim();
+  const result = document.getElementById('loc-result');
+  if (!input){ result.textContent = 'Digite o nome da cidade/prova primeiro'; result.classList.add('err'); return; }
+  result.classList.remove('err');
+  result.innerHTML = '<span class="spinner"></span>buscando...';
+  try {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(input)}&count=1&language=pt&format=json`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (!data.results || !data.results.length){
+      result.textContent = '✗ Não encontrado — tente outro nome ou inclua o estado/país';
+      result.classList.add('err');
+      state.location = null;
+      return;
+    }
+    const r = data.results[0];
+    state.location = {
+      lat: r.latitude,
+      lon: r.longitude,
+      label: `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country_code ? ' · '+r.country_code : ''}`,
+    };
+    result.innerHTML = `✓ ${state.location.label} (${r.latitude.toFixed(3)}, ${r.longitude.toFixed(3)})`;
+  } catch(err){
+    const isFetchErr = /failed to fetch|networkerror|network request/i.test(err.message);
+    if (isFetchErr){
+      result.innerHTML = '✗ Não consegui chegar no servidor de geocoding. <br><small style="color:var(--ink-dim);letter-spacing:.3px">Se você está vendo isto no preview do claude.ai, salve o HTML e abra direto no Chrome/Safari — APIs externas ficam bloqueadas no preview.</small>';
+    } else {
+      result.textContent = '✗ Erro na busca: '+err.message;
+    }
+    result.classList.add('err');
+  }
+}
+
+// ---------- PERFORMANCE BLOCK TOGGLE ----------
+document.getElementById('toggle-perf').addEventListener('click', e => {
+  const body = document.getElementById('perf-body');
+  const btn = e.target;
+  const isHidden = body.hidden;
+  body.hidden = !isHidden;
+  btn.textContent = isHidden ? 'Esconder' : 'Mostrar';
+  btn.classList.toggle('active', isHidden);
+});
+
+// Default transition time by modality
+const TRANSITION_DEFAULTS = {sprint: 2, olympic: 3, '70.3': 6, im: 9};
+document.getElementById('modality').addEventListener('change', e => {
+  const tDefault = TRANSITION_DEFAULTS[e.target.value];
+  if (tDefault) document.getElementById('transition-total').value = tDefault;
+});
+
+document.getElementById('btn-geocode').addEventListener('click', geocodeLocation);
+document.getElementById('location-name').addEventListener('keypress', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); geocodeLocation(); }
+});
+
+// ---------- SYNTHETIC ROUTE (when no GPX) ----------
+const TERRAIN_TO_CLIMBRATE = {flat: 3, rolling: 7, hilly: 14, mountain: 22};
+
+function synthesizeRoute(distKm, terrain, lat, lon){
+  // Build a fake straight-line route from (lat,lon) heading 90° East,
+  // long enough to span distKm. Adds elevation profile based on terrain.
+  // The bearing variation is simulated by adding small jitter so wind classification
+  // doesn't lock to a single direction.
+  const climbRate = TERRAIN_TO_CLIMBRATE[terrain] || 5;
+  const totalAscent = distKm * climbRate;
+  const nPoints = Math.max(20, Math.min(100, Math.round(distKm * 2)));
+  const points = [];
+  // distance per point in degrees lat (1deg ≈ 111km)
+  const stepKm = distKm / (nPoints - 1);
+  const stepDeg = stepKm / 111;
+  // We simulate a slight zigzag so segments have varied bearings (realistic route)
+  for (let i = 0; i < nPoints; i++){
+    const progress = i / (nPoints - 1);
+    // bearing oscillation: sine wave with 3 cycles
+    const bearingOffset = Math.sin(progress * Math.PI * 6) * 0.3; // ±~17°
+    const dx = stepKm * Math.cos(bearingOffset);
+    const dy = stepKm * Math.sin(bearingOffset);
+    // accumulate position
+    const prevLat = i === 0 ? lat : points[i-1].lat;
+    const prevLon = i === 0 ? lon : points[i-1].lon;
+    const newLat = prevLat + (dy / 111);
+    const newLon = prevLon + (dx / (111 * Math.cos(prevLat * Math.PI/180)));
+    // elevation: smooth profile with hills
+    const eleBase = 100;
+    const eleVariation = totalAscent * Math.sin(progress * Math.PI * 2.5) * 0.5;
+    const ele = eleBase + eleVariation + (progress * totalAscent * 0.3);
+    points.push({lat: newLat, lon: newLon, ele, cumKm: i * stepKm});
+  }
+  // recompute proper ascent (only positive deltas)
+  let ascentM = 0;
+  for (let i = 1; i < points.length; i++){
+    const dh = points[i].ele - points[i-1].ele;
+    if (dh > 0) ascentM += dh;
+  }
+  // segment using existing helper
+  const segments = segmentRoute(points, distKm);
+  return {points, distKm, ascentM, segments, synthetic: true};
+}
+
+function handleFile(file, mode){
+  if (!file || !file.name.toLowerCase().endsWith('.gpx')){
+    showStatus('Arquivo inválido — só .gpx por enquanto', 'error'); return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = parseGPX(e.target.result);
+      if (!data.points.length) throw new Error('GPX sem pontos');
+      state[mode] = data;
+      const dz = document.getElementById('dz-'+mode);
+      dz.classList.add('has-file');
+      dz.querySelector('.drop-text strong').textContent = file.name;
+      dz.querySelector('.drop-text').innerHTML = '<strong>'+file.name+'</strong>'+data.points.length+' pontos · GPX OK';
+      document.getElementById('stats-'+mode).innerHTML =
+        '✓ '+data.distKm.toFixed(1)+' km · ↑'+Math.round(data.ascentM)+'m · '+data.segments.length+' trechos';
+    } catch(err){
+      showStatus('Erro lendo GPX: '+err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---------- GPX PARSER ----------
+function parseGPX(xmlString){
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(xmlString, 'application/xml');
+  const err = xml.querySelector('parsererror');
+  if (err) throw new Error('XML malformado');
+
+  const trkpts = xml.getElementsByTagName('trkpt');
+  if (!trkpts.length) throw new Error('Sem trackpoints');
+
+  const points = [];
+  for (let i=0; i<trkpts.length; i++){
+    const p = trkpts[i];
+    const lat = parseFloat(p.getAttribute('lat'));
+    const lon = parseFloat(p.getAttribute('lon'));
+    const eleEl = p.getElementsByTagName('ele')[0];
+    const ele = eleEl ? parseFloat(eleEl.textContent) : 0;
+    points.push({lat, lon, ele});
+  }
+
+  // cumulative distance + ascent
+  let distKm = 0, ascentM = 0;
+  for (let i=1; i<points.length; i++){
+    const d = haversine(points[i-1], points[i]);
+    distKm += d;
+    points[i].cumKm = distKm;
+    const dh = points[i].ele - points[i-1].ele;
+    if (dh > 0) ascentM += dh;
+  }
+  points[0].cumKm = 0;
+
+  // segment into ~20 chunks with merge of similar bearing
+  const segments = segmentRoute(points, distKm);
+
+  return {points, distKm, ascentM, segments};
+}
+
+function haversine(a, b){
+  const R = 6371;
+  const dLat = (b.lat-a.lat)*Math.PI/180;
+  const dLon = (b.lon-a.lon)*Math.PI/180;
+  const lat1 = a.lat*Math.PI/180;
+  const lat2 = b.lat*Math.PI/180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+
+function bearing(a, b){
+  const lat1 = a.lat*Math.PI/180;
+  const lat2 = b.lat*Math.PI/180;
+  const dLon = (b.lon-a.lon)*Math.PI/180;
+  const y = Math.sin(dLon)*Math.cos(lat2);
+  const x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+  return (Math.atan2(y, x)*180/Math.PI + 360) % 360;
+}
+
+function segmentRoute(points, distKm){
+  // target ~18-22 segments, adaptive by bearing change
+  const targetCount = Math.max(8, Math.min(24, Math.round(distKm / 3)));
+  const targetLen = distKm / targetCount;
+  const segs = [];
+  let start = 0;
+  let accumDist = 0;
+  for (let i=1; i<points.length; i++){
+    accumDist = points[i].cumKm - points[start].cumKm;
+    if (accumDist >= targetLen || i === points.length-1){
+      const segPts = points.slice(start, i+1);
+      const startPt = points[start];
+      const endPt = points[i];
+      const bear = bearing(startPt, endPt);
+      const distSeg = endPt.cumKm - startPt.cumKm;
+      let asc = 0, desc = 0;
+      for (let j=1; j<segPts.length; j++){
+        const dh = segPts[j].ele - segPts[j-1].ele;
+        if (dh > 0) asc += dh; else desc += -dh;
+      }
+      // midpoint for weather query
+      const mid = segPts[Math.floor(segPts.length/2)];
+      segs.push({
+        index: segs.length,
+        startKm: startPt.cumKm,
+        endKm: endPt.cumKm,
+        distKm: distSeg,
+        bearing: bear,
+        ascent: asc,
+        descent: desc,
+        midLat: mid.lat,
+        midLon: mid.lon,
+        points: segPts,
+      });
+      start = i;
+    }
+  }
+  return segs;
+}
+
+// ---------- WEATHER ----------
+async function fetchWeather(lat, lon, date, mode){
+  let url;
+  if (mode === 'historic'){
+    const targetDate = new Date(date);
+    const month = String(targetDate.getMonth()+1).padStart(2,'0');
+    const day   = String(targetDate.getDate()).padStart(2,'0');
+    const thisYear = new Date().getFullYear();
+    const startYear = thisYear - 11;
+    const endYear   = thisYear - 1;
+    url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startYear}-${month}-${day}&end_date=${endYear}-${month}-${day}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation&timezone=auto`;
+  } else {
+    url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,precipitation_probability,precipitation,uv_index&timezone=auto`;
+  }
+
+  // Retry com backoff exponencial: tenta até 3x se for 429 ou erro de rede
+  const maxRetries = 2;
+  for (let attempt = 0; attempt <= maxRetries; attempt++){
+    try {
+      const resp = await fetch(url);
+      if (resp.status === 429){
+        if (attempt < maxRetries){
+          const waitMs = 2000 * Math.pow(2, attempt); // 2s, 4s
+          showStatus(`<span class="spinner"></span>Rate limit do Open-Meteo · aguardando ${waitMs/1000}s para tentar de novo...`);
+          await new Promise(r => setTimeout(r, waitMs));
+          continue;
+        }
+        throw new Error('Open-Meteo HTTP 429 — limite de chamadas atingido. Espere 1-2 minutos antes de gerar outro briefing.');
+      }
+      if (!resp.ok) throw new Error('Open-Meteo HTTP '+resp.status);
+      return resp.json();
+    } catch(err){
+      if (attempt < maxRetries && /failed to fetch|network/i.test(err.message)){
+        await new Promise(r => setTimeout(r, 1000 * (attempt+1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+function determineMode(raceDate){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(raceDate);
+  target.setHours(0,0,0,0);
+  const diffDays = Math.round((target-today)/86400000);
+  if (diffDays < 0) return {mode:'historic', daysOut:diffDays};
+  if (diffDays <= 7)  return {mode:'forecast-hi',  daysOut:diffDays};
+  if (diffDays <= 14) return {mode:'forecast-mid', daysOut:diffDays};
+  return {mode:'historic', daysOut:diffDays};
+}
+
+function getWeatherForSegment(segData, weatherData, hourISO, mode){
+  // hourISO = local ISO like '2026-06-12T07:00'
+  const times = weatherData.hourly.time;
+
+  if (mode === 'historic'){
+    // average across all years for that hour
+    const targetHour = hourISO.slice(11,16); // 'HH:MM'
+    const targetMMDD = hourISO.slice(5,10);
+    const matches = [];
+    for (let i=0; i<times.length; i++){
+      const t = times[i];
+      if (t.slice(5,10) === targetMMDD && t.slice(11,16) === targetHour){
+        matches.push(i);
+      }
+    }
+    if (!matches.length) return null;
+    const avg = (key) => {
+      let sum=0, n=0;
+      matches.forEach(i => {
+        const v = weatherData.hourly[key][i];
+        if (v != null && !isNaN(v)){ sum += v; n++; }
+      });
+      return n ? sum/n : null;
+    };
+    // for wind direction, circular average
+    const avgCircular = () => {
+      let sx=0, sy=0, n=0;
+      matches.forEach(i => {
+        const v = weatherData.hourly.wind_direction_10m[i];
+        if (v != null){
+          sx += Math.cos(v*Math.PI/180);
+          sy += Math.sin(v*Math.PI/180);
+          n++;
+        }
+      });
+      if (!n) return null;
+      return (Math.atan2(sy/n, sx/n)*180/Math.PI + 360)%360;
+    };
+    return {
+      temp: avg('temperature_2m'),
+      humidity: avg('relative_humidity_2m'),
+      windSpeed: avg('wind_speed_10m'),
+      windDir: avgCircular(),
+      precip: avg('precipitation'),
+      uv: null,
+      pop: null,
+    };
+  } else {
+    // forecast — find exact hour
+    const idx = times.findIndex(t => t.startsWith(hourISO.slice(0,13)));
+    if (idx < 0) return null;
+    return {
+      temp: weatherData.hourly.temperature_2m[idx],
+      humidity: weatherData.hourly.relative_humidity_2m[idx],
+      windSpeed: weatherData.hourly.wind_speed_10m[idx],
+      windDir: weatherData.hourly.wind_direction_10m[idx],
+      precip: weatherData.hourly.precipitation[idx],
+      uv: weatherData.hourly.uv_index ? weatherData.hourly.uv_index[idx] : null,
+      pop: weatherData.hourly.precipitation_probability ? weatherData.hourly.precipitation_probability[idx] : null,
+    };
+  }
+}
+
+// ---------- WIND CLASSIFICATION ----------
+function classifyWind(segBearing, windDirFrom, windSpeed){
+  // windDir = direction wind is COMING FROM
+  // for tail: wind direction toward = (windDirFrom + 180) % 360, compare with segBearing
+  if (windSpeed < 8) return {category:'weak', angle:0};
+  const windToward = (windDirFrom + 180) % 360;
+  let diff = Math.abs(windToward - segBearing);
+  if (diff > 180) diff = 360 - diff;
+  // diff 0 = perfect tailwind, 180 = perfect headwind
+  if (diff <= 45) return {category:'tail', angle:diff};
+  if (diff >= 135) return {category:'head', angle:180-diff};
+  return {category:'cross', angle:diff};
+}
+
+// ---------- HEAT FLAG (simplified WBGT-like) ----------
+function heatFlag(temp, humidity){
+  if (temp == null || humidity == null) return {flag:'green', label:'OK'};
+  // approximation: heat index combining temp + humidity
+  const hi = temp + 0.05*(humidity-50);
+  if (hi >= 30) return {flag:'red',    label:'CRÍTICO'};
+  if (hi >= 25) return {flag:'yellow', label:'ATENÇÃO'};
+  return {flag:'green', label:'OK'};
+}
+
+// ---------- DECISION ENGINE ----------
+function deriveAction(weather, windCat, modality, isSwim){
+  const acts = [];
+  const t = weather.temp, h = weather.humidity;
+
+  // heat actions
+  if (t >= 28){
+    acts.push('Sódio +30%');
+    acts.push('Fluido 800ml/h');
+  } else if (t >= 24){
+    acts.push('Sódio padrão');
+    acts.push('Fluido 600ml/h');
+  } else if (t < 15){
+    acts.push('Fluido 400ml/h');
+    acts.push('Manguito/gilet');
+  }
+
+  if (h >= 75 && t >= 24) acts.push('Esfriamento ativo');
+  if (weather.uv != null && weather.uv >= 8) acts.push('Protetor solar reforçado');
+  if (weather.pop != null && weather.pop >= 60) acts.push('Capa de chuva no kit');
+  if (weather.precip > 1) acts.push('Cuidado piso molhado');
+
+  // wind actions
+  if (windCat === 'head') acts.push('Pace conservador');
+  if (windCat === 'tail') acts.push('Cadência alta · aproveitar');
+  if (windCat === 'cross') acts.push('Posição estável');
+
+  return acts.slice(0,3).join(' · ') || 'Manter plano';
+}
+
+// ============================================================
+// PHYSICS MODEL · Martin 1998 (Validation of a Mathematical Model
+// for Road Cycling Power) com ar density por temperatura/altitude
+// ============================================================
+
+// Densidade do ar ρ (kg/m³) dada temperatura (°C) e altitude (m)
+// Modelo barométrico simplificado, escala 8.4km da troposfera
+function airDensity(tempC, altitudeM){
+  const T = 273.15 + (tempC != null ? tempC : 15);
+  const rho0 = 1.225 * (288.15 / T);
+  return rho0 * Math.exp(-(altitudeM || 0) / 8400);
+}
+
+// CdA default por tipo de bike (m²)
+function defaultCdA(){
+  const bikeType = document.getElementById('bike-type').value;
+  return bikeType === 'tt' ? 0.28 : 0.34;
+}
+
+// Componente do vento paralela ao movimento do atleta (m/s)
+// positivo = headwind (contra), negativo = tailwind (a favor)
+// athleteBearing = direção que o atleta está indo (graus, 0=N, 90=E)
+// windFromDir = direção DE ONDE o vento vem (graus)
+function headwindComponent(athleteBearing, windFromDir, windSpeedMps){
+  if (!windSpeedMps) return 0;
+  let diff = (windFromDir - athleteBearing + 360) % 360;
+  return windSpeedMps * Math.cos(diff * Math.PI / 180);
+}
+
+// Resolve velocidade (m/s) dada potência (W) e condições
+// usando bissecção sobre a equação Martin 1998:
+//   P = 0.5·ρ·CdA·(v + headwind)²·v + m·g·sin(θ)·v + Crr·m·g·cos(θ)·v + losses
+function solveVelocityFromPower(power, gradientPct, headwindMps, mass, cda, crr, rho){
+  const g = 9.81;
+  const slopeRad = Math.atan(gradientPct / 100);
+  const sinSlope = Math.sin(slopeRad);
+  const cosSlope = Math.cos(slopeRad);
+
+  const requiredPower = (v) => {
+    const vRel = v + headwindMps; // ar approaching the rider
+    // Pa = drag power: 0.5·ρ·CdA·|vRel|·vRel·v  (signed quadratic for tailwind beyond own speed)
+    const Pa = 0.5 * rho * cda * Math.abs(vRel) * vRel * v;
+    const Pg = mass * g * sinSlope * v;
+    const Pr = crr * mass * g * cosSlope * v;
+    const mech = Pa + Pg + Pr;
+    const drivetrain = 0.025 * Math.max(0, mech); // 2.5% drivetrain losses
+    return mech + drivetrain;
+  };
+
+  // Bissecção em [0.3 m/s, 25 m/s] = [1 km/h, 90 km/h]
+  let lo = 0.3, hi = 25;
+  for (let i = 0; i < 50; i++){
+    const mid = (lo + hi) / 2;
+    if (requiredPower(mid) > power) hi = mid;
+    else lo = mid;
+  }
+  return (lo + hi) / 2; // m/s
+}
+
+// Calcula tempo/velocidade pra um segmento da bike usando Martin 1998
+// seg: {distKm, ascent, bearing, midLat, midLon, points}
+// weather: {temp, windSpeed, windDir, ...}
+function segmentBikeTime(seg, weather, power, mass, cda){
+  const distKm = seg.distKm;
+  const gradientPct = (seg.ascent / (distKm * 1000)) * 100;
+  // Vento (Open-Meteo retorna em km/h, converter para m/s)
+  const windMps = (weather.windSpeed || 0) / 3.6;
+  const headwindMps = headwindComponent(seg.bearing, weather.windDir || 0, windMps);
+  // Altitude média do trecho
+  const avgEle = seg.points.reduce((a,p) => a + (p.ele || 0), 0) / seg.points.length;
+  const rho = airDensity(weather.temp, avgEle);
+  // Crr padrão asfalto típico + 28mm tubeless
+  const crr = 0.0045;
+  // Velocidade resultante
+  const vMps = solveVelocityFromPower(power, gradientPct, headwindMps, mass, cda, crr, rho);
+  const speedKmh = vMps * 3.6;
+  const timeMin = (distKm / speedKmh) * 60;
+  return {timeMin, speedKmh, gradientPct, headwindMps, rho};
+}
+
+// ---------- INPUT CONSISTENCY VALIDATION ----------
+// Detecta GPX inconsistente com a modalidade selecionada (ex: GPX IM com 70.3 marcado)
+function guessModalityFromDistance(stage, distKm){
+  let best = null, bestDiff = Infinity;
+  for (const [name, d] of Object.entries(RACE_DISTANCES)){
+    if (!d || d[stage] === 0) continue;
+    const diff = Math.abs(d[stage] - distKm) / d[stage];
+    if (diff < bestDiff){ bestDiff = diff; best = name; }
+  }
+  return {modality: best, diff: bestDiff};
+}
+
+const MODALITY_LABEL = {
+  sprint: 'Triathlon Sprint',
+  olympic: 'Triathlon Olímpico',
+  '70.3': 'Meio Ironman / 70.3',
+  im: 'Ironman Full',
+  granfondo: 'Gran Fondo',
+  marathon: 'Maratona',
+  other: 'Outra',
+};
+
+function validateInputs(){
+  const modality = document.getElementById('modality').value;
+  const warnings = [];
+
+  if (modality && RACE_DISTANCES[modality]){
+    const expected = RACE_DISTANCES[modality];
+
+    // Bike GPX consistency
+    if (state.bikeMode === 'gpx' && state.bike && expected.bike > 0){
+      const ratio = state.bike.distKm / expected.bike;
+      if (ratio < 0.85 || ratio > 1.15){
+        const guess = guessModalityFromDistance('bike', state.bike.distKm);
+        warnings.push({
+          type: 'bike-distance',
+          msg: `GPX da bike tem ${state.bike.distKm.toFixed(1)} km, mas modalidade "${MODALITY_LABEL[modality]}" espera ~${expected.bike} km.`,
+          suggestion: guess.modality && guess.diff < 0.15 ? `Talvez você quis dizer "${MODALITY_LABEL[guess.modality]}" (${RACE_DISTANCES[guess.modality].bike} km)?` : null,
+          guess: guess.modality,
+        });
+      }
+    }
+
+    // Run GPX consistency
+    if (state.runMode === 'gpx' && state.run && expected.run > 0){
+      const ratio = state.run.distKm / expected.run;
+      if (ratio < 0.85 || ratio > 1.15){
+        const guess = guessModalityFromDistance('run', state.run.distKm);
+        warnings.push({
+          type: 'run-distance',
+          msg: `GPX do run tem ${state.run.distKm.toFixed(1)} km, mas modalidade "${MODALITY_LABEL[modality]}" espera ~${expected.run} km.`,
+          suggestion: guess.modality && guess.diff < 0.15 ? `Talvez você quis dizer "${MODALITY_LABEL[guess.modality]}" (${RACE_DISTANCES[guess.modality].run} km)?` : null,
+          guess: guess.modality,
+        });
+      }
+    }
+
+    // Modalidade espera bike mas está sem
+    if (expected.bike > 0 && state.bikeMode === 'off'){
+      warnings.push({
+        type: 'missing-bike',
+        msg: `"${MODALITY_LABEL[modality]}" tem etapa de bike de ${expected.bike} km, mas você marcou "Sem bike".`,
+        suggestion: 'Verifique se a modalidade está correta.',
+      });
+    }
+    if (expected.run > 0 && state.runMode === 'off'){
+      warnings.push({
+        type: 'missing-run',
+        msg: `"${MODALITY_LABEL[modality]}" tem etapa de corrida de ${expected.run} km, mas você marcou "Sem run".`,
+        suggestion: 'Verifique se a modalidade está correta.',
+      });
+    }
+  }
+
+  // Largada da bike depois da do run? Provavelmente esqueceu de ajustar
+  if (state.bikeMode !== 'off' && state.runMode !== 'off'){
+    const bs = document.getElementById('bike-start').value;
+    const rs = document.getElementById('run-start').value;
+    if (bs && rs){
+      const [bh,bm] = bs.split(':').map(Number);
+      const [rh,rm] = rs.split(':').map(Number);
+      const bMin = bh*60+bm, rMin = rh*60+rm;
+      if (rMin <= bMin){
+        warnings.push({
+          type: 'time-order',
+          msg: `Largada do run (${rs}) está antes ou igual à largada da bike (${bs}).`,
+          suggestion: 'Em triathlon o run vem depois da bike — ajuste o horário.',
+        });
+      }
+    }
+  }
+
+  return warnings;
+}
+
+function showValidationDialog(warnings){
+  return new Promise((resolve) => {
+    const modal = document.createElement('div');
+    modal.className = 'validation-modal';
+    modal.innerHTML = `
+      <div class="validation-card">
+        <div class="validation-title">▸ Inconsistências detectadas</div>
+        <div class="validation-sub">Antes de gerar o briefing, dê uma olhada:</div>
+        <ul class="validation-list">
+          ${warnings.map(w => `
+            <li>
+              <div class="val-msg">${w.msg}</div>
+              ${w.suggestion ? `<div class="val-sug">→ ${w.suggestion}</div>` : ''}
+            </li>
+          `).join('')}
+        </ul>
+        <div class="validation-actions">
+          ${warnings.find(w => w.guess) ? `<button class="btn val-fix" data-action="fix">Trocar para sugestão</button>` : ''}
+          <button class="btn val-continue" data-action="continue">Continuar mesmo assim</button>
+          <button class="btn btn-ghost val-cancel" data-action="cancel">Cancelar e revisar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      document.body.removeChild(modal);
+      if (action === 'fix'){
+        // aplica a primeira sugestão de modalidade
+        const fix = warnings.find(w => w.guess);
+        if (fix){
+          document.getElementById('modality').value = fix.guess;
+          document.getElementById('modality').dispatchEvent(new Event('change'));
+        }
+      }
+      resolve(action);
+    });
+  });
+}
+
+// ---------- MAIN ANALYSIS ----------
+async function runAnalysis(){
+  // Validar inputs
+  const bikeReady = (state.bikeMode === 'gpx' && state.bike) || (state.bikeMode === 'manual');
+  const runReady  = (state.runMode === 'gpx' && state.run)  || (state.runMode === 'manual');
+  if (!bikeReady && !runReady){
+    showStatus('Defina ao menos uma modalidade (bike ou run) — GPX ou manual', 'error'); return;
+  }
+  const needsLoc = state.bikeMode === 'manual' || state.runMode === 'manual';
+  if (needsLoc && !state.location){
+    showStatus('Sem GPX, preencha a Localidade e clique em Buscar', 'error'); return;
+  }
+  const date = document.getElementById('race-date').value;
+  if (!date){ showStatus('Defina a data da prova', 'error'); return; }
+
+  // Consistency validation — modalidade vs GPX, etc
+  const warnings = validateInputs();
+  if (warnings.length > 0){
+    const action = await showValidationDialog(warnings);
+    if (action === 'cancel') return;
+    // 'fix' já trocou a modalidade no DOM; 'continue' segue
+    // se trocou, re-aplicar defaults da modalidade nova ao bike/run manual
+  }
+
+  // Sintetizar rotas onde modo é manual
+  if (state.bikeMode === 'manual'){
+    const dist = parseFloat(document.getElementById('bike-dist-manual').value) || 40;
+    const terrain = document.getElementById('bike-terrain-manual').value;
+    state.bike = synthesizeRoute(dist, terrain, state.location.lat, state.location.lon);
+  } else if (state.bikeMode === 'off'){
+    state.bike = null;
+  }
+  if (state.runMode === 'manual'){
+    const dist = parseFloat(document.getElementById('run-dist-manual').value) || 10;
+    const terrain = document.getElementById('run-terrain-manual').value;
+    state.run = synthesizeRoute(dist, terrain, state.location.lat, state.location.lon);
+  } else if (state.runMode === 'off'){
+    state.run = null;
+  }
+
+  const modeInfo = determineMode(date);
+  state.mode = modeInfo.mode;
+
+  showStatus('<span class="spinner"></span>Consultando Open-Meteo · '+modeInfo.mode+' · '+Math.abs(modeInfo.daysOut)+'d');
+
+  try {
+    if (state.bike){
+      const mid = state.bike.points[Math.floor(state.bike.points.length/2)];
+      state.bike.weather = await fetchWeather(mid.lat, mid.lon, date, state.mode);
+    }
+    if (state.run){
+      const mid = state.run.points[Math.floor(state.run.points.length/2)];
+      state.run.weather = await fetchWeather(mid.lat, mid.lon, date, state.mode);
+    }
+
+    renderResults(modeInfo);
+    showStatus('');
+  } catch(err){
+    console.error(err);
+    const isFetchErr = /failed to fetch|networkerror|network request/i.test(err.message);
+    if (isFetchErr){
+      showStatus('Não consegui consultar o Open-Meteo. Se você está vendo isto no preview do claude.ai, salve o HTML (botão "..." → Download) e abra direto no Chrome ou Safari — o preview bloqueia APIs externas.', 'error');
+    } else {
+      showStatus('Erro consultando meteorologia: '+err.message, 'error');
+    }
+  }
+}
+
+// ---------- RENDER ----------
+function renderResults(modeInfo){
+  const date = document.getElementById('race-date').value;
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const modality = document.getElementById('modality').value;
+
+  // mode banner
+  const banner = document.getElementById('mode-banner');
+  banner.className = 'mode-banner ' + state.mode;
+  const txt = document.getElementById('mode-text');
+  const hasSynthetic = (state.bike && state.bike.synthetic) || (state.run && state.run.synthetic);
+  const syntheticNote = hasSynthetic ? ` <em style="color:var(--yellow);font-style:normal;display:inline-block;margin-top:6px;font-size:10px;letter-spacing:1px">⚠ rota sintética: meteo centrada em ${state.location ? state.location.label : 'localidade informada'} · sem direção real de vento por trecho</em>` : '';
+  if (state.mode === 'forecast-hi'){
+    txt.innerHTML = `<strong>Previsão de alta confiança</strong> · prova em ${modeInfo.daysOut} dia(s). Modelo numérico ECMWF/ICON via Open-Meteo. <small>Janela de erro típica: ±2°C, ±4 km/h de vento.</small>${syntheticNote}`;
+  } else if (state.mode === 'forecast-mid'){
+    txt.innerHTML = `<strong>Previsão estendida</strong> · prova em ${modeInfo.daysOut} dias. Confiança média — use como tendência, não como certeza. <small>Reconsulte 3-5 dias antes para versão refinada.</small>${syntheticNote}`;
+  } else {
+    txt.innerHTML = `<strong>Clima histórico (ERA5)</strong> · ${modeInfo.daysOut < 0 ? 'data passada' : 'janela além de 14d'}. Média dos últimos 10 anos no mesmo dia/mês. <small>Não é previsão — é o que costuma acontecer estatisticamente.</small>${syntheticNote}`;
+  }
+
+  // build all segment data
+  const allRows = [];
+  ['bike','run'].forEach(mode => {
+    if (!state[mode]) return;
+    const startTime = document.getElementById(mode+'-start').value;
+
+    // Per-mode inputs
+    let bikePower, mass, cda, runPace;
+    if (mode === 'bike'){
+      bikePower = parseFloat(document.getElementById('bike-power').value) || 200;
+      const wBody = parseFloat(document.getElementById('weight').value) || 70;
+      const wBike = parseFloat(document.getElementById('weight-bike').value) || 9;
+      mass = wBody + wBike;
+      const cdaInput = parseFloat(document.getElementById('bike-cda').value);
+      cda = (cdaInput && cdaInput >= 0.18 && cdaInput <= 0.45) ? cdaInput : defaultCdA();
+    } else {
+      runPace = parseFloat(document.getElementById('run-pace').value) || 5.0;
+    }
+
+    const segs = state[mode].segments;
+    let cumMin = 0;
+    const [sh, sm] = startTime.split(':').map(Number);
+    const baseMin = sh*60 + sm;
+
+    segs.forEach(seg => {
+      // 1ª passada: estimativa grossa pra pegar a hora certa do weather
+      const initialTime = mode === 'bike'
+        ? (seg.distKm / 25) * 60       // chute 25 km/h
+        : seg.distKm * runPace;
+      const midMinEst = baseMin + cumMin + initialTime / 2;
+      const midHEst = Math.floor(midMinEst / 60);
+      const hourISO = `${date}T${String(midHEst%24).padStart(2,'0')}:00`;
+      const w = getWeatherForSegment(seg, state[mode].weather, hourISO, state.mode);
+      if (!w) return;
+
+      // 2ª passada: tempo real com Martin 1998 (bike) ou pace (run)
+      let tMin, speedKmh, bikeCalc = null;
+      if (mode === 'bike'){
+        bikeCalc = segmentBikeTime(seg, w, bikePower, mass, cda);
+        tMin = bikeCalc.timeMin;
+        speedKmh = bikeCalc.speedKmh;
+      } else {
+        tMin = seg.distKm * runPace;
+        speedKmh = 60 / runPace;
+      }
+
+      const segStartMin = baseMin + cumMin;
+      cumMin += tMin;
+      const segEndMin = baseMin + cumMin;
+
+      const windC = classifyWind(seg.bearing, w.windDir || 0, w.windSpeed || 0);
+      const heat = heatFlag(w.temp, w.humidity);
+      const action = deriveAction(w, windC.category, modality, false);
+      allRows.push({
+        mode, seg, weather:w, wind:windC, heat, action, speedKmh, tMin, bikeCalc,
+        startMin: segStartMin, endMin: segEndMin,
+        timeLabel: `${String(Math.floor(segStartMin/60)%24).padStart(2,'0')}:${String(Math.round(segStartMin%60)).padStart(2,'0')}`,
+      });
+    });
+  });
+
+  state.rows = allRows;
+  renderSummary(allRows, weight);
+  renderMaps(allRows);
+  renderTimeline(allRows);
+  renderWheels();
+  renderPosition();
+  renderBriefing(allRows, weight, modeInfo);
+
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderSummary(rows, weight){
+  const grid = document.getElementById('summary-grid');
+  grid.innerHTML = '';
+
+  const bikeRows = rows.filter(r => r.mode === 'bike');
+  const runRows  = rows.filter(r => r.mode === 'run');
+
+  const card = (cls, label, val, unit, sub) =>
+    `<div class="summary-card ${cls}">
+       <div class="summary-label">${label}</div>
+       <div class="summary-value">${val}<span class="unit">${unit||''}</span></div>
+       ${sub ? `<div class="summary-sub">${sub}</div>` : ''}
+     </div>`;
+
+  if (state.bike){
+    const avgT = bikeRows.reduce((a,r) => a + (r.weather.temp||0), 0) / bikeRows.length;
+    const headPct = Math.round(100 * bikeRows.filter(r => r.wind.category === 'head').length / bikeRows.length);
+    const totalTimeMin = bikeRows.reduce((a,r) => a + (r.tMin || 0), 0);
+    const effSpeed = state.bike.distKm / (totalTimeMin / 60);
+    const power = parseFloat(document.getElementById('bike-power').value) || 200;
+    grid.innerHTML += card('bike', 'Bike · dist', state.bike.distKm.toFixed(1), 'km', '↑'+Math.round(state.bike.ascentM)+'m');
+    grid.innerHTML += card('bike', 'Bike · vel resultante', effSpeed.toFixed(1), 'km/h', `@ ${power}W · ${formatTimeHM(totalTimeMin)}`);
+    grid.innerHTML += card('bike', 'Bike · temp média', avgT.toFixed(1), '°C', headPct+'% headwind');
+  }
+  if (state.run){
+    const avgT = runRows.reduce((a,r) => a + (r.weather.temp||0), 0) / runRows.length;
+    const maxT = Math.max(...runRows.map(r => r.weather.temp||0));
+    grid.innerHTML += card('run', 'Run · dist', state.run.distKm.toFixed(1), 'km', '↑'+Math.round(state.run.ascentM)+'m');
+    grid.innerHTML += card('run', 'Run · temp pico', maxT.toFixed(1), '°C', 'média '+avgT.toFixed(1)+'°C');
+  }
+}
+
+function renderMaps(rows){
+  ['bike','run'].forEach(mode => {
+    const section = document.getElementById('map-section-'+mode);
+    if (!state[mode]){ section.style.display='none'; return; }
+    section.style.display='block';
+
+    const mapEl = document.getElementById('map-'+mode);
+    mapEl.innerHTML='';
+    const map = L.map('map-'+mode, {zoomControl:true, attributionControl:true});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:'© OpenStreetMap',
+      maxZoom:18,
+    }).addTo(map);
+
+    const modeRows = rows.filter(r => r.mode === mode);
+    const allLatLng = [];
+
+    modeRows.forEach(r => {
+      const seg = r.seg;
+      const pts = seg.points.map(p => [p.lat, p.lon]);
+      allLatLng.push(...pts);
+      let color;
+      switch(r.wind.category){
+        case 'tail':  color = '#7fb069'; break;
+        case 'head':  color = '#d4504a'; break;
+        case 'cross': color = '#e8b84a'; break;
+        default:      color = '#5a5852'; break;
+      }
+      const poly = L.polyline(pts, {color, weight:5, opacity:.85, lineJoin:'round'}).addTo(map);
+      const popup = `
+        <strong>Trecho ${seg.index+1} · ${seg.startKm.toFixed(1)}–${seg.endKm.toFixed(1)}km</strong>
+        ⏱ ${r.timeLabel} · ${r.weather.temp != null ? r.weather.temp.toFixed(1)+'°C' : '—'}<br>
+        💨 ${r.weather.windSpeed != null ? r.weather.windSpeed.toFixed(0) : '—'} km/h · <strong style="color:${color}">${r.wind.category.toUpperCase()}</strong><br>
+        💧 ${r.weather.humidity != null ? r.weather.humidity.toFixed(0) : '—'}% RH<br>
+        ▸ ${r.action}
+      `;
+      poly.bindPopup(popup);
+    });
+
+    // start/end markers
+    const first = state[mode].points[0];
+    const last  = state[mode].points[state[mode].points.length-1];
+    L.circleMarker([first.lat, first.lon], {radius:7, fillColor:'#ff8a1c', color:'#fff', weight:2, fillOpacity:1}).addTo(map).bindPopup('<strong>Largada</strong>');
+    L.circleMarker([last.lat, last.lon],   {radius:7, fillColor:'#7fb069', color:'#fff', weight:2, fillOpacity:1}).addTo(map).bindPopup('<strong>Chegada</strong>');
+
+    setTimeout(() => {
+      map.fitBounds(L.latLngBounds(allLatLng), {padding:[30,30]});
+      map.invalidateSize();
+    }, 100);
+  });
+}
+
+function renderTimeline(rows){
+  const body = document.getElementById('timeline-body');
+  body.innerHTML = rows.map(r => {
+    const t = r.weather.temp;
+    let tCls = 'mild';
+    if (t != null){
+      if (t < 15) tCls='cold';
+      else if (t >= 28) tCls='hot';
+      else if (t >= 23) tCls='warm';
+    }
+    const ascStr = r.seg.ascent >= 10 ? ` · ↑${Math.round(r.seg.ascent)}m` : '';
+    return `
+      <div class="timeline-row">
+        <span class="tl-modality ${r.mode}">${r.mode==='bike'?'BIKE':'RUN'}</span>
+        <span class="tl-time">${r.timeLabel}</span>
+        <span class="tl-segment"><strong>T${r.seg.index+1}</strong> · ${r.seg.startKm.toFixed(1)}–${r.seg.endKm.toFixed(1)}km${ascStr}</span>
+        <span class="tl-temp ${tCls}">${t!=null?t.toFixed(0)+'°':'—'}</span>
+        <span class="tl-wind">${r.weather.windSpeed!=null?r.weather.windSpeed.toFixed(0):'—'}<small>km/h</small><span class="wdir ${r.wind.category==='weak'?'cross':r.wind.category}">${r.wind.category==='tail'?'FAV':r.wind.category==='head'?'CTR':r.wind.category==='cross'?'LAT':'—'}</span></span>
+        <span class="tl-flag-cell"><span class="tl-flag ${r.heat.flag}">${r.heat.label}</span></span>
+        <span class="tl-action">${r.action}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ---------- WHEEL SELECTION ENGINE ----------
+/*
+  Lógica baseada em pesquisa (jun/2026):
+  - Front wheel é o crítico para handling em crosswind (não o rear)
+  - Disc rear vale ~10-15W a 40km/h, mas vira liability acima de ~35 km/h de crosswind sustentado
+  - Mixed-depth (front raso + rear fundo) é estratégia consagrada (Craig Alexander, Lange, Kallin)
+  - Peso e experiência deslocam a faixa: leve/conservador → 1 faixa mais raso
+  - Gradiente: >800m em 90km ou >1500m em 180km → peso > aero (deepest perde para shallow+leve)
+
+  Referências: Triathlete (Wheel Depth Guide 2025), Slowtwitch Yaw Angle, BikeRadar Aero vs Light,
+  Velo Outside (climb breakpoint 6.8% @ 300W), Parcours (Astle/Siddall Kona/Nice),
+  Quintana Roo (Aero Matters disc 2026), Triathlon Magazine Canada (Kona crosswind analysis 70km/h)
+*/
+function recommendWheels(){
+  const handling = document.getElementById('handling').value;
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const modality = document.getElementById('modality').value;
+
+  // 1. Vento crítico da bike (peak crosswind speed across bike segments)
+  const bikeRows = (state.rows || []).filter(r => r.mode === 'bike');
+  let peakCrossKmh = 0, peakWindKmh = 0, crossSegPct = 0;
+  if (bikeRows.length){
+    const crossWinds = bikeRows.map(r => {
+      const w = r.weather.windSpeed || 0;
+      // componente lateral = w * sin(ângulo entre vento e direção)
+      // simplificado: cross/head/tail flags
+      if (r.wind.category === 'cross') return w * 0.9;
+      if (r.wind.category === 'head' || r.wind.category === 'tail') return w * 0.4;
+      return w * 0.6;
+    });
+    peakCrossKmh = Math.max(...crossWinds);
+    peakWindKmh = Math.max(...bikeRows.map(r => r.weather.windSpeed || 0));
+    crossSegPct = Math.round(100 * bikeRows.filter(r => r.wind.category === 'cross').length / bikeRows.length);
+  }
+
+  // 2. Terreno bike
+  const bikeDist = state.bike ? state.bike.distKm : 0;
+  const bikeAsc  = state.bike ? state.bike.ascentM : 0;
+  // m/km como métrica adimensional
+  const climbRate = bikeDist > 0 ? bikeAsc / bikeDist : 0;
+  // categoria de terreno: <5 m/km plano, 5-10 misto, 10-18 hilly, >18 mountainous
+  let terrain, terrainLabel, terrainFlag;
+  if (climbRate < 5){ terrain='flat';      terrainLabel='Plano';        terrainFlag='green'; }
+  else if (climbRate < 10){ terrain='rolling';   terrainLabel='Ondulado';     terrainFlag='green'; }
+  else if (climbRate < 18){ terrain='hilly';     terrainLabel='Montanhoso';   terrainFlag='yellow'; }
+  else { terrain='mountain'; terrainLabel='Alta montanha';terrainFlag='red'; }
+
+  // 3. Vento — categorias de crosswind component
+  let windCat, windLabel, windFlag;
+  if (peakCrossKmh < 12){ windCat='light';    windLabel='Leve';     windFlag='green'; }
+  else if (peakCrossKmh < 22){ windCat='moderate'; windLabel='Moderado'; windFlag='green'; }
+  else if (peakCrossKmh < 32){ windCat='strong';   windLabel='Forte';    windFlag='yellow'; }
+  else { windCat='extreme';  windLabel='Extremo';  windFlag='red'; }
+
+  // 4. Decisão FRONT (depth max em mm)
+  // baseline por vento:
+  const frontByWind = {light: 90, moderate: 65, strong: 50, extreme: 35};
+  let frontDepth = frontByWind[windCat];
+  // ajuste handling
+  if (handling === 'conservative') frontDepth -= 10;
+  else if (handling === 'aggressive') frontDepth += 10;
+  // ajuste peso (atleta leve <60kg perde estabilidade)
+  if (weight < 60) frontDepth -= 8;
+  else if (weight > 85) frontDepth += 5;
+  // ajuste terreno (montanhoso → leve > aero)
+  if (terrain === 'mountain') frontDepth = Math.min(frontDepth, 38);
+  else if (terrain === 'hilly') frontDepth = Math.min(frontDepth, 55);
+  // limites
+  frontDepth = Math.max(25, Math.min(95, Math.round(frontDepth/5)*5));
+
+  // 5. Decisão REAR
+  // rear pode ser bem mais profundo. disc se vento extremo NÃO presente e terreno não-montanhoso
+  let rearType, rearDepth, rearLabel;
+  const discViable = peakCrossKmh < 30 && terrain !== 'mountain' && handling !== 'conservative';
+  const discIdeal  = peakCrossKmh < 22 && (terrain === 'flat' || terrain === 'rolling');
+
+  if (discIdeal){
+    rearType = 'disc'; rearDepth = null; rearLabel = 'Disc';
+  } else if (discViable && (modality === 'im' || modality === '70.3' || modality === 'granfondo')){
+    rearType = 'disc'; rearDepth = null; rearLabel = 'Disc';
+  } else if (peakCrossKmh < 28 && terrain !== 'mountain'){
+    rearType = 'deep'; rearDepth = 80; rearLabel = '80mm';
+  } else if (terrain === 'mountain'){
+    rearType = 'shallow'; rearDepth = 45; rearLabel = '45mm';
+  } else {
+    rearType = 'mid-deep'; rearDepth = 65; rearLabel = '65mm';
+  }
+
+  // 6. Rationale
+  const frontReason = [];
+  if (windCat === 'extreme') frontReason.push('vento extremo na rota (pico crosswind '+Math.round(peakCrossKmh)+' km/h) força front raso');
+  else if (windCat === 'strong') frontReason.push('crosswind forte (pico '+Math.round(peakCrossKmh)+' km/h) — front profundo demais vira liability');
+  else if (windCat === 'moderate') frontReason.push('vento moderado permite profundidade intermediária');
+  else frontReason.push('vento baixo libera front aerodinamicamente otimizado');
+  if (terrain === 'mountain' || terrain === 'hilly') frontReason.push(climbRate.toFixed(1)+' m/km de subida penaliza rim profundo');
+  if (handling === 'conservative') frontReason.push('perfil conservador desloca uma faixa para baixo por segurança');
+  if (handling === 'aggressive') frontReason.push('handling agressivo permite uma faixa acima');
+  if (weight < 60) frontReason.push('atleta leve (<60kg) é mais empurrado pelo vento');
+
+  const rearReason = [];
+  if (rearType === 'disc' && discIdeal) rearReason.push('condições ideais para disc rear — propulsão por sailing a 10-15° yaw, ganho típico 10-15W a 40 km/h');
+  else if (rearType === 'disc') rearReason.push('disc viável: rear influencia bem menos que front em handling, ganho aero compensa');
+  else if (rearType === 'deep') rearReason.push('80mm como aproximação do disc onde regra ou vento não permitem — referência: HED Jet 180 em Kona');
+  else if (rearType === 'shallow') rearReason.push('terreno montanhoso pune peso — rear leve acompanha front leve');
+  else rearReason.push('vento marginal — 65mm equilibra aero e estabilidade');
+
+  // ============================================================
+  // 7. TIRE SELECTION (largura + pressão por terreno + chuva + bike type)
+  // ============================================================
+  // Bike type
+  const bikeType = document.getElementById('bike-type').value;
+
+  // Chuva: máxima POP ou precip média nos trechos da bike
+  let maxPop = 0, avgPrecip = 0;
+  if (bikeRows.length){
+    maxPop = Math.max(...bikeRows.map(r => r.weather.pop || 0));
+    avgPrecip = bikeRows.reduce((a,r) => a + (r.weather.precip || 0), 0) / bikeRows.length;
+  }
+  const wetRace = maxPop >= 50 || avgPrecip > 0.3;
+
+  // Largura base por terreno
+  // Plano: 25/28 (front menor para aero em TT)
+  // Ondulado: 28/28
+  // Hilly: 28/28 (conforto + rolling)
+  // Mountain: 28/30 (conforto extra)
+  let tireFrontMm, tireRearMm;
+  if (terrain === 'flat'){
+    tireFrontMm = bikeType === 'tt' ? 25 : 28;
+    tireRearMm = 28;
+  } else if (terrain === 'rolling'){
+    tireFrontMm = 28; tireRearMm = 28;
+  } else if (terrain === 'hilly'){
+    tireFrontMm = 28; tireRearMm = 28;
+  } else {
+    tireFrontMm = 28; tireRearMm = 30;
+  }
+
+  // Chuva: +2mm se possível (TT geralmente não tem clearance pra 30+)
+  if (wetRace){
+    if (bikeType === 'road'){
+      tireFrontMm = Math.min(32, tireFrontMm + 2);
+      tireRearMm = Math.min(32, tireRearMm + 2);
+    } else {
+      // TT: avisa mas não pode aumentar muito (clearance)
+      tireFrontMm = Math.min(28, tireFrontMm + 2);
+      tireRearMm = Math.min(30, tireRearMm + 2);
+    }
+  }
+
+  // Pressão estimada (Silca-style simplificado)
+  // Silca usa PESO TOTAL = atleta + bike + gear (~10kg) + acessórios
+  // 70kg atleta + 10kg bike = 80kg sistema → ~75psi front, 88psi rear em 28mm asfalto típico
+  // PSI ∝ peso_total, PSI ∝ 1/largura, ajuste por superfície
+  const weightBike = parseFloat(document.getElementById('weight-bike').value) || 9;
+  const weightTotal = weight + weightBike;
+  const surfaceFactor = terrain === 'flat' ? 1.0 : terrain === 'rolling' ? 0.96 : terrain === 'hilly' ? 0.93 : 0.90;
+  const wetFactor = wetRace ? 0.93 : 1.0;
+  const tireFrontPsi = Math.round(((weightTotal * 0.42) + (52 - tireFrontMm) * 2.2) * surfaceFactor * wetFactor);
+  const tireRearPsi  = Math.round(((weightTotal * 0.52) + (52 - tireRearMm)  * 2.2) * surfaceFactor * wetFactor);
+
+  // Tire rationale
+  const tireReason = [];
+  if (terrain === 'flat' && bikeType === 'tt'){
+    tireReason.push('TT em terreno plano: 25mm frente vence pela "regra dos 105%" (rim deve ser ≥105% do pneu)');
+  } else if (terrain === 'flat'){
+    tireReason.push('terreno plano permite pneu mais estreito sem perder muito conforto');
+  } else if (terrain === 'mountain'){
+    tireReason.push('alta montanha: rolling resistance e conforto > aerodinâmica em velocidades de subida');
+  } else {
+    tireReason.push('28mm é o sweet spot atual (ENVE, Schwalbe, Magnus Ditlev em Nice 2025)');
+  }
+  if (wetRace) tireReason.push(`probabilidade de chuva ${Math.round(maxPop)}% — subir 2mm e baixar 5-8 psi para grip`);
+  if (bikeType === 'tt') tireReason.push('checar clearance do quadro TT antes de subir para 30mm+');
+
+  // ============================================================
+  return {
+    front: {depth: frontDepth, reason: frontReason.join(' · ')},
+    rear:  {type: rearType, depth: rearDepth, label: rearLabel, reason: rearReason.join(' · ')},
+    tireFront: {width: tireFrontMm, psi: tireFrontPsi},
+    tireRear:  {width: tireRearMm,  psi: tireRearPsi},
+    tireReason: tireReason.join(' · '),
+    wet: wetRace,
+    bikeType,
+    drivers: {
+      wind: {value: peakCrossKmh, peak: peakWindKmh, cat: windCat, label: windLabel, flag: windFlag, crossPct: crossSegPct},
+      terrain: {climbRate, ascent: bikeAsc, dist: bikeDist, cat: terrain, label: terrainLabel, flag: terrainFlag},
+      weight,
+      handling,
+    },
+  };
+}
+
+function wheelSVG(depth, isDisc){
+  // SVG schematic of a wheel with rim depth proportional to depth (or solid for disc)
+  if (isDisc){
+    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#4a90c2" stroke-width="2"/><circle cx="50" cy="50" r="42" fill="#4a90c2" opacity=".3"/><circle cx="50" cy="50" r="3" fill="#4a90c2"/></svg>`;
+  }
+  // outer radius 46, inner radius depends on depth (mm). 25mm=>r41, 95mm=>r28
+  const innerR = 46 - (depth/95)*18;
+  const color = '#ff8a1c';
+  // 4 spokes
+  const spokes = [0,45,90,135].map(a => {
+    const rad = a*Math.PI/180;
+    const x1 = 50 + Math.cos(rad)*innerR, y1 = 50 + Math.sin(rad)*innerR;
+    const x2 = 50 - Math.cos(rad)*innerR, y2 = 50 - Math.sin(rad)*innerR;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-width=".8"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="2"/><circle cx="50" cy="50" r="${innerR.toFixed(1)}" fill="none" stroke="${color}" stroke-width="1" opacity=".5"/>${spokes}<circle cx="50" cy="50" r="3.5" fill="${color}"/></svg>`;
+}
+
+function tireSVG(widthMm){
+  // SVG cross-section of a tire: outer rim, then tire casing varying in thickness
+  // 25mm => thin, 32mm => thick. Color amber-dim for visual differentiation.
+  const tireThick = 8 + (widthMm - 25) * 1.2; // 25=>8, 28=>12, 30=>14, 32=>17
+  const color = '#b8651a';
+  const innerR = 46 - tireThick;
+  return `<svg viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="${color}" opacity=".25"/>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="${color}" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="${innerR.toFixed(1)}" fill="#15151a"/>
+    <circle cx="50" cy="50" r="${innerR.toFixed(1)}" fill="none" stroke="#ff8a1c" stroke-width="1.2"/>
+    <text x="50" y="55" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ff8a1c">${widthMm}</text>
+  </svg>`;
+}
+
+function renderWheels(){
+  if (!state.bike){
+    document.getElementById('wheel-drivers').innerHTML = '';
+    document.getElementById('wheel-grid').innerHTML = '<div style="padding:24px;background:var(--panel);border:1px solid var(--rule);color:var(--ink-dim);font-size:12px;text-align:center">Wheel selection requer GPX da bike. Suba a rota para receber a recomendação.</div>';
+    document.getElementById('wheel-alt').innerHTML = '';
+    return;
+  }
+
+  const rec = recommendWheels();
+  state.wheels = rec;
+
+  // drivers
+  const d = rec.drivers;
+  const dominant = (d.wind.cat === 'strong' || d.wind.cat === 'extreme') ? 'wind'
+                 : (d.terrain.cat === 'mountain' || d.terrain.cat === 'hilly') ? 'terrain'
+                 : 'wind';
+  document.getElementById('wheel-drivers').innerHTML = `
+    <div class="driver-card ${dominant==='wind'?'dom':''}">
+      <div class="driver-label">Vento crítico</div>
+      <div class="driver-value">${Math.round(d.wind.value)}<span class="v-unit">km/h cross</span></div>
+      <div class="driver-sub">pico geral ${Math.round(d.wind.peak)} km/h</div>
+      <span class="driver-flag ${d.wind.flag}">${d.wind.label.toUpperCase()}</span>
+    </div>
+    <div class="driver-card ${dominant==='terrain'?'dom':''}">
+      <div class="driver-label">Terreno</div>
+      <div class="driver-value">${d.terrain.climbRate.toFixed(1)}<span class="v-unit">m/km</span></div>
+      <div class="driver-sub">${Math.round(d.terrain.ascent)}m em ${d.terrain.dist.toFixed(1)}km</div>
+      <span class="driver-flag ${d.terrain.flag}">${d.terrain.label.toUpperCase()}</span>
+    </div>
+    <div class="driver-card">
+      <div class="driver-label">Atleta</div>
+      <div class="driver-value">${d.weight}<span class="v-unit">kg</span></div>
+      <div class="driver-sub">peso corporal</div>
+      <span class="driver-flag blue">${d.weight<60?'LEVE':d.weight>85?'PESADO':'MÉDIO'}</span>
+    </div>
+    <div class="driver-card">
+      <div class="driver-label">Handling</div>
+      <div class="driver-value" style="font-size:16px">${({conservative:'Conservador',balanced:'Equilibrado',aggressive:'Agressivo'})[d.handling]}</div>
+      <div class="driver-sub">tolerância a crosswind</div>
+      <span class="driver-flag blue">${d.handling.toUpperCase()}</span>
+    </div>
+  `;
+
+  // wheel cards (rodas)
+  const isDiscRear = rec.rear.type === 'disc';
+  document.getElementById('wheel-grid').innerHTML = `
+    <div class="wheel-section-label">▸ RODAS · para esse dia</div>
+    <div class="wheel-cards-row">
+      <div class="wheel-card front">
+        <div class="wheel-svg-wrap">${wheelSVG(rec.front.depth, false)}</div>
+        <div class="wheel-pos">▸ Front · roda dianteira</div>
+        <div class="wheel-title"><span class="depth">${rec.front.depth}mm</span> rim</div>
+        <div class="wheel-spec">Profundidade limite — front é o crítico em crosswind.</div>
+        <div class="wheel-rationale"><strong>Por quê:</strong> ${rec.front.reason}.</div>
+      </div>
+      <div class="wheel-card rear">
+        <div class="wheel-svg-wrap">${wheelSVG(rec.rear.depth || 90, isDiscRear)}</div>
+        <div class="wheel-pos">▸ Rear · roda traseira</div>
+        <div class="wheel-title"><span class="depth">${rec.rear.label}</span></div>
+        <div class="wheel-spec">${isDiscRear ? 'Disc rear adiciona ~10-15W a 40 km/h em yaw 10-15°. Não permitido em Kona; checar regulamento.' : 'Rear influencia handling muito menos que front. Vai fundo aqui com tranquilidade.'}</div>
+        <div class="wheel-rationale"><strong>Por quê:</strong> ${rec.rear.reason}.</div>
+      </div>
+    </div>
+
+    <div class="wheel-section-label" style="margin-top:28px">▸ PNEUS · largura e pressão para esse dia</div>
+    <div class="wheel-cards-row">
+      <div class="tire-card front">
+        <div class="wheel-svg-wrap">${tireSVG(rec.tireFront.width)}</div>
+        <div class="wheel-pos">▸ Front · pneu dianteiro</div>
+        <div class="wheel-title"><span class="depth">${rec.tireFront.width}mm</span></div>
+        <div class="tire-psi"><strong>${rec.tireFront.psi}</strong><span>psi</span> <small>· ${(rec.tireFront.psi*0.0689).toFixed(1)} bar</small></div>
+        <div class="wheel-spec">Estimativa estilo Silca — peso ${rec.drivers.weight}kg, superfície ${rec.drivers.terrain.label.toLowerCase()}${rec.wet ? ', chuva prevista' : ''}.</div>
+      </div>
+      <div class="tire-card rear">
+        <div class="wheel-svg-wrap">${tireSVG(rec.tireRear.width)}</div>
+        <div class="wheel-pos">▸ Rear · pneu traseiro</div>
+        <div class="wheel-title"><span class="depth">${rec.tireRear.width}mm</span></div>
+        <div class="tire-psi"><strong>${rec.tireRear.psi}</strong><span>psi</span> <small>· ${(rec.tireRear.psi*0.0689).toFixed(1)} bar</small></div>
+        <div class="wheel-spec">Trás suporta ~55% do peso — pressão maior que na frente.</div>
+      </div>
+    </div>
+    <div class="tire-rationale"><strong>Lógica:</strong> ${rec.tireReason}.</div>
+  `;
+
+  // alternativas / cenários
+  document.getElementById('wheel-alt').innerHTML = `
+    <strong>Plano B · se as condições mudarem até o dia da prova</strong>
+    <div class="alt-line"><span class="alt-cond">Vento desabar &lt;10 km/h</span><span class="alt-rec">Sobe front para ${Math.min(95, rec.front.depth + 15)}mm · rear disc se permitido pelo regulamento</span></div>
+    <div class="alt-line"><span class="alt-cond">Rajadas &gt;35 km/h surgindo</span><span class="alt-rec">Front para 30–35mm imediatamente · rear máx 60mm · cancela disc</span></div>
+    <div class="alt-line"><span class="alt-cond">Chuva forte no dia</span><span class="alt-rec">${rec.bikeType === 'road' ? `Sobe pneu para ${rec.tireFront.width+2}/${rec.tireRear.width+2}mm` : `Mantém ${rec.tireFront.width}/${rec.tireRear.width}mm (clearance TT)`} · baixa pressão 5–8 psi</span></div>
+    <div class="alt-line"><span class="alt-cond">Largada antecipada/atrasada</span><span class="alt-rec">Re-rodar este briefing com o novo horário — vento costuma crescer 2-3x do amanhecer ao meio-dia</span></div>
+  `;
+}
+
+// ============================================================
+// POSITION ESTIMATOR · tempo total + percentil + gap analysis
+// ============================================================
+
+// Distâncias oficiais por modalidade (km swim + km bike + km run)
+const RACE_DISTANCES = {
+  sprint:    {swim: 0.75, bike: 20,  run: 5.0},
+  olympic:   {swim: 1.5,  bike: 40,  run: 10.0},
+  '70.3':    {swim: 1.9,  bike: 90,  run: 21.1},
+  im:        {swim: 3.8,  bike: 180, run: 42.2},
+  granfondo: {swim: 0,    bike: 100, run: 0},
+  marathon:  {swim: 0,    bike: 0,   run: 42.2},
+};
+
+// Tempos-base por modalidade para M30-34 (em MINUTOS) — dados públicos típicos
+// Fontes: Ironman/IM 70.3 finisher data, ITU age group, Brazilian Triathlon Federation
+const PERCENTILE_BASE_M30_34 = {
+  sprint:    {top10:  58, top25:  66, median:  76, top75:  90},
+  olympic:   {top10: 125, top25: 140, median: 160, top75: 190},
+  '70.3':    {top10: 270, top25: 300, median: 335, top75: 390},
+  im:        {top10: 570, top25: 630, median: 710, top75: 815},
+  granfondo: {top10: 175, top25: 205, median: 240, top75: 285},
+  marathon:  {top10: 155, top25: 180, median: 210, top75: 255},
+};
+
+// Multiplicadores de idade-gênero (Tanaka & Seals 2008 — endurance age decline)
+const AGE_FACTOR = {
+  'M18-29': 0.99, 'M30-34': 1.00, 'M35-39': 1.01, 'M40-44': 1.03,
+  'M45-49': 1.06, 'M50-54': 1.09, 'M55-59': 1.13, 'M60-64': 1.18,
+  'M65-69': 1.24, 'M70+': 1.32,
+  'F18-29': 1.06, 'F30-34': 1.08, 'F35-39': 1.10, 'F40-44': 1.12,
+  'F45-49': 1.15, 'F50-54': 1.18, 'F55-59': 1.22, 'F60-64': 1.27,
+  'F65-69': 1.33, 'F70+': 1.41,
+};
+
+// Distribuição típica de splits em % do tempo total (atletas top 25%)
+const TYPICAL_SPLITS = {
+  sprint:    {swim: 0.18, t1: 0.02, bike: 0.50, t2: 0.02, run: 0.28},
+  olympic:   {swim: 0.13, t1: 0.02, bike: 0.52, t2: 0.02, run: 0.31},
+  '70.3':    {swim: 0.10, t1: 0.02, bike: 0.54, t2: 0.01, run: 0.33},
+  im:        {swim: 0.10, t1: 0.01, bike: 0.55, t2: 0.01, run: 0.33},
+  granfondo: {bike: 1.0},
+  marathon:  {run: 1.0},
+};
+
+// CUTOFFS oficiais em MINUTOS (do horário de largada)
+// Fonte: Ironman official rules, IRONMAN 70.3 athlete guide
+const RACE_CUTOFFS = {
+  sprint:  null,  // raramente tem
+  olympic: null,
+  '70.3':  {swim: 70,   bike: 330,  total: 510},   // 1h10 / 5h30 / 8h30
+  im:      {swim: 140,  bike: 630,  total: 1020},  // 2h20 / 10h30 / 17h
+  granfondo: null,
+  marathon: {total: 360},  // ~6h cutoff típico
+};
+
+// BRICK EFFECT — pace do run no tri é mais lento que standalone (Riegel direto)
+// Multiplicador aplicado sobre o tempo de Riegel
+// Sprint quase não tem (run curto, pernas frescas); IM tem muito (run longo após bike longo)
+const BRICK_FACTOR = {
+  sprint:  1.03,
+  olympic: 1.05,
+  '70.3':  1.08,
+  im:      1.12,
+};
+
+// WETSUIT SAVINGS — economia típica no swim quando permitido
+const WETSUIT_SAVINGS = 0.05;  // 5%
+
+function parseTimeMinSec(s){
+  // accepts "MM:SS" returns minutes (float)
+  if (!s) return null;
+  const m = s.trim().match(/^(\d{1,2}):(\d{1,2})$/);
+  if (!m) return null;
+  return parseInt(m[1]) + parseInt(m[2])/60;
+}
+
+function formatTimeHM(minutes){
+  const h = Math.floor(minutes/60);
+  const m = Math.round(minutes%60);
+  return `${h}h${String(m).padStart(2,'0')}`;
+}
+
+function formatTimeMS(minutes){
+  const m = Math.floor(minutes);
+  const s = Math.round((minutes-m)*60);
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ---------- BIKE TIME prediction (Martin 1998 já aplicado por trecho) ----------
+function predictBikeTime(){
+  if (!state.bike || !state.rows) return null;
+  const bikeRows = state.rows.filter(r => r.mode === 'bike');
+  if (!bikeRows.length) return null;
+  // Os tempos por trecho já foram calculados via Martin 1998 com weather real
+  const timeMin = bikeRows.reduce((sum, r) => sum + (r.tMin || 0), 0);
+  const totalDist = bikeRows.reduce((sum, r) => sum + r.seg.distKm, 0);
+  const effSpeed = totalDist / (timeMin / 60);
+  const power = parseFloat(document.getElementById('bike-power').value) || 200;
+  return {timeMin, effSpeed, power};
+}
+
+// ---------- RUN TIME prediction (Riegel + brick effect + heat) ----------
+function predictRunTime(modality){
+  const fiveKtime = parseTimeMinSec(document.getElementById('run-5k-time').value);
+  if (!fiveKtime) return null;
+
+  const targetDist = RACE_DISTANCES[modality] ? RACE_DISTANCES[modality].run : 0;
+  if (targetDist === 0) return null;
+
+  // 1) Riegel: T2 = T1 * (D2/D1)^1.06
+  let timeMin = fiveKtime * Math.pow(targetDist / 5, 1.06);
+
+  // 2) Brick effect — pace do run no tri é mais lento que standalone
+  //    (não se aplica a maratona pura)
+  const brick = BRICK_FACTOR[modality];
+  if (brick && modality !== 'marathon') timeMin *= brick;
+
+  // 3) Heat adjustment — fórmula linear refinada
+  //    +2-4% no tempo total por 6°C acima de 21°C
+  if (state.run && state.rows){
+    const runRows = state.rows.filter(r => r.mode === 'run');
+    if (runRows.length){
+      const avgTemp = runRows.reduce((a,r) => a + (r.weather.temp || 20), 0) / runRows.length;
+      const excess = Math.max(0, avgTemp - 21);
+      // 3% por 6°C de excesso (meio-termo entre 2% e 4%)
+      const heatPenalty = (excess / 6) * 0.03;
+      timeMin *= (1 + heatPenalty);
+    }
+  }
+
+  const pacePerKm = timeMin / targetDist;
+  return {timeMin, pacePerKm, fiveKtime};
+}
+
+// ---------- SWIM TIME prediction (with wetsuit savings) ----------
+function predictSwimTime(modality){
+  const paceOpen = parseTimeMinSec(document.getElementById('swim-pace-open').value);
+  if (!paceOpen) return null;
+
+  const distKm = RACE_DISTANCES[modality] ? RACE_DISTANCES[modality].swim : 0;
+  if (distKm === 0) return null;
+
+  let timeMin = paceOpen * (distKm * 10);
+
+  // Wetsuit savings
+  const wetsuit = document.getElementById('wetsuit-allowed').value === 'yes';
+  if (wetsuit) timeMin *= (1 - WETSUIT_SAVINGS);
+
+  return {timeMin, paceOpen, wetsuit};
+}
+
+// ---------- POSITION ESTIMATION ----------
+function estimatePosition(totalMin, modality, category){
+  const base = PERCENTILE_BASE_M30_34[modality];
+  const ageFactor = AGE_FACTOR[category];
+  if (!base || !ageFactor) return null;
+
+  const percentiles = {
+    top10:  base.top10  * ageFactor,
+    top25:  base.top25  * ageFactor,
+    median: base.median * ageFactor,
+    top75:  base.top75  * ageFactor,
+  };
+
+  // Determine athlete's bucket
+  let bucket, lower, upper;
+  if (totalMin <= percentiles.top10){
+    bucket = 'top10'; lower = 0; upper = 10;
+  } else if (totalMin <= percentiles.top25){
+    // interpolate between top10 and top25
+    const frac = (totalMin - percentiles.top10) / (percentiles.top25 - percentiles.top10);
+    bucket = 'top10-25'; lower = 10; upper = 10 + 15*frac;
+    upper = Math.round(upper);
+  } else if (totalMin <= percentiles.median){
+    const frac = (totalMin - percentiles.top25) / (percentiles.median - percentiles.top25);
+    bucket = 'top25-50'; lower = 25; upper = 25 + 25*frac;
+    upper = Math.round(upper);
+  } else if (totalMin <= percentiles.top75){
+    const frac = (totalMin - percentiles.median) / (percentiles.top75 - percentiles.median);
+    bucket = '50-75'; lower = 50; upper = 50 + 25*frac;
+    upper = Math.round(upper);
+  } else {
+    const frac = Math.min(1, (totalMin - percentiles.top75) / (percentiles.top75 * 0.15));
+    bucket = '75+'; lower = 75; upper = 75 + 20*frac;
+    upper = Math.min(95, Math.round(upper));
+  }
+
+  return {percentiles, bucket, lower, upper, totalMin, category, modality};
+}
+
+// ---------- GAP ANALYSIS ----------
+function gapAnalysis(splits, position, targetPercentile){
+  // splits = {swim, t1, bike, t2, run, total}
+  // position = result of estimatePosition
+  // targetPercentile = 'top10' | 'top25' | 'median'
+  const targetTime = position.percentiles[targetPercentile];
+  if (splits.total <= targetTime) return null; // já está acima
+  const totalGap = splits.total - targetTime;
+
+  const modality = position.modality;
+  const typical = TYPICAL_SPLITS[modality];
+  if (!typical) return null;
+
+  // What WOULD top10 typical splits be at this total time?
+  const refSplits = {};
+  Object.keys(typical).forEach(k => {
+    refSplits[k] = typical[k] * targetTime;
+  });
+
+  // Where is athlete's gap biggest?
+  const gaps = [];
+  ['swim', 'bike', 'run'].forEach(stage => {
+    if (splits[stage] != null && refSplits[stage] != null){
+      const delta = splits[stage] - refSplits[stage];
+      if (delta > 0) gaps.push({stage, delta, refTime: refSplits[stage], actualTime: splits[stage]});
+    }
+  });
+  gaps.sort((a,b) => b.delta - a.delta);
+
+  return {totalGap, targetTime, targetLabel: targetPercentile, gaps, refSplits};
+}
+
+// ---------- RENDER POSITION SECTION ----------
+function renderPosition(){
+  const category = document.getElementById('age-category').value;
+  const modality = document.getElementById('modality').value;
+  const section = document.getElementById('position-section');
+
+  // Requisitos: categoria + modalidade + alguma estimativa de tempo
+  if (!category || !modality || !PERCENTILE_BASE_M30_34[modality]){
+    section.style.display = 'none';
+    document.getElementById('briefing-section-num').textContent = '06';
+    return;
+  }
+
+  // Build splits
+  const splits = {swim: null, t1: null, bike: null, t2: null, run: null, total: 0};
+  const dist = RACE_DISTANCES[modality];
+
+  // Swim
+  const swimPred = predictSwimTime(modality);
+  if (swimPred && dist.swim > 0) splits.swim = swimPred.timeMin;
+
+  // Bike
+  const bikePred = predictBikeTime();
+  if (bikePred && dist.bike > 0) splits.bike = bikePred.timeMin;
+
+  // Run
+  const runPred = predictRunTime(modality);
+  if (runPred && dist.run > 0) splits.run = runPred.timeMin;
+
+  // Transitions
+  const tTotal = parseFloat(document.getElementById('transition-total').value) || 0;
+  if (dist.swim > 0 && dist.bike > 0) splits.t1 = tTotal/2;
+  if (dist.bike > 0 && dist.run > 0)  splits.t2 = tTotal/2;
+
+  // Sum
+  ['swim','t1','bike','t2','run'].forEach(k => {
+    if (splits[k] != null) splits.total += splits[k];
+  });
+
+  // Need at least bike or run
+  if (splits.total < 5){
+    section.style.display = 'none';
+    document.getElementById('briefing-section-num').textContent = '06';
+    return;
+  }
+
+  section.style.display = 'block';
+  document.getElementById('briefing-section-num').textContent = '07';
+
+  const pos = estimatePosition(splits.total, modality, category);
+  if (!pos){
+    section.innerHTML = '<div style="padding:24px;color:var(--ink-dim)">Modalidade sem percentis cadastrados.</div>';
+    return;
+  }
+
+  // Determine which target percentile to suggest for gap analysis
+  let targetForGap;
+  if (pos.lower < 10) targetForGap = null; // já no top 10
+  else if (pos.lower < 25) targetForGap = 'top10';
+  else if (pos.lower < 50) targetForGap = 'top25';
+  else targetForGap = 'median';
+
+  const gap = targetForGap ? gapAnalysis(splits, pos, targetForGap) : null;
+
+  state.positionData = {splits, pos, gap, cutoffs: null};
+
+  // ----- Render -----
+  const content = document.getElementById('position-content');
+  const catLabel = category.replace(/-/, '–');
+  const bucketLabel =
+    pos.lower < 10 ? 'TOP 10% DA CATEGORIA' :
+    pos.upper <= 25 ? `top ${pos.lower}–${pos.upper}%` :
+    pos.upper <= 50 ? `top ${pos.lower}–${pos.upper}%` :
+    pos.upper <= 75 ? `posição ${pos.lower}–${pos.upper}% (metade inferior)` :
+    `posição ${pos.lower}–${pos.upper}% (parte final)`;
+
+  const bucketColor = pos.upper <= 10 ? 'var(--green)' : pos.upper <= 25 ? 'var(--green)' : pos.upper <= 50 ? 'var(--yellow)' : pos.upper <= 75 ? 'var(--amber)' : 'var(--red)';
+
+  // headline
+  let headlineHTML = `
+    <div class="pos-headline">
+      <div class="pos-headline-label">Tempo total estimado · ${catLabel}</div>
+      <div class="pos-time">${formatTimeHM(splits.total)}<span class="unit">h</span></div>
+      <div class="pos-statement">
+        Com a previsão atual de vento, terreno e temperatura, sua posição esperada na categoria é
+        <strong style="color:${bucketColor}">${bucketLabel}</strong>.
+        ${pos.lower < 10 ? '<em>Excelente — está no pelotão de elite amador da categoria.</em>' :
+          pos.upper <= 25 ? '<em>Ótimo desempenho previsto.</em>' :
+          pos.upper <= 50 ? '<em>Metade superior da categoria.</em>' : ''}
+      </div>
+    </div>
+  `;
+
+  // splits grid
+  const splitCard = (key, cls, label) => {
+    if (splits[key] == null) return '';
+    const pct = (splits[key] / splits.total) * 100;
+    return `
+      <div class="split-card ${cls}">
+        <div class="split-label">${label}</div>
+        <div class="split-value">${key === 'swim' || key === 'run' ? formatTimeMS(splits[key]) : formatTimeHM(splits[key])}</div>
+        <div class="split-pct">${pct.toFixed(0)}% do total</div>
+      </div>
+    `;
+  };
+  const splitsHTML = `
+    <div class="splits-grid">
+      ${splitCard('swim','swim','▸ Natação')}
+      ${splitCard('t1','t1','▸ T1')}
+      ${splitCard('bike','bike','▸ Bike')}
+      ${splitCard('t2','t2','▸ T2')}
+      ${splitCard('run','run','▸ Corrida')}
+    </div>
+  `;
+
+  // percentile bar
+  const minTime = pos.percentiles.top10 * 0.92;
+  const maxTime = pos.percentiles.top75 * 1.18;
+  const range = maxTime - minTime;
+  const posOf = t => Math.max(0, Math.min(100, ((t - minTime) / range) * 100));
+
+  const barHTML = `
+    <div class="pct-bar-wrap">
+      <div class="pct-bar-title">Distribuição da categoria ${catLabel}</div>
+      <div class="pct-bar-sub">Percentis típicos para esta modalidade ajustados pela sua faixa etária e gênero.</div>
+      <div class="pct-bar">
+        <div class="pct-marker" style="left:${posOf(pos.percentiles.top10)}%" data-label="TOP 10%" data-time="${formatTimeHM(pos.percentiles.top10)}"></div>
+        <div class="pct-marker" style="left:${posOf(pos.percentiles.top25)}%" data-label="TOP 25%" data-time="${formatTimeHM(pos.percentiles.top25)}"></div>
+        <div class="pct-marker" style="left:${posOf(pos.percentiles.median)}%" data-label="MEDIANA" data-time="${formatTimeHM(pos.percentiles.median)}"></div>
+        <div class="pct-marker" style="left:${posOf(pos.percentiles.top75)}%" data-label="TOP 75%" data-time="${formatTimeHM(pos.percentiles.top75)}"></div>
+        <div class="pct-marker" style="left:${posOf(splits.total)}%;background:${bucketColor};width:5px" data-label="VOCÊ" data-time="${formatTimeHM(splits.total)}"></div>
+      </div>
+      <div class="pct-labels">
+        <span>elite amador</span>
+        <span>típico</span>
+        <span>completando</span>
+      </div>
+    </div>
+  `;
+
+  // gap analysis
+  let gapHTML = '';
+  if (gap){
+    const targetLabel = gap.targetLabel === 'top10' ? 'TOP 10%' : gap.targetLabel === 'top25' ? 'TOP 25%' : 'MEDIANA';
+    gapHTML = `
+      <div class="gap-card">
+        <div class="gap-title">▸ Análise de gap · onde cortar tempo</div>
+        <div class="gap-headline">
+          Para alcançar <strong style="color:var(--amber)">${targetLabel}</strong> (${formatTimeHM(gap.targetTime)}) você precisa cortar <strong style="color:var(--amber)">${formatTimeHM(gap.totalGap)}</strong> no total. Os splits onde o gap está maior:
+        </div>
+        <div class="gap-rows">
+          ${gap.gaps.length > 0 ? gap.gaps.map((g,i) => `
+            <div class="gap-row ${i === 0 ? 'priority' : ''}">
+              <div class="gap-stage">${g.stage === 'swim' ? 'NATAÇÃO' : g.stage === 'bike' ? 'BIKE' : 'CORRIDA'} ${i === 0 ? '· prioridade' : ''}</div>
+              <div class="gap-delta ${i === 0 ? 'priority' : ''}">−${formatTimeHM(g.delta)}</div>
+              <div class="gap-hint">${g.stage === 'swim' ? 'pace alvo ' + formatTimeMS(g.refTime / (RACE_DISTANCES[pos.modality].swim * 10)) + '/100m' : g.stage === 'bike' ? 'velocidade alvo ~' + (RACE_DISTANCES[pos.modality].bike / (g.refTime/60)).toFixed(1) + ' km/h' : 'pace alvo ' + formatTimeMS(g.refTime / RACE_DISTANCES[pos.modality].run) + '/km'}</div>
+            </div>
+          `).join('') : '<div style="color:var(--ink-dim);font-size:11px;padding:12px">Splits já estão balanceados — corte distribuído.</div>'}
+        </div>
+      </div>
+    `;
+  } else if (pos.lower < 10) {
+    gapHTML = `
+      <div class="gap-card" style="border-left-color:var(--green)">
+        <div class="gap-title" style="color:var(--green)">▸ Você está no topo</div>
+        <div class="gap-headline">
+          Tempo estimado já no top 10% da categoria. Foco em consistência e execução no dia da prova.
+        </div>
+      </div>
+    `;
+  }
+
+  // CUTOFF VALIDATION
+  let cutoffHTML = '';
+  const cutoffs = RACE_CUTOFFS[modality];
+  if (cutoffs){
+    const checks = [];
+    let swimCumul = splits.swim || 0;
+    let bikeCumul = swimCumul + (splits.t1 || 0) + (splits.bike || 0);
+    let totalCumul = splits.total;
+
+    if (cutoffs.swim){
+      const margin = cutoffs.swim - swimCumul;
+      checks.push({stage: 'SWIM', cutoff: cutoffs.swim, actual: swimCumul, margin});
+    }
+    if (cutoffs.bike){
+      const margin = cutoffs.bike - bikeCumul;
+      checks.push({stage: 'BIKE (T2)', cutoff: cutoffs.bike, actual: bikeCumul, margin});
+    }
+    if (cutoffs.total){
+      const margin = cutoffs.total - totalCumul;
+      checks.push({stage: 'TOTAL', cutoff: cutoffs.total, actual: totalCumul, margin});
+    }
+
+    const worstMargin = Math.min(...checks.map(c => c.margin));
+    state.positionData.cutoffs = {checks, worstMargin};
+    const cardBorder = worstMargin < 0 ? 'var(--red)' : worstMargin < 30 ? 'var(--yellow)' : 'var(--green)';
+    const headerColor = worstMargin < 0 ? 'var(--red)' : worstMargin < 30 ? 'var(--yellow)' : 'var(--green)';
+
+    cutoffHTML = `
+      <div class="cutoff-card" style="border-left-color:${cardBorder}">
+        <div class="cutoff-title" style="color:${headerColor}">▸ Validação de cortes oficiais</div>
+        <div class="cutoff-sub">${modality === '70.3' ? 'Cortes Ironman 70.3' : modality === 'im' ? 'Cortes Ironman (140.6)' : 'Cortes oficiais'} — medidos do horário de largada.</div>
+        <div class="cutoff-grid">
+          ${checks.map(c => {
+            const flag = c.margin < 0 ? 'red' : c.margin < 30 ? 'yellow' : 'green';
+            const label = c.margin < 0 ? `−${formatTimeHM(-c.margin)} ACIMA do corte` : `${formatTimeHM(c.margin)} de folga`;
+            return `
+              <div class="cutoff-row ${flag}">
+                <div class="cutoff-stage">${c.stage}</div>
+                <div class="cutoff-times">
+                  <span class="cutoff-actual">${formatTimeHM(c.actual)}</span>
+                  <span class="cutoff-sep">/</span>
+                  <span class="cutoff-limit">${formatTimeHM(c.cutoff)}</span>
+                </div>
+                <div class="cutoff-margin">${label}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ${worstMargin < 0 ? `<div class="cutoff-alert">⚠ Você não vai bater no corte de ${checks.find(c => c.margin < 0).stage}. DNF garantido se mantiver esse pace. Reveja estratégia de pacing ou treine mais.</div>` : worstMargin < 30 ? `<div class="cutoff-alert" style="color:var(--yellow);background:rgba(232,184,74,.08)">⚠ Margem apertada (&lt;30min). Qualquer imprevisto (pneu, câimbra, calor) pode levar a DNF. Considere pacing mais agressivo.</div>` : ''}
+      </div>
+    `;
+  }
+
+  content.innerHTML = headlineHTML + splitsHTML + barHTML + gapHTML + cutoffHTML;
+}
+
+function renderBriefing(rows, weight, modeInfo){
+  const date = document.getElementById('race-date').value;
+  const modality = document.getElementById('modality').value;
+  const modalityLabel = ({sprint:'Triathlon Sprint',olympic:'Triathlon Olímpico','70.3':'Meio Ironman / 70.3',im:'Ironman','granfondo':'Gran Fondo',marathon:'Maratona',ultra:'Ultra Trail',other:'—'})[modality] || '—';
+
+  const allTemps = rows.map(r => r.weather.temp).filter(t => t!=null);
+  const tMin = allTemps.length ? Math.min(...allTemps) : null;
+  const tMax = allTemps.length ? Math.max(...allTemps) : null;
+  const tAvg = allTemps.length ? allTemps.reduce((a,b)=>a+b,0)/allTemps.length : null;
+
+  const allHum = rows.map(r => r.weather.humidity).filter(t => t!=null);
+  const humAvg = allHum.length ? allHum.reduce((a,b)=>a+b,0)/allHum.length : null;
+
+  const allWind = rows.map(r => r.weather.windSpeed).filter(t => t!=null);
+  const windMax = allWind.length ? Math.max(...allWind) : null;
+
+  // critical decisions
+  const crit = [];
+  if (tMax != null && tMax >= 28){
+    crit.push(`<strong>Calor crítico no pico</strong> (${tMax.toFixed(0)}°C) — sódio +30%, fluido 800ml/h, esfriamento ativo em estações.`);
+  } else if (tMax != null && tMax >= 24){
+    crit.push(`<strong>Calor moderado</strong> — sódio padrão, fluido 600ml/h, atenção a hidratação consistente.`);
+  } else if (tMin != null && tMin < 12){
+    crit.push(`<strong>Frio na largada</strong> (${tMin.toFixed(0)}°C) — manguito + gilet, removível em 30min.`);
+  }
+  const headSegs = rows.filter(r => r.wind.category === 'head');
+  if (headSegs.length){
+    const headKm = headSegs.reduce((a,r)=>a+r.seg.distKm, 0);
+    crit.push(`<strong>${headSegs.length} trecho(s) contra vento</strong> (~${headKm.toFixed(1)}km) — pace conservador, fique aero, economize bala para o fim.`);
+  }
+  const tailSegs = rows.filter(r => r.wind.category === 'tail');
+  if (tailSegs.length){
+    const tailKm = tailSegs.reduce((a,r)=>a+r.seg.distKm, 0);
+    crit.push(`<strong>${tailSegs.length} trecho(s) com vento favorável</strong> (~${tailKm.toFixed(1)}km) — cadência alta, aproveite watts grátis.`);
+  }
+  if (humAvg != null && humAvg >= 75 && tAvg >= 22){
+    crit.push(`<strong>Umidade alta</strong> (${humAvg.toFixed(0)}%) — suor evapora mal, redobre fluido e antecipe sódio.`);
+  }
+
+  // fluid/sodium target
+  const fluidPerHr = tAvg != null && tAvg >= 28 ? 800 : (tAvg >= 24 ? 600 : 500);
+  const sodiumPerHr = tAvg != null && tAvg >= 28 ? Math.round(weight*10) : (tAvg >= 24 ? Math.round(weight*7) : Math.round(weight*5));
+
+  const dateFmt = new Date(date+'T12:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
+
+  const startTimes = [];
+  if (state.bike) startTimes.push(`BIKE ${document.getElementById('bike-start').value}`);
+  if (state.run)  startTimes.push(`RUN ${document.getElementById('run-start').value}`);
+
+  document.getElementById('briefing').innerHTML = `
+    <div class="br-head">
+      <div class="br-title">Race Briefing<small>LMAeroFit · meteorologia + rota</small></div>
+      <div class="br-meta">
+        <strong>${dateFmt}</strong>
+        ${modalityLabel}<br>
+        ${startTimes.join(' · ')}<br>
+        Modo: ${state.mode==='historic'?'Histórico':state.mode==='forecast-hi'?'Previsão alta conf.':'Previsão estendida'}
+      </div>
+    </div>
+
+    <div class="br-section">
+      <div class="br-section-title">Resumo meteorológico</div>
+      <div class="br-vitals">
+        <div class="br-vital"><small>Temp range</small><strong>${tMin!=null?tMin.toFixed(0):'—'}–${tMax!=null?tMax.toFixed(0):'—'}°C</strong></div>
+        <div class="br-vital"><small>Umidade méd</small><strong>${humAvg!=null?humAvg.toFixed(0):'—'}%</strong></div>
+        <div class="br-vital"><small>Vento máx</small><strong>${windMax!=null?windMax.toFixed(0):'—'} km/h</strong></div>
+        <div class="br-vital"><small>Trechos</small><strong>${rows.length}</strong></div>
+      </div>
+    </div>
+
+    <div class="br-section">
+      <div class="br-section-title">Decisões Críticas</div>
+      <ul class="br-list">
+        ${crit.length ? crit.map(c => `<li>${c}</li>`).join('') : '<li>Condições neutras — siga plano padrão de prova.</li>'}
+      </ul>
+    </div>
+
+    <div class="br-section">
+      <div class="br-section-title">Alvos de Hidratação · ${weight} kg</div>
+      <ul class="br-list">
+        <li>Fluido alvo: <strong>${fluidPerHr} ml/h</strong> · sódio: <strong>${sodiumPerHr} mg/h</strong></li>
+        <li>Boca seca, sede consciente, urina escura = alerta vermelho — pare e reidrate.</li>
+        <li>Cafeína estratégica: 1–3 mg/kg 30min antes da fase mais dura — em calor, reduza para o limite inferior.</li>
+      </ul>
+    </div>
+
+    ${state.wheels ? `
+    <div class="br-section">
+      <div class="br-section-title">Setup da Bike · para esse dia</div>
+      <ul class="br-list">
+        <li><strong>Roda Front:</strong> rim ${state.wheels.front.depth}mm — ${state.wheels.front.reason}.</li>
+        <li><strong>Roda Rear:</strong> ${state.wheels.rear.label} — ${state.wheels.rear.reason}.</li>
+        <li><strong>Pneu Front:</strong> ${state.wheels.tireFront.width}mm @ ${state.wheels.tireFront.psi} psi (${(state.wheels.tireFront.psi*0.0689).toFixed(1)} bar).</li>
+        <li><strong>Pneu Rear:</strong> ${state.wheels.tireRear.width}mm @ ${state.wheels.tireRear.psi} psi (${(state.wheels.tireRear.psi*0.0689).toFixed(1)} bar).</li>
+        <li><strong>Plano B:</strong> se rajadas &gt;35 km/h aparecerem no dia, baixar front para 30–35mm e cancelar disc. Se chover, baixar pressão 5–8 psi.</li>
+      </ul>
+    </div>` : ''}
+
+    ${state.positionData ? `
+    <div class="br-section">
+      <div class="br-section-title">Tempo previsto · posição esperada</div>
+      <ul class="br-list">
+        <li><strong>Tempo total estimado:</strong> ${formatTimeHM(state.positionData.splits.total)} (${state.positionData.pos.lower < 10 ? 'TOP 10%' : `top ${state.positionData.pos.lower}–${state.positionData.pos.upper}%`} da categoria ${state.positionData.pos.category.replace('-','–')}).</li>
+        <li><strong>Splits:</strong> ${state.positionData.splits.swim ? `Nat ${formatTimeMS(state.positionData.splits.swim)} · ` : ''}${state.positionData.splits.bike ? `Bike ${formatTimeHM(state.positionData.splits.bike)} · ` : ''}${state.positionData.splits.run ? `Run ${formatTimeHM(state.positionData.splits.run)}` : ''}</li>
+        ${state.positionData.gap ? `<li><strong>Gap para ${state.positionData.gap.targetLabel === 'top10' ? 'TOP 10%' : state.positionData.gap.targetLabel === 'top25' ? 'TOP 25%' : 'MEDIANA'}:</strong> cortar ${formatTimeHM(state.positionData.gap.totalGap)} — prioridade em <strong>${state.positionData.gap.gaps.length > 0 ? state.positionData.gap.gaps[0].stage : '—'}</strong>.</li>` : ''}
+        ${state.positionData.cutoffs ? `<li><strong>Cortes oficiais:</strong> ${state.positionData.cutoffs.worstMargin < 0 ? '⚠ NÃO BATE no corte de ' + state.positionData.cutoffs.checks.find(c=>c.margin<0).stage + ' (' + formatTimeHM(-state.positionData.cutoffs.worstMargin) + ' acima)' : state.positionData.cutoffs.worstMargin < 30 ? '⚠ Margem apertada — pior etapa com ' + formatTimeHM(state.positionData.cutoffs.worstMargin) + ' de folga' : '✓ Todos os cortes com folga ≥' + formatTimeHM(state.positionData.cutoffs.worstMargin)}.</li>` : ''}
+      </ul>
+    </div>` : ''}
+
+    <div class="br-section">
+      <div class="br-section-title">Top 5 Trechos · pontos de atenção</div>
+      <ul class="br-list">
+        ${[...rows].sort((a,b) => {
+          const score = r => (r.heat.flag==='red'?3:r.heat.flag==='yellow'?1:0) + (r.wind.category==='head'?2:r.wind.category==='tail'?1:0);
+          return score(b) - score(a);
+        }).slice(0,5).map(r =>
+          `<li><strong>${r.timeLabel} · ${r.mode.toUpperCase()} T${r.seg.index+1}</strong> (${r.seg.startKm.toFixed(1)}–${r.seg.endKm.toFixed(1)}km): ${r.weather.temp!=null?r.weather.temp.toFixed(0)+'°C':''} · ${r.wind.category} · ${r.action}</li>`
+        ).join('')}
+      </ul>
+    </div>
+
+    <div class="br-foot">
+      LM·AeroFit · lmaerofit.com.br · briefing gerado em ${new Date().toLocaleString('pt-BR')}<br>
+      Dados meteo: Open-Meteo (ECMWF/ERA5) · use como orientação para sua estratégia, não como garantia
+    </div>
+  `;
+}
+
+// ---------- DEMO ----------
+function loadDemo(){
+  // Synthetic loop around Florianópolis (Ironman 70.3 SC area)
+  const demoBike = generateLoop(-27.595, -48.548, 22, 90); // 22km, ~90 pts
+  const demoRun  = generateLoop(-27.592, -48.546, 10, 60); // 10km, ~60 pts
+  state.bike = parseGPXFromPoints(demoBike);
+  state.run  = parseGPXFromPoints(demoRun);
+
+  const dzBike = document.getElementById('dz-bike');
+  dzBike.classList.add('has-file');
+  dzBike.querySelector('.drop-text').innerHTML = '<strong>demo-bike-floripa.gpx</strong>'+state.bike.points.length+' pontos · GPX OK';
+  document.getElementById('stats-bike').innerHTML = '✓ '+state.bike.distKm.toFixed(1)+' km · ↑'+Math.round(state.bike.ascentM)+'m · '+state.bike.segments.length+' trechos';
+
+  const dzRun = document.getElementById('dz-run');
+  dzRun.classList.add('has-file');
+  dzRun.querySelector('.drop-text').innerHTML = '<strong>demo-run-floripa.gpx</strong>'+state.run.points.length+' pontos · GPX OK';
+  document.getElementById('stats-run').innerHTML = '✓ '+state.run.distKm.toFixed(1)+' km · ↑'+Math.round(state.run.ascentM)+'m · '+state.run.segments.length+' trechos';
+}
+
+function generateLoop(lat0, lon0, distKm, n){
+  // square-ish loop
+  const pts = [];
+  const sideKm = distKm/4;
+  const dLat = sideKm/111;
+  const dLon = sideKm/(111*Math.cos(lat0*Math.PI/180));
+  const perSide = Math.floor(n/4);
+  // N then E then S then W
+  for (let i=0; i<perSide; i++) pts.push({lat: lat0 + dLat*i/perSide,                 lon: lon0,                              ele: 5 + 8*Math.sin(i/3)});
+  for (let i=0; i<perSide; i++) pts.push({lat: lat0 + dLat,                            lon: lon0 + dLon*i/perSide,             ele: 13 + 12*Math.sin((i+perSide)/3)});
+  for (let i=0; i<perSide; i++) pts.push({lat: lat0 + dLat - dLat*i/perSide,           lon: lon0 + dLon,                       ele: 25 - 5*Math.sin((i+2*perSide)/3)});
+  for (let i=0; i<perSide; i++) pts.push({lat: lat0,                                   lon: lon0 + dLon - dLon*i/perSide,      ele: 20 - 10*Math.sin((i+3*perSide)/3)});
+  pts.push({lat: lat0, lon: lon0, ele: 5});
+  return pts;
+}
+
+function parseGPXFromPoints(pts){
+  let distKm = 0, ascentM = 0;
+  pts[0].cumKm = 0;
+  for (let i=1; i<pts.length; i++){
+    distKm += haversine(pts[i-1], pts[i]);
+    pts[i].cumKm = distKm;
+    const dh = pts[i].ele - pts[i-1].ele;
+    if (dh > 0) ascentM += dh;
+  }
+  return {points: pts, distKm, ascentM, segments: segmentRoute(pts, distKm)};
+}
+
+// ---------- STATUS ----------
+function showStatus(html, type){
+  const s = document.getElementById('status');
+  if (!html){ s.classList.remove('show'); return; }
+  s.innerHTML = html;
+  s.className = 'status-bar show' + (type === 'error' ? ' error' : '');
+}
+
+// ---------- WIRING ----------
+document.getElementById('run-analysis').addEventListener('click', runAnalysis);
+document.getElementById('load-demo').addEventListener('click', loadDemo);
+
+</script>
+</body>
+</html>
