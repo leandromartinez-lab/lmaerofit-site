@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LMAeroFit · Plataforma técnica de endurance</title>
+<meta name="description" content="Seis ferramentas técnicas grátis para atletas brasileiros de endurance. Aerodinâmica, nutrição, briefing meteorológico, debrief e banco de produtos — tudo no navegador, sem login.">
+<meta name="theme-color" content="#0a0c0e">
+
+<!-- Open Graph -->
+<meta property="og:title" content="LMAeroFit · Plataforma técnica de endurance" />
+<meta property="og:description" content="Seis ferramentas técnicas grátis para atletas brasileiros de endurance." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://lmaerofit.com.br" />
+<meta property="og:locale" content="pt_BR" />
+
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* === COCKPIT — paleta unificada com as ferramentas === */
+    --bg-0: #0a0c0e;
+    --bg-1: #11151a;
+    --bg-2: #181d23;
+    --bg-3: #232930;
+
+    --ink:      #ecedef;
+    --ink-soft: #b0b6bc;
+    --ink-mute: #7a8088;
+    --ink-dim:  #4a525a;
+
+    --line:        rgba(255,255,255,0.07);
+    --line-strong: rgba(255,255,255,0.14);
+
+    /* Âmbar = marca/primária (vinda das ferramentas) */
+    --amber:        #ff8a1c;
+    --amber-bright: #ffa347;
+    --amber-soft:   #c46a14;
+    --amber-glow:   rgba(255,138,28,0.22);
+
+    /* Verde = status operacional / sinal vivo (não mais primária) */
+    --aero:        #5a9c07;
+    --aero-bright: #7ab814;
+
+    /* Outros sinais HUD */
+    --signal: #5ab3d6;   /* informação / dado */
+    --warn:   #f4b942;   /* atenção */
+    --crit:   #e15a4f;   /* crítico */
+
+    --display: 'Inter Tight', -apple-system, sans-serif;
+    --serif:   'Fraunces', Georgia, serif;
+    --mono:    'JetBrains Mono', ui-monospace, monospace;
+
+    --container: 1280px;
+    --r-sm: 6px;
+    --r-md: 12px;
+    --r-lg: 20px;
+    --ease:  cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--display);
+    color: var(--ink);
+    background: var(--bg-0);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--amber); color: #0a0c0e; }
+  .container { max-width: var(--container); margin: 0 auto; padding: 0 32px; }
+  .mono { font-family: var(--mono); font-feature-settings: "tnum" 1; }
+  .serif { font-family: var(--serif); font-weight: 400; font-style: italic; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ============ COCKPIT GRID OVERLAY (sutil) ============ */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    z-index: 0;
+  }
+
+  /* ============ NAV ============ */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 18px 0;
+    backdrop-filter: blur(22px) saturate(1.4);
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    background: rgba(10,12,14,0.55);
+    border-bottom: 1px solid transparent;
+    transition: padding .3s var(--ease), background .3s var(--ease), border-color .3s var(--ease);
+  }
+  nav.scrolled { padding: 12px 0; background: rgba(10,12,14,0.88); border-bottom-color: var(--line); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+  .logo img { height: 38px; width: auto; display: block; transition: height .3s var(--ease); }
+  nav.scrolled .logo img { height: 32px; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a { font-size: 13px; color: var(--ink-soft); font-weight: 500; letter-spacing: 0.01em; transition: color .2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 18px; border-radius: 999px;
+    background: var(--amber); color: #1a0f00;
+    font-weight: 600; font-size: 13px;
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+    box-shadow: 0 8px 28px -10px var(--amber-glow);
+  }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 12px 32px -10px var(--amber-glow); }
+  .nav-cta svg { width: 12px; height: 12px; }
+  @media (max-width: 760px) {
+    .nav-links { display: none; }
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    padding: 168px 0 96px;
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 64px;
+    align-items: center;
+  }
+  @media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+  .kicker {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--amber); letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1px solid rgba(255,138,28,0.25);
+    border-radius: 999px;
+    background: rgba(255,138,28,0.06);
+  }
+  .kicker .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--aero); box-shadow: 0 0 8px var(--aero);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: .45; transform: scale(.85); }
+  }
+
+  h1.hero-title {
+    margin-top: 22px;
+    font-size: clamp(44px, 6.4vw, 84px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+  h1.hero-title .accent { color: var(--amber); }
+  h1.hero-title em { font-style: italic; font-family: var(--serif); font-weight: 400; color: var(--ink-soft); }
+
+  .hero-lede {
+    margin-top: 28px;
+    max-width: 540px;
+    color: var(--ink-soft);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .hero-actions { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    transition: all .2s var(--ease);
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--amber); color: #1a0f00;
+    box-shadow: 0 14px 34px -12px var(--amber-glow);
+  }
+  .btn-primary:hover { transform: translateY(-1px); background: var(--amber-bright); }
+  .btn-ghost {
+    background: transparent; color: var(--ink);
+    border-color: var(--line-strong);
+  }
+  .btn-ghost:hover { background: var(--bg-2); border-color: rgba(255,255,255,0.22); }
+  .btn svg { width: 13px; height: 13px; }
+
+  /* ============ HUD PANEL (HERO RIGHT) ============ */
+  .hud {
+    position: relative;
+    background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    padding: 22px;
+    box-shadow:
+      0 30px 80px -30px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    overflow: hidden;
+  }
+  .hud::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at top right, rgba(255,138,28,0.10), transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(90,156,7,0.06), transparent 55%);
+    pointer-events: none;
+  }
+  .hud-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 14px; margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .hud-head .label {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ink-mute); letter-spacing: 0.22em; text-transform: uppercase;
+  }
+  .hud-head .status {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--aero-bright); letter-spacing: 0.18em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .hud-head .status::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--aero-bright); box-shadow: 0 0 10px var(--aero-bright);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  .hud-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    position: relative;
+  }
+  .gauge {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 14px;
+    transition: border-color .2s, transform .2s;
+  }
+  .gauge:hover { border-color: rgba(255,138,28,0.3); transform: translateY(-1px); }
+  .gauge .g-label {
+    font-family: var(--mono); font-size: 9.5px;
+    color: var(--ink-mute); letter-spacing: 0.2em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .gauge .g-tag {
+    color: var(--amber); font-family: var(--mono); font-size: 9px;
+    padding: 2px 6px; border-radius: 4px;
+    background: rgba(255,138,28,0.08);
+  }
+  .gauge .g-value {
+    margin-top: 10px;
+    font-family: var(--mono); font-weight: 500;
+    font-size: 28px; letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .gauge .g-unit {
+    font-size: 12px; color: var(--ink-mute); margin-left: 6px;
+  }
+  .gauge .g-sub {
+    margin-top: 6px;
+    font-size: 11px; color: var(--ink-soft);
+  }
+
+  /* Sparkline + wind dial styling */
+  .spark {
+    margin-top: 10px; height: 28px; width: 100%; display: block;
+  }
+  .spark path { fill: none; stroke: var(--amber); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .spark .fill { fill: url(#sparkGrad); stroke: none; opacity: 0.5; }
+  .compass {
+    margin-top: 8px; display: flex; align-items: center; gap: 10px;
+  }
+  .compass-ring {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    position: relative; flex-shrink: 0;
+    background: radial-gradient(circle at center, rgba(255,138,28,0.06), transparent 70%);
+  }
+  .compass-arrow {
+    position: absolute; top: 50%; left: 50%;
+    width: 2px; height: 18px;
+    background: var(--amber);
+    transform-origin: center bottom;
+    transform: translate(-50%, -100%) rotate(220deg);
+    box-shadow: 0 0 6px var(--amber-glow);
+  }
+  .compass-info { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+  .compass-info b { color: var(--ink); font-weight: 500; }
+
+  .hud-foot {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute);
+    letter-spacing: 0.1em;
+  }
+  .hud-foot .tick { color: var(--aero-bright); }
+
+  /* ============ TRUST STRIP ============ */
+  .trust {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 22px 0;
+    margin-top: 72px;
+  }
+  .trust-row {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 18px;
+  }
+  .trust-row .lbl {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-mute);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .trust-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .trust-pill {
+    font-size: 12px; color: var(--ink-soft);
+    padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--bg-1);
+  }
+
+  /* ============ SECTION SHELL ============ */
+  section.block { position: relative; padding: 120px 0; }
+  .section-head {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 24px;
+    align-items: baseline;
+    padding-bottom: 28px; margin-bottom: 48px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-num {
+    font-family: var(--mono); font-size: 12px; color: var(--amber);
+    letter-spacing: 0.2em;
+  }
+  .section-title {
+    font-size: clamp(28px, 3.6vw, 44px);
+    line-height: 1.05; letter-spacing: -0.02em; font-weight: 600;
+  }
+  .section-title em { font-style: italic; font-family: var(--serif); font-weight: 400; color: var(--ink-soft); }
+  .section-sub {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-mute);
+    letter-spacing: 0.18em; text-transform: uppercase; text-align: right;
+  }
+  @media (max-width: 760px) {
+    .section-head { grid-template-columns: 1fr; gap: 8px; }
+    .section-sub { text-align: left; }
+  }
+
+  /* ============ TOOLS GRID ============ */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 980px) { .tools { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .tools { grid-template-columns: 1fr; } }
+
+  .tool {
+    position: relative;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 24px;
+    display: flex; flex-direction: column;
+    min-height: 320px;
+    transition: border-color .25s var(--ease), transform .25s var(--ease), background .25s var(--ease);
+    overflow: hidden;
+  }
+  .tool::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top right, rgba(255,138,28,0.08), transparent 60%);
+    opacity: 0; transition: opacity .3s;
+    pointer-events: none;
+  }
+  .tool:hover { border-color: rgba(255,138,28,0.35); transform: translateY(-3px); background: var(--bg-2); }
+  .tool:hover::before { opacity: 1; }
+
+  .tool-head { display: flex; justify-content: space-between; align-items: center; }
+  .tool-num {
+    font-family: var(--mono); font-size: 10px; color: var(--amber);
+    letter-spacing: 0.2em;
+  }
+  .tool-tag {
+    font-family: var(--mono); font-size: 9.5px; color: var(--ink-mute);
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .tool-name {
+    margin-top: 14px;
+    font-size: 24px; font-weight: 600; letter-spacing: -0.015em;
+  }
+  .tool-en {
+    margin-top: 4px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .tool-instrument {
+    margin-top: 20px;
+    padding: 14px;
+    border: 1px dashed var(--line);
+    border-radius: var(--r-md);
+    background: rgba(0,0,0,0.18);
+    min-height: 92px;
+    display: flex; align-items: center;
+  }
+  .tool-desc {
+    margin-top: 18px;
+    font-size: 13.5px; color: var(--ink-soft); line-height: 1.55;
+    flex: 1;
+  }
+  .tool-cta {
+    margin-top: 20px;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--amber);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    transition: gap .2s var(--ease);
+  }
+  .tool:hover .tool-cta { gap: 14px; }
+  .tool-cta svg { width: 12px; height: 12px; }
+
+  /* Mini-instruments inside cards */
+  .mini-bar { width: 100%; height: 6px; background: var(--bg-3); border-radius: 999px; overflow: hidden; position: relative; }
+  .mini-bar > span { position: absolute; top: 0; bottom: 0; left: 0; background: linear-gradient(90deg, var(--amber), var(--amber-bright)); border-radius: 999px; }
+  .mini-dots { display: grid; grid-template-columns: repeat(21, 1fr); gap: 3px; width: 100%; }
+  .mini-dots i { display: block; width: 100%; aspect-ratio: 1; border-radius: 1.5px; background: var(--bg-3); }
+  .mini-dots i.on { background: var(--amber); box-shadow: 0 0 4px var(--amber-glow); }
+  .mini-row { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .mini-row .mini-lab { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--ink-mute); letter-spacing: 0.14em; text-transform: uppercase; }
+  .mini-row .mini-val { font-family: var(--mono); font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .mini-stack { display: flex; align-items: flex-end; gap: 4px; height: 56px; width: 100%; }
+  .mini-stack i { flex: 1; background: linear-gradient(180deg, var(--amber-bright), var(--amber-soft)); border-radius: 2px 2px 0 0; opacity: 0.85; }
+  .mini-stack i:nth-child(odd) { background: var(--bg-3); }
+  .mini-hr { width: 100%; height: 56px; display: block; }
+  .mini-hr path.line { fill: none; stroke: var(--amber); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .mini-hr path.gline { fill: none; stroke: var(--ink-dim); stroke-width: 1; stroke-dasharray: 2 3; }
+  .mini-wind { display: flex; align-items: center; gap: 14px; }
+  .mini-wind .ring { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--line-strong); position: relative; background: radial-gradient(circle at center, rgba(255,138,28,0.06), transparent 70%); flex-shrink: 0; }
+  .mini-wind .arr { position: absolute; top: 50%; left: 50%; width: 2px; height: 22px; background: var(--amber); transform-origin: center bottom; transform: translate(-50%, -100%) rotate(140deg); box-shadow: 0 0 6px var(--amber-glow); }
+  .mini-wind .ring::before { content: "N"; position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-family: var(--mono); font-size: 8px; color: var(--ink-mute); }
+
+  /* ============ HOW IT WORKS — briefing analogy ============ */
+  .how {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  @media (max-width: 760px) { .how { grid-template-columns: 1fr; } }
+  .how-card {
+    padding: 28px;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+  }
+  .how-card .h-num {
+    font-family: var(--mono); font-size: 12px; color: var(--amber); letter-spacing: 0.2em;
+  }
+  .how-card h3 {
+    margin-top: 16px;
+    font-size: 22px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .how-card p {
+    margin-top: 10px;
+    font-size: 14px; color: var(--ink-soft); line-height: 1.6;
+  }
+
+  /* ============ INTELLIGENCE / WHAT'S NEW ============ */
+  .smart {
+    display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 980px) { .smart { grid-template-columns: 1fr; } }
+  .smart-list { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+  .smart-item {
+    display: grid; grid-template-columns: 28px 1fr; gap: 14px;
+    padding: 18px; background: var(--bg-1);
+    border: 1px solid var(--line); border-radius: var(--r-md);
+    transition: border-color .2s, background .2s;
+  }
+  .smart-item:hover { border-color: rgba(255,138,28,0.3); background: var(--bg-2); }
+  .smart-item .ic {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(255,138,28,0.12); color: var(--amber);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+  }
+  .smart-item h4 { font-size: 15px; font-weight: 600; letter-spacing: -0.005em; }
+  .smart-item p { margin-top: 4px; font-size: 13px; color: var(--ink-soft); line-height: 1.55; }
+
+  .smart-visual {
+    position: relative;
+    aspect-ratio: 4/5;
+    background: var(--bg-1);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    padding: 22px;
+    overflow: hidden;
+  }
+  .smart-visual::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at top, rgba(255,138,28,0.10), transparent 55%),
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 24px 24px, 24px 24px;
+    pointer-events: none;
+  }
+  .smart-visual .sv-head {
+    font-family: var(--mono); font-size: 10px; color: var(--ink-mute);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .smart-visual .sv-title {
+    margin-top: 10px;
+    font-size: 20px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .sv-card {
+    position: absolute; left: 22px; right: 22px;
+    padding: 14px 16px; border-radius: var(--r-md);
+    background: var(--bg-2); border: 1px solid var(--line-strong);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 18px 40px -20px rgba(0,0,0,0.7);
+  }
+  .sv-card .sv-lbl { font-family: var(--mono); font-size: 9.5px; color: var(--amber); letter-spacing: 0.18em; text-transform: uppercase; }
+  .sv-card .sv-val { margin-top: 6px; font-family: var(--mono); font-size: 17px; color: var(--ink); }
+  .sv-card.c1 { top: 90px; }
+  .sv-card.c2 { top: 180px; }
+  .sv-card.c3 { top: 270px; }
+  .sv-card.c4 { top: 360px; }
+
+  /* ============ CTA ============ */
+  .cta {
+    margin: 64px 0 120px;
+    padding: 56px 40px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    background:
+      radial-gradient(ellipse at top right, rgba(255,138,28,0.10), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-0));
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta h2 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.05;
+    max-width: 720px; margin: 0 auto;
+  }
+  .cta h2 em { font-style: italic; font-family: var(--serif); font-weight: 400; color: var(--amber); }
+  .cta p { margin-top: 18px; color: var(--ink-soft); font-size: 16px; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .cta-row { margin-top: 32px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ============ FOOTER ============ */
+  footer { padding: 56px 0 36px; border-top: 1px solid var(--line); }
+  .foot {
+    display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end;
+  }
+  .foot p { font-size: 12.5px; color: var(--ink-mute); }
+  .foot p + p { margin-top: 6px; }
+  .foot .made { font-family: var(--serif); font-style: italic; color: var(--ink-soft); font-size: 14px; }
+  .foot-logo img { height: 32px; display: block; margin-bottom: 14px; }
+  .foot-links { display: flex; gap: 22px; flex-wrap: wrap; }
+  .foot-links a { font-size: 12.5px; color: var(--ink-soft); }
+  .foot-links a:hover { color: var(--amber); }
+
+  /* ============ MOTION ============ */
+  @keyframes ticker {
+    0% { opacity: .4; }
+    50% { opacity: 1; }
+    100% { opacity: .4; }
+  }
+  .ticker { animation: ticker 1.8s ease-in-out infinite; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .rise { animation: rise .8s var(--ease) both; }
+  .delay-1 { animation-delay: .08s; }
+  .delay-2 { animation-delay: .18s; }
+  .delay-3 { animation-delay: .3s; }
+  .delay-4 { animation-delay: .42s; }
+  @media (prefers-reduced-motion: reduce) {
+    .rise, .ticker, .pulse { animation: none !important; }
+  }
+</style>
+</head>
+<body data-lma="hub">
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo" aria-label="LMAeroFit">
+      <img src="./assets/lmaerofit-logo.png" alt="LMAeroFit" />
+    </a>
+    <div class="nav-links">
+      <a href="#ferramentas">Ferramentas</a>
+      <a href="#como">Como funciona</a>
+      <a href="#inteligencia">Inteligência</a>
+      <a href="./provas.html">Provas</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="prof-badge"></span>
+      <a href="#ferramentas" class="nav-cta">
+        Abrir cockpit
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="kicker rise"><span class="dot"></span>Plataforma técnica de endurance · v2026</div>
+      <h1 class="hero-title rise delay-1">
+        Decisão de prova,<br>
+        <span class="accent">não achismo.</span><br>
+        <em>O cockpit do atleta brasileiro.</em>
+      </h1>
+      <p class="hero-lede rise delay-2">
+        Seis ferramentas técnicas grátis para endurance: aerodinâmica com modelagem CdA,
+        nutrição de prova com Jeukendrup &amp; Burke, briefing meteorológico via GPX,
+        debrief pós-treino e banco de produtos nacionais. Tudo no navegador, sem login.
+      </p>
+      <div class="hero-actions rise delay-3">
+        <a href="#ferramentas" class="btn btn-primary">
+          Abrir as 6 ferramentas
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+        </a>
+        <a href="#como" class="btn btn-ghost">Como funciona</a>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <aside class="hud rise delay-2" aria-label="Painel HUD ao vivo">
+      <div class="hud-head">
+        <span class="label">LMA · LIVE TELEMETRY</span>
+        <span class="status">Operacional</span>
+      </div>
+
+      <div class="hud-grid">
+        <!-- CdA -->
+        <div class="gauge">
+          <div class="g-label">CdA estimado <span class="g-tag">AERO BIKE</span></div>
+          <div class="g-value">0.247<span class="g-unit">m²</span></div>
+          <div class="g-sub">−6.3 W vs. baseline</div>
+        </div>
+
+        <!-- Na:CHO -->
+        <div class="gauge">
+          <div class="g-label">Na:CHO <span class="g-tag">FUELING</span></div>
+          <div class="g-value">8.4<span class="g-unit">mg/g</span></div>
+          <div class="g-sub">Clima moderado · 26 °C</div>
+        </div>
+
+        <!-- Wind -->
+        <div class="gauge">
+          <div class="g-label">Vento de prova <span class="g-tag">BRIEFING</span></div>
+          <div class="compass">
+            <div class="compass-ring"><span class="compass-arrow"></span></div>
+            <div class="compass-info">
+              <div><b>SW</b> · 14 km/h</div>
+              <div>Crosswind a 30 km</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HR drift -->
+        <div class="gauge">
+          <div class="g-label">Drift cardíaco <span class="g-tag">DEBRIEF</span></div>
+          <div class="g-value">3.2<span class="g-unit">%</span></div>
+          <svg class="spark" viewBox="0 0 120 28" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#ff8a1c" stop-opacity=".5"/>
+                <stop offset="100%" stop-color="#ff8a1c" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="fill" d="M0,22 L8,20 L16,21 L24,18 L32,19 L40,16 L48,17 L56,14 L64,15 L72,12 L80,13 L88,10 L96,11 L104,8 L112,9 L120,6 L120,28 L0,28 Z"/>
+            <path d="M0,22 L8,20 L16,21 L24,18 L32,19 L40,16 L48,17 L56,14 L64,15 L72,12 L80,13 L88,10 L96,11 L104,8 L112,9 L120,6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="hud-foot">
+        <span>SEIS FERRAMENTAS · 1 ATLETA</span>
+        <span class="ticker tick">● TRANSMITINDO</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- TRUST -->
+  <div class="container">
+    <div class="trust">
+      <div class="trust-row">
+        <span class="lbl">FUNDAMENTAÇÃO</span>
+        <div class="trust-pills">
+          <span class="trust-pill">Jeukendrup &amp; Burke</span>
+          <span class="trust-pill">Martin 1998</span>
+          <span class="trust-pill">Escola norueguesa</span>
+          <span class="trust-pill">Open-Meteo (ECMWF)</span>
+          <span class="trust-pill">Best Bike Split</span>
+          <span class="trust-pill">Seiler &amp; Kjerland</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ FERRAMENTAS ============ -->
+<section class="block" id="ferramentas">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-num">§ 01</span>
+      <h2 class="section-title">Seis instrumentos. <em>Um sistema só.</em></h2>
+      <span class="section-sub">RUN · BIKE · SWIM</span>
+    </div>
+
+    <div class="tools">
+      <!-- 01 Gear Lab -->
+      <a class="tool" href="./gear-lab.html">
+        <div class="tool-head"><span class="tool-num">01 / GEAR LAB</span><span class="tool-tag">RUN</span></div>
+        <div class="tool-name">Gear Lab</div>
+        <div class="tool-en">Running shoe comparator · curadoria BR</div>
+        <div class="tool-instrument">
+          <div class="mini-stack" aria-hidden="true">
+            <i style="height:34%"></i><i style="height:58%"></i><i style="height:46%"></i><i style="height:72%"></i><i style="height:52%"></i><i style="height:84%"></i><i style="height:62%"></i><i style="height:96%"></i>
+          </div>
+        </div>
+        <p class="tool-desc">Comparador de tênis de corrida com drop, stack, espuma e placa de carbono — curadoria do que importa para quem compete no Brasil.</p>
+        <span class="tool-cta">Abrir Gear Lab <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+
+      <!-- 02 Aero Bike -->
+      <a class="tool" href="./aero-bike.html">
+        <div class="tool-head"><span class="tool-num">02 / AERO BIKE v4</span><span class="tool-tag">BIKE</span></div>
+        <div class="tool-name">Aero Bike</div>
+        <div class="tool-en">Aero setup diagnosis · ROI enxuto</div>
+        <div class="tool-instrument">
+          <div class="mini-row">
+            <div class="mini-lab"><span>CdA</span><span class="mini-val">0.247 m²</span></div>
+            <div class="mini-bar"><span style="width:62%"></span></div>
+            <div class="mini-lab"><span>Posição</span><span class="mini-val">+1.4 W</span></div>
+            <div class="mini-bar"><span style="width:78%"></span></div>
+          </div>
+        </div>
+        <p class="tool-desc">Diagnóstico HUD da setup de prova focado no que move o ponteiro: bike fit, pneu, roda. Hierarquia de ROI em watts/real.</p>
+        <span class="tool-cta">Abrir Aero Bike <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+
+      <!-- 03 Race Fueling -->
+      <a class="tool" href="./race-fueling.html">
+        <div class="tool-head"><span class="tool-num">03 / RACE FUELING</span><span class="tool-tag">NUTRIÇÃO</span></div>
+        <div class="tool-name">Race Fueling</div>
+        <div class="tool-en">Race nutrition · Jeukendrup + Burke</div>
+        <div class="tool-instrument">
+          <div class="mini-row">
+            <div class="mini-lab"><span>CHO /h</span><span class="mini-val">92 g</span></div>
+            <div class="mini-bar"><span style="width:76%"></span></div>
+            <div class="mini-lab"><span>Na /h</span><span class="mini-val">780 mg</span></div>
+            <div class="mini-bar"><span style="width:65%; background:linear-gradient(90deg,#5ab3d6,#7ab814)"></span></div>
+          </div>
+        </div>
+        <p class="tool-desc">Carbo, sódio e líquido por hora ajustados a distância, clima e atleta. Régua Na:CHO + carb load + checklist.</p>
+        <span class="tool-cta">Abrir Race Fueling <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+
+      <!-- 04 Race Briefing -->
+      <a class="tool" href="./race-briefing.html">
+        <div class="tool-head"><span class="tool-num">04 / RACE BRIEFING</span><span class="tool-tag">GPX</span></div>
+        <div class="tool-name">Race Briefing</div>
+        <div class="tool-en">Pre-race GPX + meteo</div>
+        <div class="tool-instrument">
+          <div class="mini-wind">
+            <div class="ring"><span class="arr"></span></div>
+            <div class="mini-row">
+              <div class="mini-lab"><span>VENTO</span><span class="mini-val">SW 14 km/h</span></div>
+              <div class="mini-lab"><span>CROSSWIND</span><span class="mini-val">@ km 30</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="tool-desc">Cruza GPX × meteorologia hora a hora. Mapa por trecho, escolha de rodas, posição estimada por categoria.</p>
+        <span class="tool-cta">Abrir Race Briefing <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+
+      <!-- 05 Session Debrief -->
+      <a class="tool" href="./session-debrief.html">
+        <div class="tool-head"><span class="tool-num">05 / SESSION DEBRIEF</span><span class="tool-tag">FIT/GPX</span></div>
+        <div class="tool-name">Session Debrief</div>
+        <div class="tool-en">Post-session analysis</div>
+        <div class="tool-instrument">
+          <svg class="mini-hr" viewBox="0 0 200 56" preserveAspectRatio="none">
+            <path class="gline" d="M0,36 L200,36"/>
+            <path class="line" d="M0,42 L14,38 L28,40 L42,34 L56,36 L70,30 L84,32 L98,26 L112,28 L126,22 L140,24 L154,18 L168,20 L182,14 L200,16"/>
+          </svg>
+        </div>
+        <p class="tool-desc">Parser de GPX/FIT em JS puro. Aderência ao treino, pacing, drift cardíaco e zonas. Escola norueguesa.</p>
+        <span class="tool-cta">Abrir Session Debrief <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+
+      <!-- 06 Fuel Lab -->
+      <a class="tool" href="./fuel-lab.html">
+        <div class="tool-head"><span class="tool-num">06 / FUEL LAB</span><span class="tool-tag">DATABASE</span></div>
+        <div class="tool-name">Fuel Lab</div>
+        <div class="tool-en">Nutrition database + mission planner</div>
+        <div class="tool-instrument">
+          <div class="mini-dots" aria-hidden="true" id="fuelDots"></div>
+        </div>
+        <p class="tool-desc">63 produtos, 17 marcas nacionais e importadas. Comparativo lado a lado e montador de kit da prova.</p>
+        <span class="tool-cta">Abrir Fuel Lab <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMO FUNCIONA ============ -->
+<section class="block" id="como">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-num">§ 02</span>
+      <h2 class="section-title">Briefing, voo, debrief. <em>O ciclo do atleta.</em></h2>
+      <span class="section-sub">FLIGHT MODEL</span>
+    </div>
+
+    <div class="how">
+      <div class="how-card">
+        <div class="h-num">01 / PRÉ-PROVA</div>
+        <h3>Briefing técnico</h3>
+        <p>Aero Bike escolhe a setup. Race Fueling fecha a nutrição. Race Briefing cruza GPX com a meteorologia da janela da prova. Você chega à largada como piloto a um briefing de voo: sabendo o que esperar.</p>
+      </div>
+      <div class="how-card">
+        <div class="h-num">02 / EXECUÇÃO</div>
+        <h3>Cockpit na mão</h3>
+        <p>Kit de prova montado no Fuel Lab. Plano de pacing por trecho com o vento já mapeado. Targets de CHO/Na/líquido por hora, sódio do suor, cafeína periodizada. Tudo imprimível em formato kneeboard.</p>
+      </div>
+      <div class="how-card">
+        <div class="h-num">03 / PÓS-PROVA</div>
+        <h3>Debrief honesto</h3>
+        <p>Sobe o FIT no Session Debrief: aderência ao plano, drift cardíaco, decoupling, distribuição por zona. Aprende para o próximo ciclo. Filosofia descritiva, não prescritiva.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTELIGÊNCIA (NOVO) ============ -->
+<section class="block" id="inteligencia">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-num">§ 03</span>
+      <h2 class="section-title">Mais inteligência. <em>Menos planilha.</em></h2>
+      <span class="section-sub">ROADMAP · v2026</span>
+    </div>
+
+    <div class="smart">
+      <div>
+        <p style="font-size:16px; color:var(--ink-soft); max-width:520px; line-height:1.6;">
+          A próxima camada da plataforma é a que conecta as seis ferramentas a <b>um perfil único de atleta</b> e fecha o ciclo briefing → execução → debrief com dados de verdade — sem login, sem servidor, tudo no seu navegador.
+        </p>
+        <div class="smart-list">
+          <div class="smart-item">
+            <div class="ic">01</div>
+            <div>
+              <h4>Perfil do atleta compartilhado</h4>
+              <p>Peso, FTP, ritmo limiar, sweat rate e sódio do suor preenchidos uma vez e reutilizados em todas as ferramentas. Persiste local, nunca sai do navegador.</p>
+            </div>
+          </div>
+          <div class="smart-item">
+            <div class="ic">02</div>
+            <div>
+              <h4>Calibração com dados reais</h4>
+              <p>Aero Bike puxa watts do último FIT analisado no Debrief para estimar seu CdA real, não suposto. Race Fueling lê seu sweat rate medido.</p>
+            </div>
+          </div>
+          <div class="smart-item">
+            <div class="ic">03</div>
+            <div>
+              <h4>Sliders ao vivo no Aero Bike</h4>
+              <p>Arrasta CdA, Crr, peso, vento e vê os segundos ganhos na prova-alvo em tempo real — com barra de incerteza (±X s). Honestidade técnica > marketing.</p>
+            </div>
+          </div>
+          <div class="smart-item">
+            <div class="ic">04</div>
+            <div>
+              <h4>Histórico longitudinal no Debrief</h4>
+              <p>CTL/ATL/TSB caseiro, drift cardíaco por semana, EF e Pa:Hr decoupling com semáforo. Tendência > sessão isolada.</p>
+            </div>
+          </div>
+          <div class="smart-item">
+            <div class="ic">05</div>
+            <div>
+              <h4>Modo race-week</h4>
+              <p>Escolhe a prova no calendário e as 6 ferramentas se pré-carregam com perfil, GPX e meteorologia da janela. Um dashboard. Uma prova.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="smart-visual" aria-hidden="true">
+        <div class="sv-head">RACE WEEK · IRONMAN 70.3 FLORIANÓPOLIS</div>
+        <div class="sv-title">D-3 · Briefing consolidado</div>
+
+        <div class="sv-card c1">
+          <div class="sv-lbl">AERO BIKE</div>
+          <div class="sv-val">CdA 0.247 · −38 s</div>
+        </div>
+        <div class="sv-card c2">
+          <div class="sv-lbl">RACE FUELING</div>
+          <div class="sv-val">92 g/h · 780 mg Na</div>
+        </div>
+        <div class="sv-card c3">
+          <div class="sv-lbl">BRIEFING</div>
+          <div class="sv-val">SW 14 km/h · cross @30km</div>
+        </div>
+        <div class="sv-card c4">
+          <div class="sv-lbl">FUEL LAB · KIT</div>
+          <div class="sv-val">4 géis · 2 cápsulas Na · 1.6 L</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="container">
+  <div class="cta">
+    <h2>Sem login. Sem cadastro. <em>Sem folclore.</em></h2>
+    <p>Todas as ferramentas rodam no seu navegador. Arquivos GPX e FIT nunca saem do dispositivo. Grátis hoje e sempre.</p>
+    <div class="cta-row">
+      <a href="#ferramentas" class="btn btn-primary">
+        Entrar no cockpit
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+      </a>
+      <a href="./provas.html" class="btn btn-ghost">Ver provas suportadas</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container foot">
+    <div>
+      <div class="foot-logo"><img src="./assets/lmaerofit-logo.png" alt="LMAeroFit"></div>
+      <p class="made">Construído por quem treina, compete e voa.</p>
+      <p>© 2026 LMAeroFit · Endurance Performance Lab · lmaerofit.com.br</p>
+    </div>
+    <div class="foot-links">
+      <a href="./gear-lab.html">Gear Lab</a>
+      <a href="./aero-bike.html">Aero Bike</a>
+      <a href="./race-fueling.html">Race Fueling</a>
+      <a href="./race-briefing.html">Race Briefing</a>
+      <a href="./session-debrief.html">Session Debrief</a>
+      <a href="./fuel-lab.html">Fuel Lab</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll state
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Fuel Lab: render 63 dots, ~33 "on"
+  const dots = document.getElementById('fuelDots');
+  if (dots) {
+    const total = 63;
+    const lit = new Set();
+    while (lit.size < 28) lit.add(Math.floor(Math.random() * total));
+    for (let i = 0; i < total; i++) {
+      const el = document.createElement('i');
+      if (lit.has(i)) el.className = 'on';
+      dots.appendChild(el);
+    }
+  }
+</script>
+<script src="./assets/profile.js"></script>
+</body>
+</html>

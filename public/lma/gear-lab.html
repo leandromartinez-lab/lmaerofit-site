@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Gear Lab · LMAeroFit</title>
+<meta name="description" content="Bench de tênis: stack, drop, peso, CTS e energy return — ranqueado pelo seu perfil.">
+<meta name="theme-color" content="#0a0c0e">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cockpit.css">
+<style>
+  .shoe-card{display:grid;grid-template-columns:90px 1fr 100px;gap:14px;align-items:center;padding:14px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-md);margin-bottom:10px;transition:all .2s var(--ease)}
+  .shoe-card.top{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow)}
+  .shoe-card .ideogram{height:60px;display:flex;align-items:flex-end;justify-content:center;gap:2px}
+  .shoe-card .ideogram .bar{width:8px;background:linear-gradient(180deg,var(--amber-bright),var(--amber-soft));border-radius:2px 2px 0 0}
+  .shoe-card .name{font-weight:600;font-size:14px}
+  .shoe-card .meta{font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .shoe-card .score{font-family:var(--mono);font-weight:500;font-size:24px;color:var(--amber);text-align:right}
+  .shoe-card.top .score{font-size:30px}
+  .shoe-card .score-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase;text-align:right}
+  @media(max-width:520px){
+    .shoe-card{grid-template-columns:60px 1fr 70px;padding:12px;gap:10px}
+    .shoe-card .ideogram{height:48px}
+    .shoe-card .score{font-size:20px}
+  }
+</style>
+</head>
+<body data-lma="tool">
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="./index.html" class="nav-brand">
+      <img src="./assets/lmaerofit-logo-transparent.png" alt="LMAeroFit" onerror="this.style.display='none'">
+      <span>LMAeroFit</span><span class="tag">Gear</span>
+    </a>
+    <div class="nav-right">
+      <span id="prof-badge"></span>
+      <a href="./index.html" class="nav-back">← Voltar</a>
+    </div>
+  </div>
+</nav>
+<header class="head">
+  <div class="eyebrow">Instrumento · Equipamento</div>
+  <h1>Gear <em>Lab</em></h1>
+  <p class="sub">Bench de tênis de corrida. Score combina energy return, peso, stack e drop — ponderado pelo seu perfil e tipo de prova.</p>
+</header>
+<main class="wrap">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">Use case</div>
+      <div class="tabs" id="use-tabs">
+        <button class="tab" data-u="5k">5-10k</button>
+        <button class="tab active" data-u="hm">Meia / 70.3 run</button>
+        <button class="tab" data-u="mar">Maratona / IM</button>
+        <button class="tab" data-u="trail">Trail</button>
+      </div>
+
+      <div class="field"><label>Pace alvo <span class="val" id="lbl-pace">4:30 /km</span></label>
+        <input type="range" id="pace" min="180" max="420" step="5" value="270"></div>
+      <div class="field"><label>Volume semanal <span class="val" id="lbl-vol">50 km</span></label>
+        <input type="range" id="vol" min="10" max="160" step="5" value="50"></div>
+
+      <div class="card-title" style="margin-top:18px">Suas preferências</div>
+      <div class="field"><label>Importância · energy return <span class="val" id="lbl-w1">7</span></label>
+        <input type="range" id="w1" min="1" max="10" step="1" value="7"></div>
+      <div class="field"><label>Importância · peso leve <span class="val" id="lbl-w2">6</span></label>
+        <input type="range" id="w2" min="1" max="10" step="1" value="6"></div>
+      <div class="field"><label>Conforto / stack alto <span class="val" id="lbl-w3">5</span></label>
+        <input type="range" id="w3" min="1" max="10" step="1" value="5"></div>
+      <div class="field"><label>Drop alto (heel-strike) <span class="val" id="lbl-w4">4</span></label>
+        <input type="range" id="w4" min="1" max="10" step="1" value="4"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ranking · top 8 para você</div>
+      <div id="rank"></div>
+
+      <div class="note">
+        <details>
+          <summary>Como calculamos o score</summary>
+          <p style="margin-top:8px"><code>score = Σ (peso_i × normalizado_i)</code> com normalização min-max no banco. Cada categoria de uso tem multiplicadores embutidos (ex: maratona bonifica stack alto e energy return, 5k bonifica peso leve).</p>
+          <p style="margin-top:8px"><strong>Energy return</strong> (Hoogkamer 2018): placa de carbono + foam supercrítico = -1.0 a -4.0% custo metabólico vs trainer convencional. Modelado como % no banco.</p>
+          <p style="margin-top:8px">Banco com 12 modelos representativos. Pra ver todos os 47+ do CSV original, próxima iteração com filtro/busca.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</main>
+<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · GEAR LAB v2026</div></footer>
+
+<script src="./assets/profile.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const prof = LMA.profile.load();
+LMA.profile.mountBadge($('prof-badge'));
+
+// Banco de tênis (representativo, dados 2025)
+const SHOES = [
+  {name:'Nike Alphafly 3',          stack:40, drop:8,  weight:200, er:4.0, type:'race'},
+  {name:'Nike Vaporfly 3',          stack:40, drop:8,  weight:190, er:3.8, type:'race'},
+  {name:'Adidas Adios Pro 3',       stack:39, drop:6.5,weight:210, er:3.5, type:'race'},
+  {name:'Asics Metaspeed Sky+',     stack:40, drop:5,  weight:205, er:3.6, type:'race'},
+  {name:'Saucony Endorphin Pro 4',  stack:39.5,drop:8, weight:215, er:3.2, type:'race'},
+  {name:'Hoka Rocket X 2',          stack:36, drop:5,  weight:220, er:3.0, type:'race'},
+  {name:'New Balance SC Elite v4',  stack:40, drop:4,  weight:225, er:3.1, type:'race'},
+  {name:'Asics Novablast 4',        stack:41.5,drop:8, weight:255, er:1.8, type:'trainer'},
+  {name:'Hoka Mach 6',              stack:37, drop:5,  weight:235, er:1.6, type:'trainer'},
+  {name:'Saucony Endorphin Speed 4',stack:36, drop:8,  weight:230, er:2.4, type:'tempo'},
+  {name:'Nike Pegasus Plus',        stack:37, drop:10, weight:248, er:1.5, type:'trainer'},
+  {name:'Hoka Speedgoat 6',         stack:38, drop:4,  weight:280, er:1.2, type:'trail'},
+];
+
+const USE_BIAS = {
+  '5k':    {er:0.9, light:1.3, stack:0.7, drop:0.8, trail:0},
+  'hm':    {er:1.1, light:1.0, stack:1.0, drop:1.0, trail:0},
+  'mar':   {er:1.3, light:0.8, stack:1.2, drop:1.1, trail:0},
+  'trail': {er:0.5, light:0.7, stack:1.2, drop:0.5, trail:2.0},
+};
+
+function update(){
+  const useCase = document.querySelector('#use-tabs .tab.active').dataset.u;
+  const pace = +$('pace').value, vol=+$('vol').value;
+  const w1=+$('w1').value, w2=+$('w2').value, w3=+$('w3').value, w4=+$('w4').value;
+  $('lbl-pace').textContent = `${Math.floor(pace/60)}:${String(pace%60).padStart(2,'0')} /km`;
+  $('lbl-vol').textContent = `${vol} km`;
+  $('lbl-w1').textContent=w1;$('lbl-w2').textContent=w2;$('lbl-w3').textContent=w3;$('lbl-w4').textContent=w4;
+
+  const bias = USE_BIAS[useCase];
+
+  // normaliza
+  const erMax = Math.max(...SHOES.map(s=>s.er)), erMin = Math.min(...SHOES.map(s=>s.er));
+  const wMax  = Math.max(...SHOES.map(s=>s.weight)), wMin = Math.min(...SHOES.map(s=>s.weight));
+  const sMax  = Math.max(...SHOES.map(s=>s.stack)),  sMin = Math.min(...SHOES.map(s=>s.stack));
+  const dMax  = Math.max(...SHOES.map(s=>s.drop)),   dMin = Math.min(...SHOES.map(s=>s.drop));
+
+  const ranked = SHOES.map(s=>{
+    const erN   = (s.er-erMin)/(erMax-erMin);                    // alto melhor
+    const lightN= 1 - (s.weight-wMin)/(wMax-wMin);              // baixo melhor
+    const stackN= (s.stack-sMin)/(sMax-sMin);
+    const dropN = (s.drop-dMin)/(dMax-dMin);
+    const trailB= s.type==='trail' ? 1 : 0;
+    const score = (
+      erN    * w1 * bias.er +
+      lightN * w2 * bias.light +
+      stackN * w3 * bias.stack +
+      dropN  * w4 * bias.drop +
+      trailB * bias.trail * 8
+    );
+    return {...s, score};
+  }).sort((a,b)=>b.score-a.score).slice(0,8);
+
+  const maxScore = ranked[0].score;
+  $('rank').innerHTML = ranked.map((s,i)=>{
+    // ideogram: bars representando stack + er
+    const bars = [
+      Math.round(s.stack/45*100),
+      Math.round(s.er/4.5*100),
+      Math.round((300-s.weight)/120*100),
+      Math.round(s.drop/12*100),
+    ];
+    const barsHtml = bars.map(h=>`<div class="bar" style="height:${Math.max(8,h)}%"></div>`).join('');
+    return `<div class="shoe-card${i===0?' top':''}">
+      <div class="ideogram">${barsHtml}</div>
+      <div>
+        <div class="name">${s.name}</div>
+        <div class="meta">${s.stack}mm · drop ${s.drop}mm · ${s.weight}g · ER ${s.er}%</div>
+      </div>
+      <div>
+        <div class="score">${(s.score*10).toFixed(0)}</div>
+        <div class="score-lbl">${i===0?'TOP':`#${i+1}`}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.querySelectorAll('#use-tabs .tab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#use-tabs .tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); update();
+  });
+});
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
+update();
+</script>
+</body>
+</html>
