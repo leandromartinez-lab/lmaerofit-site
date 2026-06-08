@@ -124,6 +124,42 @@
     .nav-links { display: none; }
   }
 
+  /* Correção local do aviso de perfil: impede o botão × de herdar o estilo laranja do CTA */
+  html body #lma-prof-hint div.box > button.close[aria-label="Fechar"] {
+    position: absolute !important;
+    top: 4px !important;
+    right: 6px !important;
+    left: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #7a8088 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    cursor: pointer !important;
+  }
+  html body #lma-prof-hint div.box > button.close[aria-label="Fechar"]:hover {
+    background: rgba(255,255,255,0.06) !important;
+    color: #ecedef !important;
+  }
+  html body #lma-prof-hint div.box > strong {
+    padding-right: 34px !important;
+  }
+
   /* ============ HERO ============ */
   .hero {
     position: relative;
