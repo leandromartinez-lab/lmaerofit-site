@@ -1,1348 +1,340 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0c">
-<meta name="color-scheme" content="dark">
-<title>Fuel Lab | LMAeroFit</title>
-<meta name="description" content="Banco de dados comparativo de produtos de nutrição de endurance com calculadora de servings. Gratuito, sem cadastro.">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Fuel Lab · LMAeroFit</title>
+<meta name="description" content="Taxa de suor personalizada, gut training 60→120 g/h, e custo por grama de carb. Mobile-first.">
+<meta name="theme-color" content="#0a0c0e">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cockpit.css">
 <style>
-:root{
-  --bg:#0a0a0c; --bg-card:#101015; --bg-card-2:#0d0d11; --bg-3:#232930;
-  --amber:#ff8a1c; --amber-bright:#ffa040; --green:#7fb069; --yellow:#e8b84a; --red:#d4504a; --signal:#5ab3d6;
-  --ink:#e8e6e1; --dim:#9a978f; --faint:#5b5852;
-  --line:#1d1d22; --line-2:#2a2a31;
-  --serif:'Fraunces',Georgia,serif; --sans:'Inter Tight',-apple-system,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;
-  background-image:radial-gradient(circle at 15% -5%,rgba(255,138,28,.05),transparent 45%),radial-gradient(circle at 92% 8%,rgba(127,176,105,.035),transparent 40%);
-  background-attachment:fixed;min-height:100vh;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-.mono{font-family:var(--mono)}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  /* Sweat result card */
+  .sw-card{background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:18px;margin-top:14px}
+  .sw-big{font-family:var(--mono);font-weight:500;font-size:42px;color:var(--amber);line-height:1}
+  .sw-big .u{font-size:14px;color:var(--ink-mute);margin-left:6px}
+  .sw-explain{font-size:12px;color:var(--ink-soft);margin-top:8px;line-height:1.5}
 
-/* NAV */
-nav{position:sticky;top:0;z-index:50;background:rgba(10,10,12,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;padding-top:12px;padding-bottom:12px}
-.logo{display:inline-flex;align-items:center;height:80px;text-decoration:none}
-.logo img{height:100%;width:auto;display:block}
-.logo-fallback{font-family:var(--serif);font-weight:600;font-size:1.5rem;letter-spacing:-.01em}
-.logo-fallback em{color:var(--amber);font-style:italic}
-.navlinks{display:flex;gap:22px;font-size:.82rem;font-family:var(--mono);letter-spacing:.02em;align-items:center}
-.navlinks a{color:var(--dim);transition:color .2s}
-.navlinks a:hover,.navlinks a.active{color:var(--amber)}
-@media(max-width:640px){.navlinks{gap:14px;font-size:.72rem}.navlinks a.hide-sm{display:none}.logo{height:60px}}
+  /* Gut progression */
+  .gut-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+  .gut-cell{background:var(--bg-0);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 8px;text-align:center}
+  .gut-cell.active{background:linear-gradient(180deg,rgba(255,138,28,.12),rgba(255,138,28,.04));border-color:var(--amber)}
+  .gut-cell .wk{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase}
+  .gut-cell .val{font-family:var(--mono);font-weight:500;font-size:18px;color:var(--ink);margin:4px 0}
+  .gut-cell.active .val{color:var(--amber)}
+  .gut-cell .note{font-size:10px;color:var(--ink-mute)}
 
-/* eyebrow */
-.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:10px}
-.eyebrow::before{content:"";width:28px;height:1px;background:var(--amber);display:inline-block}
+  /* Supplements bench */
+  .supp-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
+  .supp-table th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;text-align:left;padding:8px 6px;border-bottom:1px solid var(--line-strong)}
+  .supp-table td{padding:10px 6px;border-bottom:1px dashed var(--line);font-family:var(--mono);color:var(--ink-soft)}
+  .supp-table td.best{color:var(--aero-bright);font-weight:500}
+  .supp-table td.bad{color:var(--crit)}
+  .supp-table tr:hover td{background:rgba(255,255,255,.02)}
+  .supp-table .name{font-family:var(--display);color:var(--ink);font-weight:500}
 
-/* section scaffold */
-section{padding:54px 0;border-bottom:1px solid var(--line)}
-.sec-num{font-family:var(--mono);font-size:.72rem;color:var(--faint);letter-spacing:.1em}
-.sec-tech{font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:-.2em;margin-bottom:.4em}
-h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.4rem,7vw,4.2rem);line-height:1.02;letter-spacing:-.02em;margin:.3em 0}
-h1 em{color:var(--amber);font-style:italic}
-h2{font-family:var(--serif);font-weight:600;font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.01em;margin:.2em 0 .5em}
-h2 em{color:var(--amber);font-style:italic}
-.lede{color:var(--dim);font-size:1.05rem;max-width:60ch;margin-top:.6em}
-.build-block{font-family:var(--mono);font-size:.78rem;line-height:1.7;color:var(--dim);letter-spacing:.04em;margin:14px 0 22px}
-.hero-tag{font-family:var(--serif);font-size:clamp(1.15rem,3vw,1.5rem);line-height:1.3;color:var(--ink);max-width:30ch}
-.hero-tag strong{color:var(--amber);font-weight:600}
-
-/* HERO */
-.hero{padding-top:48px}
-.hero-hud{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:30px;border-radius:8px;overflow:hidden}
-.hud-cell{background:var(--bg-card);padding:14px 16px}
-.hud-cell .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
-.hud-cell .v{font-family:var(--mono);font-size:1.35rem;color:var(--amber);font-weight:500;margin-top:4px}
-.hud-cell .v small{font-size:.7rem;color:var(--dim)}
-@media(max-width:640px){.hero-hud{grid-template-columns:repeat(2,1fr)}}
-
-/* import banner */
-.import-banner{display:none;background:linear-gradient(90deg,rgba(255,138,28,.12),rgba(255,138,28,.03));border:1px solid var(--amber);border-radius:8px;padding:14px 16px;margin-top:24px;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.import-banner.on{display:flex}
-.import-banner .ib-txt{font-family:var(--mono);font-size:.82rem;color:var(--ink)}
-.import-banner .ib-txt b{color:var(--amber)}
-
-/* filters */
-.step{margin-bottom:18px}
-.brandbox{width:100%;max-width:420px;background:var(--bg);border:1px solid var(--line-2);border-radius:10px;color:var(--ink);font-family:var(--mono);font-size:.92rem;padding:6px;cursor:pointer}
-.brandbox:focus{outline:none;border-color:var(--amber)}
-.brandbox option{padding:9px 12px;border-radius:6px;cursor:pointer}
-.brandbox option:checked{background:var(--amber)!important;color:#0a0a0c!important;font-weight:600}
-.type-btns{display:flex;gap:8px;flex-wrap:wrap}
-.type-btn{font-family:var(--mono);font-size:.82rem;padding:9px 18px;border-radius:8px;border:1px solid var(--line-2);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s}
-.type-btn:hover{border-color:var(--amber);color:var(--ink)}
-.type-btn.on{background:var(--amber);border-color:var(--amber);color:#0a0a0c;font-weight:600}
-.filter-group{margin-bottom:18px}
-.filter-group:last-child{margin-bottom:0}
-.fg-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:9px;display:block}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font-family:var(--mono);font-size:.76rem;padding:6px 13px;border:1px solid var(--line-2);border-radius:999px;color:var(--dim);background:transparent;cursor:pointer;transition:all .16s;user-select:none}
-.chip:hover{border-color:var(--amber);color:var(--ink)}
-.chip.on{background:var(--amber);border-color:var(--amber);color:#0a0a0c;font-weight:500}
-.chip.ghost.on{background:rgba(255,138,28,.16);color:var(--amber);border-color:var(--amber)}
-.searchrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.search{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:10px 14px;color:var(--ink);font-family:var(--sans);font-size:.92rem}
-.search::placeholder{color:var(--faint)}
-.search:focus{outline:none;border-color:var(--amber)}
-.sortsel{background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;color:var(--ink);font-family:var(--mono);font-size:.78rem;cursor:pointer}
-.sortsel:focus{outline:none;border-color:var(--amber)}
-.count-line{font-family:var(--mono);font-size:.74rem;color:var(--faint);margin:18px 0 14px}
-.count-line b{color:var(--amber)}
-
-/* product grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-.card{background:var(--bg-card);border:1px solid var(--line);border-left:3px solid var(--tier-c,var(--amber));border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:transform .14s,border-color .14s;position:relative;cursor:pointer}
-.card-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border:1.5px solid var(--line-2);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#0a0a0c;font-size:.8rem;font-weight:700;transition:all .14s;background:transparent}
-.card.sel .card-check{background:var(--amber);border-color:var(--amber)}
-.card-pick{font-family:var(--mono);font-size:.68rem;color:var(--faint)}
-.card-pick.on{color:var(--amber)}
-.card:hover{transform:translateY(-2px);border-color:var(--line-2);border-left-color:var(--tier-c,var(--amber))}
-.card.sel{box-shadow:0 0 0 1px var(--amber) inset,0 0 18px rgba(255,138,28,.12)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding-right:30px}
-.card-name{font-family:var(--serif);font-size:1.08rem;font-weight:600;line-height:1.15}
-.card-brand{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:3px}
-.badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:4px;white-space:nowrap;font-weight:500}
-.b-br{background:rgba(127,176,105,.16);color:var(--green);border:1px solid rgba(127,176,105,.3)}
-.b-imp{background:rgba(232,184,74,.13);color:var(--yellow);border:1px solid rgba(232,184,74,.3)}
-.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:2px}
-.spec{background:var(--bg-card-2);padding:8px 9px;text-align:center}
-.spec .sk{font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
-.spec .sv{font-family:var(--mono);font-size:.98rem;font-weight:500;margin-top:2px;color:var(--ink)}
-.spec .sv.amber{color:var(--amber)}
-.spec .sv.caf{color:var(--yellow)}
-.card-tags{display:flex;flex-wrap:wrap;gap:5px}
-.tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:var(--dim);border:1px solid var(--line-2);border-radius:4px;padding:2px 6px}
-.tag.t-quente{color:var(--red);border-color:rgba(212,80,74,.3)}
-.tag.t-caf{color:var(--yellow);border-color:rgba(232,184,74,.3)}
-.tag.t-hydro{color:var(--amber);border-color:rgba(255,138,28,.3)}
-.card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;border-top:1px solid var(--line)}
-.nacho{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
-.nacho b{color:var(--ink)}
-.btn-sel{font-family:var(--mono);font-size:.72rem;padding:6px 11px;border-radius:6px;border:1px solid var(--line-2);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s}
-.btn-sel:hover{border-color:var(--amber);color:var(--amber)}
-.btn-sel.on{background:var(--amber);border-color:var(--amber);color:#0a0a0c;font-weight:500}
-.card-src{font-family:var(--mono);font-size:.62rem;color:var(--faint)}
-.card-src a{color:var(--dim);text-decoration:underline;text-decoration-color:var(--line-2)}
-.card-src a:hover{color:var(--amber)}
-.empty{text-align:center;padding:50px 20px;color:var(--faint);font-family:var(--mono);font-size:.86rem}
-
-/* compare tray */
-.tray{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(13,13,17,.96);backdrop-filter:blur(14px);border-top:1px solid var(--amber);transform:translateY(110%);transition:transform .26s cubic-bezier(.3,.8,.3,1)}
-.tray.up{transform:translateY(0)}
-.tray .wrap{display:flex;align-items:center;gap:14px;padding:12px 20px;flex-wrap:wrap}
-.tray-label{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)}
-.tray-items{display:flex;gap:8px;flex:1;flex-wrap:wrap}
-.tray-item{font-family:var(--mono);font-size:.74rem;background:var(--bg-card);border:1px solid var(--line-2);border-radius:6px;padding:5px 9px;display:flex;align-items:center;gap:7px}
-.tray-item button{background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;line-height:1;padding:0}
-.tray-item button:hover{color:var(--red)}
-.btn-amber{font-family:var(--mono);font-size:.78rem;font-weight:500;padding:9px 16px;border-radius:7px;background:var(--amber);color:#0a0a0c;border:none;cursor:pointer;transition:filter .15s}
-.btn-amber:hover{filter:brightness(1.08)}
-.btn-amber:disabled{opacity:.4;cursor:not-allowed}
-.btn-ghost{font-family:var(--mono);font-size:.76rem;padding:9px 14px;border-radius:7px;background:transparent;color:var(--dim);border:1px solid var(--line-2);cursor:pointer}
-.btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
-
-/* compare modal */
-.modal{position:fixed;inset:0;z-index:70;background:rgba(5,5,7,.82);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
-.modal.on{display:flex}
-.modal-box{background:var(--bg-card);border:1px solid var(--line-2);border-radius:12px;max-width:920px;width:100%;padding:24px}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-.modal-close{background:none;border:1px solid var(--line-2);color:var(--dim);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1.1rem}
-.modal-close:hover{border-color:var(--red);color:var(--red)}
-.cmp-table{width:100%;border-collapse:collapse;font-size:.85rem}
-.cmp-table th,.cmp-table td{padding:11px 10px;text-align:center;border-bottom:1px solid var(--line)}
-.cmp-table th{font-family:var(--serif);font-size:1rem;font-weight:600}
-.cmp-table td:first-child,.cmp-table th:first-child{text-align:left;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
-.cmp-table td{font-family:var(--mono);color:var(--ink)}
-.cmp-table tr:hover td{background:var(--bg-card-2)}
-.cmp-best{color:var(--green)!important;font-weight:700}
-.cmp-table .brandrow td{color:var(--dim);font-size:.66rem}
-
-/* na:cho gauge */
-.gauge-wrap{display:flex;justify-content:center;padding-top:4px}
-.gauge{position:relative;width:74px;height:42px}
-.gauge svg{width:100%;height:100%;overflow:visible}
-.gauge .gv{position:absolute;bottom:0;left:0;right:0;text-align:center;font-family:var(--mono);font-size:.78rem;color:var(--amber);font-weight:500}
-
-/* explainer cards */
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
-.info-card{background:var(--bg-card);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:8px;padding:18px}
-.info-card h3{font-family:var(--serif);font-size:1.12rem;font-weight:600;margin-bottom:6px}
-.info-card.g{border-left-color:var(--green)}
-.info-card.y{border-left-color:var(--yellow)}
-.info-card p{color:var(--dim);font-size:.9rem}
-
-/* na:cho ranking */
-.nacho-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:18px}
-.ns-seg{background:var(--bg-card);padding:12px 14px;border-top:3px solid var(--c)}
-.ns-seg b{font-family:var(--mono);font-size:1.05rem;color:var(--c);display:block}
-.ns-seg span{font-family:var(--mono);font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
-@media(max-width:560px){.nacho-scale{grid-template-columns:1fr}}
-.rank-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
-.rank-name{font-size:.9rem}
-.rank-name small{font-family:var(--mono);color:var(--faint);font-size:.7rem;display:block}
-.rank-bar-wrap{display:flex;align-items:center;gap:10px}
-.rank-bar{width:120px;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
-.rank-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red))}
-.rank-val{font-family:var(--mono);font-size:.82rem;color:var(--amber);min-width:42px;text-align:right}
-
-/* disclaimers */
-.disc{background:var(--bg-card-2);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-top:12px}
-.disc h4{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);margin-bottom:7px}
-.disc p{color:var(--dim);font-size:.84rem}
-
-/* footer */
-footer{padding:46px 0 70px}
-footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px}
-@media(max-width:720px){footer .cols{grid-template-columns:1fr}}
-footer h5{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
-footer .ref{font-size:.78rem;color:var(--faint);margin-bottom:8px;line-height:1.45}
-footer .ref a{color:var(--dim);text-decoration:underline;text-decoration-color:var(--line-2)}
-footer .ref a:hover{color:var(--amber)}
-.tagline{font-family:var(--serif);font-style:italic;font-size:1.05rem;color:var(--dim);margin-bottom:16px}
-.foot-meta{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:30px;padding-top:20px;border-top:1px solid var(--line)}
-
-/* ===== FASE 2 · MONTADOR DE KIT ===== */
-.planner-box{background:var(--bg-card-2);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
-.planner-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
-@media(max-width:560px){.planner-grid{grid-template-columns:1fr}}
-.athlete-toggle{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding:11px 14px;background:var(--bg-card);border:1px solid var(--line-2);border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:.82rem;color:var(--ink)}
-.athlete-toggle:hover{border-color:var(--amber)}
-.athlete-toggle small{color:var(--faint);font-size:.7rem}
-#athletePanel{margin-top:4px;padding:14px;background:var(--bg-card);border:1px solid var(--line);border-radius:8px}
-.suggest-explain{background:linear-gradient(135deg,rgba(127,176,105,.08),rgba(13,13,17,.5));border:1px solid var(--green);border-radius:10px;padding:18px;margin-bottom:18px}
-.se-title{font-family:var(--mono);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
-.se-item{font-size:.88rem;color:var(--ink);padding:7px 0;border-bottom:1px solid var(--line);line-height:1.5}
-.se-item:last-of-type{border-bottom:none}
-.se-item.se-note{color:var(--dim);font-size:.84rem}
-.se-foot{font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.targets-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.tg{background:var(--bg-card);padding:12px;text-align:center;display:flex;flex-direction:column;gap:2px}
-.tg-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-.tg-v{font-family:var(--mono);font-size:1.2rem;color:var(--amber);font-weight:500}
-.tg-u{font-family:var(--mono);font-size:.58rem;color:var(--dim)}
-@media(max-width:560px){.targets-bar{grid-template-columns:1fr 1fr}}
-.targets-src{font-family:var(--mono);font-size:.66rem;color:var(--faint);margin:8px 0 22px}
-.block{background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
-.block-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.block-name{font-family:var(--serif);font-size:1.15rem;font-weight:600;flex:1;min-width:120px}
-.block-dur{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.78rem;color:var(--dim)}
-.block-dur input{width:54px;background:var(--bg);border:1px solid var(--line-2);border-radius:6px;color:var(--ink);font-family:var(--mono);padding:5px 7px;text-align:center}
-.block-dur input:focus{outline:none;border-color:var(--amber)}
-.block-del{background:none;border:1px solid var(--line-2);color:var(--faint);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem}
-.block-del:hover{border-color:var(--red);color:var(--red)}
-.block-rate{display:flex;gap:14px;flex-wrap:wrap;padding:10px 12px;background:var(--bg-card-2);border-radius:7px;margin-bottom:12px;font-family:var(--mono);font-size:.74rem}
-.rate-item{display:flex;align-items:center;gap:5px;color:var(--dim)}
-.rate-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
-.rate-dot.amber{background:var(--yellow)}.rate-dot.red{background:var(--red)}
-.rate-item b{color:var(--ink)}
-.add-prod{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.add-prod select{flex:1;min-width:160px;background:var(--bg);border:1px solid var(--line-2);border-radius:7px;color:var(--ink);font-family:var(--sans);font-size:.85rem;padding:8px 10px}
-.add-prod select:focus{outline:none;border-color:var(--amber)}
-.prod-line{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.86rem}
-.prod-line:last-of-type{border-bottom:none}
-.prod-line .pl-name{flex:1}
-.prod-line .pl-name small{display:block;font-family:var(--mono);font-size:.64rem;color:var(--faint)}
-.qty{display:flex;align-items:center;gap:6px}
-.qty button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line-2);background:transparent;color:var(--amber);cursor:pointer;font-size:1rem;line-height:1}
-.qty button:hover{border-color:var(--amber)}
-.qty span{font-family:var(--mono);min-width:20px;text-align:center}
-.pl-del{background:none;border:none;color:var(--faint);cursor:pointer;font-size:.95rem}
-.pl-del:hover{color:var(--red)}
-.block-empty{font-family:var(--mono);font-size:.74rem;color:var(--faint);padding:6px 0 10px}
-.total-hud{background:linear-gradient(135deg,rgba(255,138,28,.08),rgba(13,13,17,.5));border:1px solid var(--amber);border-radius:12px;padding:20px;margin-top:24px}
-.th-title{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
-.th-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.th-cell{background:var(--bg-card);padding:13px;text-align:center;display:flex;flex-direction:column;gap:3px}
-.th-k{font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
-.th-v{font-family:var(--mono);font-size:1.3rem;font-weight:500;color:var(--ink)}
-.th-sub{font-family:var(--mono);font-size:.64rem;color:var(--dim)}
-.th-sub.over{color:var(--red)}.th-sub.ok{color:var(--green)}
-@media(max-width:560px){.th-grid{grid-template-columns:1fr 1fr}}
-.advice{margin-top:14px;display:flex;flex-direction:column;gap:7px}
-.advice-item{font-family:var(--mono);font-size:.76rem;padding:9px 12px;border-radius:7px;border-left:3px solid var(--amber);background:var(--bg-card)}
-.advice-item.ok{border-left-color:var(--green);color:var(--green)}
-.advice-item.warn{border-left-color:var(--yellow);color:var(--yellow)}
-.advice-item.over{border-left-color:var(--red);color:var(--red)}
-
-/* phase2 teaser */
-.teaser{background:linear-gradient(135deg,rgba(255,138,28,.07),rgba(13,13,17,.4));border:1px dashed var(--line-2);border-radius:10px;padding:22px;margin-top:20px}
-.teaser .eyebrow{margin-bottom:10px}
-.teaser p{color:var(--dim);font-size:.92rem;max-width:62ch}
+  /* Mix bar */
+  .mix-bar{height:24px;background:var(--bg-3);border-radius:12px;overflow:hidden;display:flex;margin-top:12px}
+  .mix-seg{height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#0a0c0e;font-weight:600}
 </style>
 </head>
-<body>
+<body data-lma="tool">
 
-<nav id="nav">
-  <div class="wrap">
-    <a class="logo" href="https://lmaerofit.com.br"><img src="./assets/lmaerofit-logo.png" alt="LMAeroFit" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=&quot;logo-fallback&quot;>LM<em>Aero</em>Fit</span>')"></a>
-    <div class="navlinks">
-      <a href="https://lmaerofit.com.br/">Início</a>
-      <a href="https://lmaerofit.com.br/#tools" class="active">Ferramentas</a>
-      <a href="https://lmaerofit.com.br/#cta">Newsletter</a>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="./index.html" class="nav-brand">
+      <img src="./assets/lmaerofit-logo-transparent.png" alt="LMAeroFit" onerror="this.style.display='none'">
+      <span>LMAeroFit</span><span class="tag">Fuel</span>
+    </a>
+    <div class="nav-right">
+      <span id="prof-badge"></span>
+      <a href="./index.html" class="nav-back">← Voltar</a>
     </div>
   </div>
 </nav>
 
-<div id="top"></div>
+<header class="head">
+  <div class="eyebrow">Instrumento · Nutrição</div>
+  <h1>Fuel <em>Lab</em></h1>
+  <p class="sub">Taxa de suor personalizada (Sawka 2007), progressão de gut training de 60→120 g/h, e custo por grama dos seus supplements. Tudo conversa com o perfil do atleta.</p>
+</header>
 
-<!-- 01 HERO -->
-<section class="hero">
-  <div class="wrap">
-    <div class="eyebrow">Endurance Performance Lab</div>
-    <h1>Fuel <em>Lab</em></h1>
-    <div class="build-block">
-      Ferramenta 06 / 06<br>
-      Build v1.0 · 2026.05<br>
-      Sem login · Grátis
-    </div>
-    <p class="hero-tag">Compare, combine e monte o kit. Os <strong>produtos certos</strong>, na <strong>quantidade certa</strong>, para a sua prova.</p>
-    <p class="lede">Banco comparativo de produtos de nutrição de endurance — premium globais e nacionais no mesmo lugar — com calculadora de combinação. Onde o <strong>Race Fueling</strong> diz <em>quanto</em> você precisa, o Fuel Lab responde <em>com quais produtos</em> você chega lá.</p>
+<main class="wrap">
+  <div class="grid grid-2">
 
-    <div class="import-banner" id="importBanner">
-      <div class="ib-txt">Alvos vindos do <b>Race Fueling</b>: <span id="ibVals"></span></div>
-      <button class="btn-ghost" onclick="clearImport()">Limpar alvos</button>
-    </div>
+    <!-- INPUT -->
+    <div class="card">
+      <div class="card-title">Modalidade + condições</div>
 
-    <div class="hero-hud">
-      <div class="hud-cell"><div class="k">Produtos no banco</div><div class="v" id="hudTotal">—</div></div>
-      <div class="hud-cell"><div class="k">Diluíveis em água</div><div class="v" id="hudPo">—</div></div>
-      <div class="hud-cell"><div class="k">Disponível no Brasil</div><div class="v" id="hudBr">—</div></div>
-      <div class="hud-cell"><div class="k">Fontes oficiais</div><div class="v">2026</div></div>
-    </div>
-  </div>
-</section>
+      <div class="field"><label>Categoria</label>
+        <select id="cat" style="width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;color:var(--ink);font-family:inherit"></select>
+      </div>
+      <div class="field"><label>Modalidade · define duração</label>
+        <select id="mod" style="width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;color:var(--ink);font-family:inherit"></select>
+      </div>
 
-<!-- 02 O QUE É -->
-<section id="oque">
-  <div class="wrap">
-    <div class="sec-num">02 — O QUE É</div>
-    <h2>Um banco de <em>produtos reais</em>, não uma loja</h2>
-    <div class="sec-tech">Product Database</div>
-    <p class="lede">Reúne especificações oficiais (carboidrato, sódio, cafeína, ratio glicose:frutose, ingredientes) de produtos premium globais e nacionais no mesmo lugar. Filtre por tipo, disponibilidade no Brasil ou cenário de prova, compare lado a lado, e destaque a razão Na:CHO — a métrica que diz se você precisa de sódio extra.</p>
-    <div class="info-grid">
-      <div class="info-card"><h3>Comparar</h3><p>Escolha até 3 produtos e veja carbo, sódio, cafeína e ratio em tabela cockpit, com destaque do que cada um faz melhor.</p></div>
-      <div class="info-card g"><h3>Filtrar por necessidade</h3><p>Prova quente? Filtre por sódio alto. Vai de bike? Filtre por pó diluível. Sem afiliação, sem "compre aqui".</p></div>
-      <div class="info-card y"><h3>Razão Na:CHO</h3><p>Sódio dividido por carboidrato. Géis premium têm razão baixa — sinal de que pedem complemento de sódio externo.</p></div>
-    </div>
-  </div>
-</section>
+      <div class="tabs" id="sport-tabs">
+        <button class="tab active" data-sport="bike">Bike</button>
+        <button class="tab" data-sport="run">Corrida</button>
+        <button class="tab" data-sport="swim">Natação</button>
+      </div>
 
-<!-- 03+04 FILTROS + BANCO -->
-<section id="banco">
-  <div class="wrap">
-    <div class="sec-num">03 — FILTROS &amp; BANCO DE PRODUTOS</div>
-    <h2>Explorar o <em>banco</em></h2>
-    <div class="sec-tech">Filter &amp; Browse</div>
-    <p class="lede" style="margin-bottom:18px">Escolha uma marca na lista. Os produtos dela aparecem abaixo — refine por pó ou gel se quiser, e toque nos cards para comparar lado a lado.</p>
+      <div class="field">
+        <label>Temperatura <span class="val" id="lbl-t">28 °C</span></label>
+        <input type="range" id="t" min="5" max="42" step="1" value="28">
+      </div>
+      <div class="field">
+        <label>Umidade relativa <span class="val" id="lbl-rh">70 %</span></label>
+        <input type="range" id="rh" min="20" max="100" step="5" value="70">
+      </div>
+      <div class="field">
+        <label>Intensidade <span class="val" id="lbl-int">75 % FTP</span></label>
+        <input type="range" id="int" min="40" max="105" step="1" value="75">
+      </div>
+      <div class="field">
+        <label>Duração total <span class="val" id="lbl-dur">3 h</span></label>
+        <input type="range" id="dur" min="0.5" max="14" step="0.5" value="3">
+      </div>
 
-    <!-- passo 1: marca -->
-    <div class="step">
-      <span class="fg-label">1 · Escolha a marca</span>
-      <select class="brandbox" id="brandSel" size="7" onchange="onBrandChange()">
-      </select>
-    </div>
 
-    <!-- passo 2: tipo (aparece só após escolher marca) -->
-    <div class="step" id="step2">
-      <span class="fg-label">2 · Tipo (opcional)</span>
-      <div class="type-btns" id="typeBtns" style="display:none">
-        <button class="type-btn on" data-tipo="" onclick="setTipo(this,'')">Todos</button>
-        <button class="type-btn" data-tipo="bebida-po" onclick="setTipo(this,'bebida-po')">Pó / diluível</button>
-        <button class="type-btn" data-tipo="gel" onclick="setTipo(this,'gel')">Gel</button>
-        <button class="type-btn" data-tipo="goma" onclick="setTipo(this,'goma')">Goma</button>
+      <div class="card-title" style="margin-top:24px">Teste de suor (opcional)</div>
+      <p style="font-size:12px;color:var(--ink-mute);margin-bottom:12px">Pese antes/depois sem roupa, anote líquido ingerido. Refina a estimativa.</p>
+      <div class="field">
+        <label>Peso antes <span class="val" id="lbl-w1">72.0 kg</span></label>
+        <input type="range" id="w1" min="45" max="110" step="0.1" value="72">
+      </div>
+      <div class="field">
+        <label>Peso depois <span class="val" id="lbl-w2">70.8 kg</span></label>
+        <input type="range" id="w2" min="40" max="110" step="0.1" value="70.8">
+      </div>
+      <div class="field">
+        <label>Líquido ingerido <span class="val" id="lbl-fl">500 ml</span></label>
+        <input type="range" id="fl" min="0" max="3000" step="50" value="500">
+      </div>
+      <div class="field">
+        <label>Duração do teste <span class="val" id="lbl-td">1 h</span></label>
+        <input type="range" id="td" min="0.25" max="5" step="0.25" value="1">
+      </div>
+
+      <div class="card-title" style="margin-top:24px">Gut training</div>
+      <div class="field">
+        <label>Semana atual <span class="val" id="lbl-wk">4 de 8</span></label>
+        <input type="range" id="wk" min="1" max="8" step="1" value="4">
       </div>
     </div>
 
-    <div class="count-line"><b id="cnt">0</b> produtos · <span id="cntSel">0</span> selecionados (máx. 3 p/ comparar)</div>
-    <div class="grid" id="grid"></div>
-    <div class="empty" id="empty" style="display:none">Nenhum produto. <a href="#" onclick="resetView();return false" style="color:var(--amber)">Ver todas as marcas</a>.</div>
-  </div>
-</section>
+    <!-- OUTPUT -->
+    <div class="card">
+      <div class="card-title">Resultado · taxa de suor</div>
 
-<!-- 05 COMPARAR (placeholder anchor; modal abre por cima) -->
-<section id="comparar">
-  <div class="wrap">
-    <div class="sec-num">05 — COMPARAR LADO A LADO</div>
-    <h2>Confronto <em>direto</em></h2>
-    <div class="sec-tech">Side-by-Side Comparator</div>
-    <p class="lede">Selecione 2 ou 3 produtos nos cards acima (botão <span class="mono">+ comparar</span>) e abra o confronto. A tabela destaca em verde quem entrega mais de cada métrica. Útil pra decidir Maurten vs SiS, ou um nacional vs importado.</p>
-    <button class="btn-amber" id="openCmpBtn" style="margin-top:16px" onclick="openCompare()" disabled>Abrir comparação (0)</button>
-  </div>
-</section>
+      <div class="sw-card">
+        <div class="sw-big mono"><span id="r-sweat">1.20</span><span class="u">L/h</span></div>
+        <div class="sw-explain" id="r-sweat-exp">Estimado por (peso_antes − peso_depois + líquido_ingerido) / tempo, ajustado por temp + umidade.</div>
+      </div>
 
-<!-- 06 MONTADOR DE KIT — Fase 2 -->
-<section id="kit">
-  <div class="wrap">
-    <div class="sec-num">06 — MONTADOR DE KIT / TIMELINE</div>
-    <h2>Monte o <em>kit</em> da sua prova</h2>
-    <div class="sec-tech">Mission Fuel Planner</div>
-    <p class="lede" style="margin-bottom:20px">Defina a prova, selecione produtos no banco acima e distribua nos blocos. A ferramenta soma carbo, sódio, cafeína e líquido em tempo real — e avisa se você está dentro da sua capacidade por hora.</p>
+      <div class="metrics">
+        <div class="metric"><div class="k">Sódio/h</div><div class="v mono" id="r-na">960<span class="u">mg</span></div></div>
+        <div class="metric"><div class="k">Líquido total</div><div class="v mono" id="r-fluid">3.6<span class="u">L</span></div></div>
+        <div class="metric"><div class="k">Carb/h alvo</div><div class="v mono" id="r-carb">90<span class="u">g</span></div></div>
+        <div class="metric"><div class="k">% reposição</div><div class="v mono" id="r-rep">100<span class="u">%</span></div></div>
+      </div>
 
-    <!-- 1. CONFIGURAÇÃO DA PROVA -->
-    <div class="planner-box">
-      <span class="fg-label">1 · Tipo de prova</span>
-      <select class="brandbox" id="raceType" onchange="loadRaceModel()" style="max-width:100%;height:auto">
-        <optgroup label="Triatlo">
-          <option value="tri-sprint">Triatlo Sprint (~1h30)</option>
-          <option value="tri-olimpico">Triatlo Olímpico (~2h30)</option>
-          <option value="tri-703" selected>70.3 / Meio Ironman (~5h30)</option>
-          <option value="tri-1406">Ironman 140.6 (~12h)</option>
-        </optgroup>
-        <optgroup label="Corrida">
-          <option value="run-10k">Corrida 10k (~50min)</option>
-          <option value="run-21k">Meia maratona 21k (~1h50)</option>
-          <option value="run-42k">Maratona 42k (~4h)</option>
-          <option value="run-ultra">Ultra (~8h)</option>
-        </optgroup>
-        <optgroup label="Ciclismo">
-          <option value="bike-long">Pedal longo (~3h)</option>
-          <option value="bike-fondo">Gran Fondo (~5h)</option>
-        </optgroup>
-        <optgroup label="Natação">
-          <option value="swim-long">Travessia / águas abertas (~1h30)</option>
-        </optgroup>
-        <optgroup label="Livre">
-          <option value="custom">Personalizado (monte do zero)</option>
-        </optgroup>
-      </select>
+      <div class="card-title" style="margin-top:24px">Mix energético sugerido</div>
+      <p style="font-size:12px;color:var(--ink-mute);margin-bottom:6px">Glicose : Frutose &asymp; 1:0.8 maximiza absorção (Jeukendrup 2010, 2x SGLT1+GLUT5).</p>
+      <div class="mix-bar" id="mix-bar"></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:6px">
+        <span>GLU: <span id="mix-glu" style="color:var(--amber)">50 g</span></span>
+        <span>FRU: <span id="mix-fru" style="color:var(--signal)">40 g</span></span>
+        <span>1:<span id="mix-ratio">0.80</span></span>
+      </div>
 
-      <div class="planner-grid">
-        <div>
-          <span class="fg-label">2 · Clima</span>
-          <select class="sortsel" id="climate" onchange="recalc()" style="width:100%">
-            <option value="fresco">Fresco (&lt;18°C)</option>
-            <option value="moderado" selected>Moderado (18–25°C)</option>
-            <option value="quente">Quente (25–30°C)</option>
-            <option value="muito-quente">Muito quente (&gt;30°C)</option>
-          </select>
+      <div class="card-title" style="margin-top:24px">Progressão · gut training 8 semanas</div>
+      <div class="gut-grid" id="gut-grid"></div>
+      <p style="font-size:11px;color:var(--ink-mute);margin-top:10px">+10g/h por semana. O intestino é treinável — Cox 2010 demonstrou ↑ SGLT1 com exposição repetida.</p>
+
+      <div class="card-title" style="margin-top:24px">Bench · custo por grama de carb</div>
+      <table class="supp-table" id="supp-tbl">
+        <thead>
+          <tr><th>Produto</th><th>g carb</th><th>R$</th><th>R$/g</th><th>g·sódio</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="note">
+        <details>
+          <summary>Matemática &amp; fontes</summary>
+          <p style="margin-top:10px">
+            <strong>Taxa de suor</strong> (Sawka 2007 / ACSM):<br>
+            <code>SR = (m_antes − m_depois + V_ingerido) / t</code>
+          </p>
+          <p style="margin-top:8px"><strong>Ajuste ambiental</strong> sobre a taxa base: temp +3%/°C acima de 20°C, umidade +0.5%/% acima de 60%, intensidade linear até 1.4× em &gt;90% FTP.</p>
+          <p style="margin-top:8px"><strong>Carb/h alvo</strong>: ramp 60→120 g/h em 8 semanas (Cox 2010), com piso de 30 g/h em &lt;90 min. Limite seguro de absorção com mix GLU:FRU ≈ 1:0.8 (Jeukendrup 2010): até 120 g/h sustentáveis.</p>
+          <p style="margin-top:8px"><strong>Sódio</strong>: padrão do perfil (default 800 mg/L). Reposição parcial é OK em &lt;3h; em &gt;4h ou calor extremo, mirar 90-100% (Hew-Butler 2015 IOC consensus).</p>
+        </details>
+      </div>
+
+      <div style="margin-top:18px;padding:14px;background:linear-gradient(135deg,rgba(255,138,28,.10),rgba(255,138,28,.02));border:1px solid var(--amber);border-radius:var(--r-md);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.5">
+          <strong style="color:var(--amber);font-family:var(--mono);font-size:10px;letter-spacing:.14em;display:block;margin-bottom:4px">→ MONTE O KIT DA PROVA</strong>
+          Use o Race Fueling pra transformar isso em produtos reais (Maurten, Z-Konzen, Probiotica, SiS) por segmento.
         </div>
-        <div>
-          <span class="fg-label">3 · Capacidade (gut training)</span>
-          <select class="sortsel" id="capacity" onchange="recalc()" style="width:100%">
-            <option value="60">Iniciante · 60 g/h</option>
-            <option value="80" selected>Intermediário · 80 g/h</option>
-            <option value="100">Avançado · 100 g/h</option>
-            <option value="120">Elite · 120 g/h</option>
-          </select>
-        </div>
+        <a href="./race-fueling.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:var(--amber);color:#0a0c0e;padding:8px 14px;border-radius:6px;font-weight:700;text-decoration:none">Race Fueling →</a>
       </div>
-
-      <!-- dados do atleta (refinam a sugestão) -->
-      <div class="athlete-toggle" id="athleteToggle" onclick="toggleAthlete()">
-        <span>4 · Seus dados <small id="athleteStatus">(opcional — refina a sugestão)</small></span>
-        <span id="athleteChevron">▾</span>
-      </div>
-      <div id="athletePanel" style="display:none">
-        <div class="planner-grid">
-          <div>
-            <span class="fg-label">Peso corporal</span>
-            <div class="block-dur" style="gap:8px"><input type="number" id="weight" placeholder="70" min="30" max="160" onchange="recalc()" style="width:70px"> kg</div>
-          </div>
-          <div>
-            <span class="fg-label">Taxa de sudorese</span>
-            <select class="sortsel" id="sweat" onchange="recalc()" style="width:100%">
-              <option value="600">Baixa · 0.6 L/h</option>
-              <option value="900" selected>Moderada · 0.9 L/h</option>
-              <option value="1200">Alta · 1.2 L/h</option>
-              <option value="1600">Muito alta · 1.6 L/h</option>
-            </select>
-          </div>
-          <div>
-            <span class="fg-label">Sódio no suor</span>
-            <select class="sortsel" id="sweatNa" onchange="recalc()" style="width:100%">
-              <option value="500">Baixo · 500 mg/L</option>
-              <option value="900" selected>Médio · 900 mg/L</option>
-              <option value="1300">Alto · 1300 mg/L</option>
-              <option value="1800">Muito alto · 1800 mg/L ("salty")</option>
-            </select>
-          </div>
-          <div>
-            <span class="fg-label">Cafeína</span>
-            <select class="sortsel" id="caffeine" onchange="recalc()" style="width:100%">
-              <option value="evita">Prefiro evitar</option>
-              <option value="usa" selected>Uso normalmente</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- preferência de marca para a sugestão -->
-    <div class="planner-box" style="margin-bottom:12px">
-      <span class="fg-label">5 · Para a sugestão, quer escolher uma marca?</span>
-      <div class="type-btns" id="brandPrefBtns">
-        <button class="type-btn on" data-pref="auto" onclick="setBrandPref(this,'auto')">Não, escolha por mim</button>
-        <button class="type-btn" data-pref="marca" onclick="setBrandPref(this,'marca')">Sim, eu escolho</button>
-      </div>
-      <div id="brandPrefMarca" style="display:none;margin-top:12px">
-        <span class="fg-label">Qual marca?</span>
-        <select class="sortsel" id="suggestBrand" style="width:100%" onchange="suggestPref.brand=this.value"></select>
-      </div>
-      <div id="brandPrefStyle" style="margin-top:12px">
-        <span class="fg-label">Estilo de produto</span>
-        <div class="type-btns">
-          <button class="type-btn on" data-style="any" onclick="setStyle(this,'any')">Tanto faz</button>
-          <button class="type-btn" data-style="nacional" onclick="setStyle(this,'nacional')">Nacional (fácil de achar)</button>
-          <button class="type-btn" data-style="premium" onclick="setStyle(this,'premium')">Premium global</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- botão sugerir kit -->
-    <button class="btn-amber" id="suggestBtn" onclick="suggestKit()" style="width:100%;padding:13px;margin-bottom:18px;font-size:.9rem">⚡ Sugerir um kit para esta prova</button>
-
-    <div id="suggestExplain" class="suggest-explain" style="display:none"></div>
-
-    <!-- 2. ALVOS (do Race Fueling ou padrão do clima) -->
-    <div class="targets-bar" id="targetsBar">
-      <div class="tg"><span class="tg-k">Carbo alvo</span><span class="tg-v" id="tgCarbo">—</span><span class="tg-u">g/h</span></div>
-      <div class="tg"><span class="tg-k">Sódio alvo</span><span class="tg-v" id="tgSodio">—</span><span class="tg-u">mg/h</span></div>
-      <div class="tg"><span class="tg-k">Líquido alvo</span><span class="tg-v" id="tgLiquido">—</span><span class="tg-u">ml/h</span></div>
-      <div class="tg"><span class="tg-k">Teto cafeína</span><span class="tg-v" id="tgCaf">—</span><span class="tg-u">mg total</span></div>
-    </div>
-    <p class="targets-src" id="targetsSrc">Alvos de referência pelo clima. Para alvos personalizados, gere seu plano no Race Fueling primeiro.</p>
-
-    <!-- 3. BLOCOS -->
-    <div id="blocks"></div>
-    <button class="btn-ghost" onclick="addBlock()" style="margin-top:12px">+ adicionar bloco</button>
-
-    <!-- 4. HUD TOTAL -->
-    <div class="total-hud" id="totalHud">
-      <div class="th-title">Resumo da prova <span id="thDur"></span></div>
-      <div class="th-grid">
-        <div class="th-cell"><span class="th-k">Carbo total</span><span class="th-v" id="thCarbo">0g</span><span class="th-sub" id="thCarboH">0 g/h</span></div>
-        <div class="th-cell"><span class="th-k">Sódio total</span><span class="th-v" id="thSodio">0mg</span><span class="th-sub" id="thSodioH">0 mg/h</span></div>
-        <div class="th-cell"><span class="th-k">Líquido total</span><span class="th-v" id="thLiquido">0ml</span><span class="th-sub" id="thLiquidoH">0 ml/h</span></div>
-        <div class="th-cell"><span class="th-k">Cafeína total</span><span class="th-v" id="thCaf">0mg</span><span class="th-sub" id="thCafWarn"></span></div>
-      </div>
-      <div id="advice" class="advice"></div>
     </div>
   </div>
-</section>
 
-<!-- 07 NA:CHO RANKING -->
-<section id="nacho">
-  <div class="wrap">
-    <div class="sec-num">07 — RAZÃO Na:CHO</div>
-    <h2>A métrica <em>do cockpit</em></h2>
-    <div class="sec-tech">Na:CHO Ratio</div>
-    <p class="lede">Na:CHO = miligramas de sódio ÷ gramas de carboidrato — a métrica decisiva para o clima brasileiro. <strong style="color:var(--red)">Acima de 10</strong>: adequado para calor intenso (Floripa, Búzios, Brasília no verão). <strong style="color:var(--yellow)">Entre 5 e 10</strong>: clima moderado. <strong style="color:var(--green)">Abaixo de 5</strong>: exige complementar sal por fora — cápsulas de sal ou um eletrólito como o LIQUIDZ.</p>
-    <div class="nacho-scale">
-      <div class="ns-seg" style="--c:var(--green)"><b>&lt; 5</b><span>complementar sódio</span></div>
-      <div class="ns-seg" style="--c:var(--yellow)"><b>5 – 10</b><span>clima moderado</span></div>
-      <div class="ns-seg" style="--c:var(--red)"><b>&gt; 10</b><span>calor intenso</span></div>
-    </div>
-    <div id="rank" style="margin-top:18px"></div>
-    <p style="font-family:var(--mono);font-size:.7rem;color:var(--faint);margin-top:14px">Eletrólitos puros (sem carboidrato, como LIQUIDZ e cápsulas de sal) não entram no ranking de razão — eles são a própria fonte de sódio de complemento.</p>
-  </div>
-</section>
-
-<!-- 08 CHECKLIST — Fase 3 -->
-<section id="checklist">
-  <div class="wrap">
-    <div class="sec-num">08 — CHECKLIST DA PROVA</div>
-    <h2>Leve a <em>lista certa</em></h2>
-    <div class="sec-tech">Pre-Flight Check</div>
-    <p class="lede" style="margin-bottom:20px">Depois de montar o kit acima, gere um PDF com a timeline da prova, a lista de itens para separar, o resumo dos alvos e a análise do cockpit. Salve no celular e confira antes da largada.</p>
-    <button class="btn-amber" onclick="gerarPDF()" style="padding:13px 22px;font-size:.9rem">📄 Baixar checklist em PDF</button>
-    <p style="font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:12px">O PDF reflete o kit que você montou no item 06. Monte ou ajuste o kit antes de gerar.</p>
-  </div>
-</section>
-
-<!-- 09 REFERÊNCIAS + 10 DISCLAIMERS -->
-<section id="refs">
-  <div class="wrap">
-    <div class="sec-num">09 — REFERÊNCIAS &amp; 10 — AVISOS LEGAIS</div>
-    <h2>Fontes &amp; <em>limites</em></h2>
-    <div class="sec-tech">References &amp; Legal</div>
-
-    <div class="disc">
-      <h4>Uso nominativo de marcas</h4>
-      <p>As marcas (Maurten®, Precision Fuel®, Neversecond®, SiS®, Tailwind®, GU®, Skratch Labs®, DUX®, Z2®, Probiótica®, Atlhetica®, LIQUIDZ® e outras) são citadas apenas para identificação técnica comparativa, em uso nominativo (art. 132 da Lei 9.279/96). O LMAeroFit não tem vínculo, patrocínio ou afiliação com nenhum fabricante, e não recebe comissão de marca alguma. Especificações extraídas dos sites oficiais em maio/2026.</p>
-    </div>
-    <div class="disc">
-      <h4>Caráter informativo</h4>
-      <p>Conteúdo educacional e comparativo. Não substitui nutricionista esportivo ou médico do esporte, e não é prescrição. Cada atleta tem tolerância gastrointestinal e necessidades próprias. Consulte um profissional registrado no CRN antes de adotar qualquer estratégia.</p>
-    </div>
-    <div class="disc">
-      <h4>Cuidados clínicos</h4>
-      <p>Pessoas com diabetes, doença renal, hipertensão, gastroparesia, intolerâncias ou alergias devem buscar avaliação médica. Excesso de carboidrato, sódio ou cafeína causa efeitos adversos. Hiponatremia e desconforto GI severo são riscos reais. Teste a nutrição em treino — nunca improvise no dia.</p>
-    </div>
-    <div class="disc">
-      <h4>Acurácia dos dados</h4>
-      <p>Composição coletada dos sites oficiais em maio/2026. Fabricantes mudam fórmula sem aviso. Preços em R$ são estimativas e variam por loja, importação e câmbio. Confira sempre o rótulo antes do uso. Onde o fabricante não publica um dado, o campo aparece como "n/d".</p>
-    </div>
-  </div>
-</section>
+</main>
 
 <footer>
-  <div class="wrap">
-    <div class="tagline">Feito por quem treina, compete e voa.</div>
-    <div class="cols">
-      <div>
-        <h5>Literatura científica</h5>
-        <p class="ref">Jeukendrup AE (2014) — A step towards personalized sports nutrition. Sports Med 44(S1):S25-33.</p>
-        <p class="ref">Jeukendrup AE (2017) — Training the gut for athletes. Sports Med 47(S1):S101-110.</p>
-        <p class="ref">Burke LM et al. (2011) — Carbohydrates for training and competition. J Sports Sci 29(S1):S17-27.</p>
-        <p class="ref">Sutehall S et al. (2020) — Alginate/pectin drink reduces GI distress. Eur J Appl Physiol.</p>
-        <p class="ref">O'Brien WJ, Rowlands DS (2011) — Fructose-maltodextrin ratio &amp; CHO oxidation.</p>
-      </div>
-      <div>
-        <h5>Fabricantes — global</h5>
-        <p class="ref"><a href="https://www.maurten.com" target="_blank" rel="noopener">maurten.com</a></p>
-        <p class="ref"><a href="https://www.precisionhydration.com" target="_blank" rel="noopener">precisionhydration.com</a></p>
-        <p class="ref"><a href="https://never2.com" target="_blank" rel="noopener">never2.com</a></p>
-        <p class="ref"><a href="https://www.scienceinsport.com" target="_blank" rel="noopener">scienceinsport.com</a></p>
-        <p class="ref"><a href="https://tailwindnutrition.com" target="_blank" rel="noopener">tailwindnutrition.com</a></p>
-        <p class="ref"><a href="https://guenergy.com" target="_blank" rel="noopener">guenergy.com</a> · <a href="https://www.skratchlabs.com" target="_blank" rel="noopener">skratchlabs.com</a></p>
-      </div>
-      <div>
-        <h5>Fabricantes — Brasil</h5>
-        <p class="ref"><a href="https://www.duxhumanhealth.com" target="_blank" rel="noopener">duxhumanhealth.com</a></p>
-        <p class="ref"><a href="https://z2performance.com" target="_blank" rel="noopener">z2performance.com</a></p>
-        <p class="ref"><a href="https://www.probiotica.com.br" target="_blank" rel="noopener">probiotica.com.br</a></p>
-        <p class="ref"><a href="https://www.atlheticanutrition.com.br" target="_blank" rel="noopener">atlheticanutrition.com.br</a></p>
-        <p class="ref"><a href="https://www.liquidz.com.br" target="_blank" rel="noopener">liquidz.com.br</a></p>
-      </div>
-    </div>
-    <div class="foot-meta">LMAeroFit · Endurance Performance Lab · <a href="https://lmaerofit.com.br" style="color:var(--dim)">lmaerofit.com.br</a><br>Fuel Lab v1.0 · Dados oficiais maio/2026 · Grátis, sem cadastro, sem patrocínio ou parceria comercial.<br>Orientação educativa · não substitui nutricionista ou médico.</div>
-  </div>
+  <div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · FUEL LAB v2026 · BIRMINGHAM AL</div>
 </footer>
 
-<!-- COMPARE TRAY -->
-<div class="tray" id="tray">
-  <div class="wrap">
-    <span class="tray-label">Comparar</span>
-    <div class="tray-items" id="trayItems"></div>
-    <button class="btn-amber" id="trayCmp" onclick="openCompare()">Comparar</button>
-    <button class="btn-ghost" onclick="clearSel()">Limpar</button>
-  </div>
-</div>
-
-<!-- COMPARE MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h2 style="margin:0">Comparação</h2>
-      <button class="modal-close" onclick="closeCompare()">✕</button>
-    </div>
-    <div style="overflow-x:auto"><table class="cmp-table" id="cmpTable"></table></div>
-    <p style="font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-top:14px">Verde = melhor valor da métrica entre os selecionados. "n/d" = não publicado pelo fabricante.</p>
-  </div>
-</div>
-
+<script src="./assets/profile.js"></script>
 <script>
-const PRODUTOS = [{"id":"maurten-drink-mix-320","nome":"Maurten Drink Mix 320","marca":"Maurten","tier":1,"tipo":"bebida-po","carbo_g":80,"porcao_g":83,"liquido_ml":500,"ratio_glicose_frutose":"1:0.8","sodio_mg":200,"cafeina_mg":0,"tecnologia":"Hydrogel (alginato de sodio + pectina)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":2.5,"ingredientes":["Maltodextrina","Frutose","Alginato de sodio","Pectina","Sal","Bicarbonato de sodio"],"caso_uso_ideal":"Race-day alta intensidade, prova longa, diluido em 500ml de agua","fonte_url":"https://www.maurten.com/products/drink-mix-320-box-us","fonte_ano":2026,"obs":"Sodio diverge entre fontes (160-200mg); confirmar no rotulo. Sodio deliberadamente baixo - exige complemento eletrolitico externo.","tags_cenario":["hydrogel","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"maurten-drink-mix-160","nome":"Maurten Drink Mix 160","marca":"Maurten","tier":1,"tipo":"bebida-po","carbo_g":40,"porcao_g":42,"liquido_ml":500,"ratio_glicose_frutose":"1:0.8","sodio_mg":160,"cafeina_mg":0,"tecnologia":"Hydrogel (alginato de sodio + pectina)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Maltodextrina","Frutose","Alginato de sodio","Pectina","Sal","Bicarbonato de sodio"],"caso_uso_ideal":"Treino de menor intensidade ou hidratacao em dias quentes, diluido em 500ml","fonte_url":"https://www.maurten.com/products/us/drink-mix-160-box-us","fonte_ano":2026,"obs":"Sodio ~160mg conforme revendedor; confirmar no rotulo oficial.","tags_cenario":["hydrogel","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"maurten-drink-mix-320-caf-100","nome":"Maurten Drink Mix 320 Caf 100","marca":"Maurten","tier":1,"tipo":"bebida-po","carbo_g":80,"porcao_g":83,"liquido_ml":500,"ratio_glicose_frutose":"1:0.8","sodio_mg":200,"cafeina_mg":100,"tecnologia":"Hydrogel (alginato de sodio + pectina)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":2.5,"ingredientes":["Maltodextrina","Frutose","Alginato de sodio","Pectina","Sal","Cafeina","Bicarbonato de sodio"],"caso_uso_ideal":"Race-day alta intensidade com necessidade de cafeina sustentada","fonte_url":"https://www.maurten.com/products/drink-mix-320-caf-100-us","fonte_ano":2026,"obs":"100mg de cafeina por sache.","tags_cenario":["hydrogel","alto-carbo","cafeina"],"formato_logistica":["bike","indoor"]},{"id":"sis-beta-fuel-80-drink","nome":"SiS Beta Fuel 80 (drink mix)","marca":"Science in Sport","tier":1,"tipo":"bebida-po","carbo_g":80,"porcao_g":84,"liquido_ml":500,"ratio_glicose_frutose":"1:0.8","sodio_mg":0,"cafeina_mg":0,"tecnologia":"Dual-source malto+frutose isotonico (maltodextrina 57% + frutose 42%)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":0.0,"ingredientes":["Maltodextrina (de milho)","Frutose","Aromatizantes"],"caso_uso_ideal":"Alto aporte de carbo (80-120g/h) em prova longa, baixo desconforto GI; exige complemento de sodio externo","fonte_url":"https://www.scienceinsport.com/beta-fuel-80","fonte_ano":2026,"obs":"Sache de 84g em 500-600ml. Ratio atual 1:0.8 (substituiu 2:1). SODIO: o Beta Fuel 80 em po praticamente NAO contem sodio (rotulo cita ~20 mmol/L, mas analises independentes apontam ausencia de sal); registrado como 0 - exige reposicao de sodio externa. Vegano, sem gluten, Informed Sport.","tags_cenario":["alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"neversecond-c90-drink","nome":"Neversecond C90 High Carb Drink Mix","marca":"Neversecond","tier":1,"tipo":"bebida-po","carbo_g":90,"porcao_g":null,"liquido_ml":null,"ratio_glicose_frutose":"2:1","sodio_mg":200,"cafeina_mg":0,"tecnologia":"Sistema C-Series modular, pH-neutro isotonico","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":2.22,"ingredientes":["Maltodextrina","Frutose"],"caso_uso_ideal":"Alto aporte de carbo em prova longa, sodio incluido no mix","fonte_url":"https://never2.com/products/c90-high-carb-drink","fonte_ano":2026,"obs":"200mg de sodio por 90g de carbo. Ratio 2:1 malto:frutose.","tags_cenario":["alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"neversecond-c30-drink","nome":"Neversecond C30 Sports Drink","marca":"Neversecond","tier":1,"tipo":"bebida-po","carbo_g":30,"porcao_g":null,"liquido_ml":null,"ratio_glicose_frutose":"2:1","sodio_mg":200,"cafeina_mg":0,"tecnologia":"Sistema C-Series modular, incrementos de 30g","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":6.67,"ingredientes":["Maltodextrina","Frutose"],"caso_uso_ideal":"Dosagem modular escalavel (30g por scoop) com sodio embutido","fonte_url":"https://never2.com/collections/energy-sports-drinks","fonte_ano":2026,"obs":"200mg de sodio por 30g de carbo - boa razao Na:CHO.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"tailwind-endurance-fuel","nome":"Tailwind Endurance Fuel","marca":"Tailwind","tier":2,"tipo":"bebida-po","carbo_g":25,"porcao_g":27,"liquido_ml":350,"ratio_glicose_frutose":"sem-ratio (dextrose + sacarose)","sodio_mg":310,"cafeina_mg":0,"tecnologia":"Carboidratos simples (dextrose+sacarose), baixa osmolalidade","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":12.4,"ingredientes":["Dextrose (glicose)","Sacarose (cana)","Acido citrico","Citrato de sodio","Sal marinho","Cloreto de potassio","Carbonato de calcio","Oxido de magnesio"],"caso_uso_ideal":"Fonte unica (carbo+eletrolitos) escalavel por scoop; alta razao Na:CHO para calor","fonte_url":"https://tailwindnutrition.com/products/endurance-fuel","fonte_ano":2026,"obs":"Por scoop de 27g: 100 kcal, 25g carbo, 310mg sodio. Versao cafeinada tem 35mg cafeina/scoop. Dose padrao 2-3 scoops por 590-710ml.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"tailwind-high-carb","nome":"Tailwind High Carb Fuel","marca":"Tailwind","tier":1,"tipo":"bebida-po","carbo_g":90,"porcao_g":null,"liquido_ml":null,"ratio_glicose_frutose":"sem-ratio (dextrose + frutose + maltodextrina)","sodio_mg":680,"cafeina_mg":0,"tecnologia":"Dupla via de absorcao (dextrose + frutose) + maltodextrina","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":7.56,"ingredientes":["Dextrose (glicose)","Frutose","Maltodextrina"],"caso_uso_ideal":"Maximo aporte de carbo (90g) com sodio alto para prova quente","fonte_url":"https://thefeed.com/products/tailwind-high-carb-fuel","fonte_ano":2026,"obs":"90g carbo, 680mg sodio, 190mg potassio por porcao.","tags_cenario":["quente-alto-sodio","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"gu-roctane-drink-mix","nome":"GU Roctane Energy Drink Mix","marca":"GU","tier":1,"tipo":"bebida-po","carbo_g":59,"porcao_g":65,"liquido_ml":620,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose)","sodio_mg":320,"cafeina_mg":35,"tecnologia":"Carbo + eletrolitos + aminoacidos (BCAA); cafeina em sabores selecionados","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":5.42,"ingredientes":["Maltodextrina","Frutose","Citrato de sodio","Aminoacidos (BCAA, taurina, beta-alanina, histidina)","Cloreto de sodio"],"caso_uso_ideal":"Fueling liquido completo (carbo+eletrolitos+aminoacidos) para prova longa","fonte_url":"https://guenergy.com/products/roctane-energy-drink-mix","fonte_ano":2026,"obs":"Por porcao: 250 kcal, 59-60g carbo, 320mg sodio, 1900mg aminoacidos, 35mg cafeina (apenas em sabores selecionados, ex. Summit Tea). Diluir 1 porcao em ~620ml (21 oz). Sabores sem cafeina existem (cafeina = 0).","tags_cenario":["quente-alto-sodio","cafeina"],"formato_logistica":["bike","indoor"]},{"id":"gu-roctane-gel","nome":"GU Roctane Energy Gel","marca":"GU","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":32,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose)","sodio_mg":125,"cafeina_mg":35,"tecnologia":"Gel com ate 3x o sodio e BCAA do GU Original; cafeina varia por sabor","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":5.68,"ingredientes":["Maltodextrina","Frutose","Aminoacidos (BCAA, taurina, beta-alanina)","Citrato de sodio","Cloreto de sodio"],"caso_uso_ideal":"Prova longa, aporte de carbo + aminoacidos + sodio elevado","fonte_url":"https://guenergy.com/products/roctane-energy-gel","fonte_ano":2026,"obs":"VARIA POR SABOR. Valores tipicos: ~22g carbo, ~125mg sodio por sache de 32g. Cafeina varia (0, 35mg, ou 70mg no Cold Brew Coffee). Roctane tem ate 3x o sodio/BCAA do GU Original. Confirmar sabor especifico no rotulo.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-loadup-original-25","nome":"Z2 LoadUp Original 25","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":100,"cafeina_mg":0,"tecnologia":"Blend malto:frutose 1:0.8, textura liquida","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Agua","Maltodextrina","D-Frutose","Citrato trissodico","Acido citrico","Sorbato de potassio"],"caso_uso_ideal":"Energia ultrarrapida, treinos curtos, consumo frequente","fonte_url":"https://z2performance.com/products/zpp-energy-gel-z2-original-sache-40g","fonte_ano":2026,"obs":"Sache 40g contendo 25g carbo. Sem cafeina, sem gluten.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-loadup-original-40","nome":"Z2 LoadUp Original 40","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":40,"porcao_g":55,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":100,"cafeina_mg":0,"tecnologia":"Blend malto:frutose 1:0.8, textura liquida","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":2.5,"ingredientes":["Maltodextrina","D-Frutose","Agua","Citrato trissodico","Acido citrico","Sorbato de potassio"],"caso_uso_ideal":"Provas longas, maior densidade energetica por gel (40g)","fonte_url":"https://z2performance.com/products/zpp-energy-gel-z2-original-sache-55g","fonte_ano":2026,"obs":"Sache 55g contendo 40g carbo. Sem cafeina, sem gluten.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-loadup-caf-25","nome":"Z2 LoadUp Cafeina 25 (MPR)","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":100,"cafeina_mg":100,"tecnologia":"Blend malto:frutose 1:0.8 + cafeina","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Agua","Maltodextrina","D-Frutose","Cafeina","Citrato trissodico","Aromatizantes","Acido citrico","Sorbato de potassio"],"caso_uso_ideal":"Treinos intensos e longos com necessidade de foco (cafeina)","fonte_url":"https://z2performance.com/products/energy-gel-z2-original-mpr-sache-40g-25carb","fonte_ano":2026,"obs":"100mg cafeina, sem gluten.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-everyday-25","nome":"Z2 Everyday (Tropical Fruit)","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"2:1:1 (malto:frutose:isomaltulose)","sodio_mg":100,"cafeina_mg":0,"tecnologia":"Blend tradicional Z2 2:1:1 com isomaltulose","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Agua","Maltodextrina","D-Frutose","Isomaltulose","Citrato trissodico","Aromatizante","Acido citrico","Sorbato de potassio"],"caso_uso_ideal":"Energia rapida e prolongada (3 fontes de carbo) para treino diario","fonte_url":"https://z2performance.com/products/energy-gel-z2-tropical-fruit-sache-40g-25carb","fonte_ano":2026,"obs":"Linha Everyday: 25g carbo, 100mg sodio, sem gluten.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-everyday-pitaya","nome":"Z2 Everyday Pitaya (alto sodio)","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"2:1:1 (malto:frutose:isomaltulose)","sodio_mg":300,"cafeina_mg":0,"tecnologia":"Blend tradicional Z2 2:1:1, maior teor de sodio da linha Everyday","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":12.0,"ingredientes":["Agua","Maltodextrina","D-Frutose","Isomaltulose","Citrato trissodico","Aromatizante","Acido citrico","Sorbato de potassio"],"caso_uso_ideal":"Provas/treinos em calor; alta razao Na:CHO para reposicao de sodio","fonte_url":"https://z2performance.com/products/energy-gel-z2-pitaya-sache-40g","fonte_ano":2026,"obs":"300mg sodio - maior da linha Everyday.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-gameday-double-expresso","nome":"Z2 Gameday Double Expresso","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"2:1:1 (malto:frutose:isomaltulose)","sodio_mg":100,"cafeina_mg":200,"tecnologia":"Blend Z2 2:1:1 + cafeina + taurina","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Agua","Maltodextrina","D-Frutose","Isomaltulose","Taurina","Cafe soluvel","Cacau em po","Cafeina","Citrato trissodico","Aromatizantes","Sorbato de potassio"],"caso_uso_ideal":"Maxima estimulacao (200mg cafeina + 500mg taurina) em prova longa","fonte_url":"https://z2performance.com/products/energy-gel-z2-double-expresso-sache-40g-1","fonte_ano":2026,"obs":"200mg cafeina, 500mg taurina, 100mg sodio.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-power-powder-original","nome":"Z2 Power Powder Original","marca":"Z2 Performance","tier":3,"tipo":"bebida-po","carbo_g":84,"porcao_g":90,"liquido_ml":625,"ratio_glicose_frutose":"1:0.8:0.2 (malto:frutose:isomaltulose)","sodio_mg":309,"cafeina_mg":0,"tecnologia":"Po de carboidrato multi-fonte para diluir em agua, alta carga/hora","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":3.68,"ingredientes":["Maltodextrina","Frutose","Isomaltulose (Palatinose)","Cloreto de sodio","Acido citrico","Dioxido de silicio","Citrato de sodio","Aromatizante"],"caso_uso_ideal":"Maximo carbo/hora liquido (84g) para ciclismo/triatlo; combinar com geis Z2 para passar de 100g/h","fonte_url":"https://z2performance.com/products/energy-drink-power-powder-z2-original-900g","fonte_ano":2026,"obs":"Dose 90g (3 scoops) em 500-750ml: 84g carbo, 309mg sodio. Sem gluten. Versao sache 45g rende 42g carbo / 155mg sodio.","tags_cenario":["quente-alto-sodio","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"z2-power-powder-lime-zest","nome":"Z2 Power Powder Lime Zest (alto eletrolito)","marca":"Z2 Performance","tier":3,"tipo":"bebida-po","carbo_g":84,"porcao_g":90,"liquido_ml":700,"ratio_glicose_frutose":"1:0.8:0.2 (malto:frutose:isomaltulose)","sodio_mg":750,"cafeina_mg":0,"tecnologia":"Po de carboidrato multi-fonte com perfil eletrolitico reforcado","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":8.93,"ingredientes":["Maltodextrina","Frutose","Isomaltulose (Palatinose)","Cloreto de sodio","Acido citrico","Dioxido de silicio","Citrato de sodio","Aromatizante"],"caso_uso_ideal":"Carbo alto + sodio alto para prova quente; alta razao Na:CHO","fonte_url":"https://z2performance.com/products/z2-energy-drink-power-powder-lime-zest-900g-1","fonte_ano":2026,"obs":"Por dose: 84g carbo, 750mg sodio, 250mg potassio, 63mg magnesio, 180mg calcio. Diluir 90g em 500-910ml. Variante Z2+ Grape Express: 80g carbo, 500mg sodio, 200mg cafeina (registrar separado se incluir).","tags_cenario":["quente-alto-sodio","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"dux-energy-gel","nome":"DUX Energy Gel","marca":"DUX","tier":3,"tipo":"gel","carbo_g":22,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (sacarose invertida + maltodextrina + isomaltulose)","sodio_mg":153,"cafeina_mg":0,"tecnologia":"Biotecnologia enzimatica Zyma (sacarose invertida)","disponibilidade_br":"e-commerce-br","preco_brl_medio":12.26,"razao_na_cho":6.95,"ingredientes":["Sacarose invertida enzimatica","Maltodextrina","Agua","Isomaltulose","Taurina","Acido ascorbico (vit C)","Citrato de potassio","Citrato trissodico","Goma alfarroba","Goma xantana"],"caso_uso_ideal":"Energia em prova/treino; 250mg taurina + vit C, sem cafeina","fonte_url":"https://www.duxhumanhealth.com/energy-gel/p","fonte_ano":2026,"obs":"22g carbo em 30g; 153mg sodio; 250mg taurina; sem gluten, sem lactose, vegano. Preco ~R$12,26/porcao (caixa 10un R$122,55 oficial).","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"dux-energy-gel-cafeina","nome":"DUX Energy Gel Cafeina","marca":"DUX","tier":3,"tipo":"gel","carbo_g":22,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (sacarose invertida + maltodextrina + isomaltulose)","sodio_mg":153,"cafeina_mg":85,"tecnologia":"Biotecnologia enzimatica Zyma (sacarose invertida)","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":6.95,"ingredientes":["Sacarose invertida enzimatica","Maltodextrina","Agua","Isomaltulose","Taurina","Cafeina","Acido ascorbico (vit C)","Citrato de potassio","Citrato trissodico","Goma alfarroba","Goma xantana"],"caso_uso_ideal":"Energia + 85mg cafeina para foco; 250mg taurina","fonte_url":"https://www.duxhumanhealth.com/energy-gel-cafeina-30g/p","fonte_ano":2026,"obs":"Mesma base do Energy Gel + 85mg cafeina por dose.","tags_cenario":["quente-alto-sodio","cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"probiotica-carbup-gel","nome":"Probiotica Carb-Up Gel Super Formula","marca":"Probiotica","tier":3,"tipo":"gel","carbo_g":20,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose + dextrose)","sodio_mg":85,"cafeina_mg":0,"tecnologia":"Blend de carboidratos de rapida absorcao + eletrolitos","disponibilidade_br":"loja-nacional","preco_brl_medio":null,"razao_na_cho":4.25,"ingredientes":["Maltodextrina","Frutose","Dextrose","Sodio","Potassio","Magnesio"],"caso_uso_ideal":"Gel nacional acessivel para pre/intra-treino","fonte_url":"https://www.probiotica.com.br/carb-up-gel-super-formula-10-saches-c--30g/p","fonte_ano":2026,"obs":"20-21g carbo, 85mg sodio, 60mg potassio por sache de 30g. Versao Tropical tem 150mg cafeina (registrar separado se incluir).","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"probiotica-carbup-po","nome":"Probiotica Carb-Up Super Formula (po)","marca":"Probiotica","tier":3,"tipo":"bebida-po","carbo_g":44,"porcao_g":50,"liquido_ml":250,"ratio_glicose_frutose":"sem-ratio (malto + dextrose + waxy maize + isomaltulose + ribose)","sodio_mg":10,"cafeina_mg":0,"tecnologia":"Multi-fonte de carbo + MCT + vitaminas/minerais","disponibilidade_br":"loja-nacional","preco_brl_medio":null,"razao_na_cho":0.23,"ingredientes":["Maltodextrina","Dextrose","Waxy maize","Xarope de glicose","Isomaltulose","MCT","D-Ribose","Vitaminas e minerais","Acido citrico"],"caso_uso_ideal":"Carbo em po nacional para diluir; pre/intra/pos-treino. Sodio muito baixo - exige complemento","fonte_url":"https://www.probiotica.com.br/carb-up-super-formula-800g/p","fonte_ano":2026,"obs":"Porcao 50g (2 medidas) em 250ml: 177 kcal, 44g carbo, 14g acucares, 9,8mg sodio, 49mg magnesio, 75mg potassio + vit C/complexo B. CONTEM LACTOSE. Sodio quase nulo - nao serve para reposicao de sodio.","tags_cenario":["sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"atlhetica-isotonic-drink","nome":"Atlhetica Go! Isotonic Drink (po)","marca":"Atlhetica","tier":3,"tipo":"bebida-po","carbo_g":28,"porcao_g":30,"liquido_ml":400,"ratio_glicose_frutose":"sem-ratio (sacarose + dextrose + maltodextrina + frutose)","sodio_mg":214,"cafeina_mg":0,"tecnologia":"Repositor hidroeletrolitico em po (Carbo Blend)","disponibilidade_br":"loja-nacional","preco_brl_medio":null,"razao_na_cho":7.64,"ingredientes":["Sacarose","Dextrose desidratada","Maltodextrina","Frutose","Cloreto de sodio","Citrato de potassio","Vitamina C (acido ascorbico)","Acido citrico"],"caso_uso_ideal":"Reposicao de carbo + eletrolitos diluido em agua; boa razao Na:CHO para hidratacao","fonte_url":"https://www.atlheticanutrition.com.br/go-isotonic-drink-lima-limao-6394/p","fonte_ano":2026,"obs":"Porcao 30g em 400ml: 112 kcal, 28g carbo, 214mg sodio, 61mg potassio, 328mg cloro + vit C. Sem gluten, isento de lactose.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"skratch-super-high-carb","nome":"Skratch Labs Super High-Carb Sport Drink Mix","marca":"Skratch Labs","tier":1,"tipo":"bebida-po","carbo_g":100,"porcao_g":105,"liquido_ml":500,"ratio_glicose_frutose":"sem-ratio (Cluster Dextrin + frutose)","sodio_mg":400,"cafeina_mg":0,"tecnologia":"Cluster Dextrin (dextrina ciclica altamente ramificada) + frutose, baixa osmolalidade","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":4.0,"ingredientes":["Cluster Dextrin (dextrina ciclica ramificada)","Frutose","Acido citrico","Citrato de sodio","Oleo de limao","Oleo de lima","Suco de limao","Suco de lima"],"caso_uso_ideal":"Maximo aporte de carbo liquido (ate 100g) em prova longa, fueling so de bebida; vegano","fonte_url":"https://www.skratchlabs.com/products/super-high-carb-sport-drink-mix","fonte_ano":2026,"obs":"Produto ESCALAVEL: porcao cheia 7 scoops = 100g carbo / 400 kcal / 400mg sodio em ~500ml. Sache individual = 50g carbo / 200 kcal / 200mg sodio. Ajustar dose conforme necessidade. Sem gluten, sem lactose, non-GMO, kosher.","tags_cenario":["quente-alto-sodio","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"liquidz-eletrolitos","nome":"LIQUIDZ (repositor de eletrolitos)","marca":"LIQUIDZ","tier":3,"tipo":"bebida-po","carbo_g":1,"porcao_g":5,"liquido_ml":500,"ratio_glicose_frutose":"sem-ratio (sem carboidrato relevante)","sodio_mg":354,"cafeina_mg":0,"tecnologia":"Eletrolitos a base de agua de coco, zero acucar, com estevia","disponibilidade_br":"e-commerce-br","preco_brl_medio":7.49,"razao_na_cho":null,"ingredientes":["Citrato de sodio","Preparado de agua de coco","Citrato de potassio","Bisglicinato de magnesio","Oxido de magnesio","Hidroxido de magnesio","Acido citrico","Aroma natural","Fosfato tricalcico","Estevia"],"caso_uso_ideal":"Fonte de sodio/eletrolitos (analogo nacional ao Z-Caps) para complementar geis de baixo sodio; nao fornece energia","fonte_url":"https://www.liquidz.com.br/","fonte_ano":2026,"obs":"NAO E FONTE DE CARBO: por stick (sabor Limonada Tropical, em 500ml) = 354mg sodio, 235mg potassio, 65mg magnesio, ~1g carbo, 4-5 kcal, zero acucar. Funciona como repositor de eletrolitos puro. Razao Na:CHO nao aplicavel (carbo ~0). Preco ~R$7,49/stick (caixa 14 un R$104,90). Possui edicao IRONMAN Brasil.","tags_cenario":["quente-alto-sodio","sem-cafeina","eletrolito"],"formato_logistica":["bike","indoor"]},{"id":"dobro-bt-gel","nome":"Dobro BT Gel (sem cafeína)","marca":"Dobro","tier":3,"tipo":"gel","carbo_g":20,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope tapioca + beterraba + palatinose)","sodio_mg":46,"cafeina_mg":0,"tecnologia":"Gel 100% natural à base de palatinose, vegano","disponibilidade_br":"e-commerce-br","preco_brl_medio":8.99,"razao_na_cho":2.3,"ingredientes":["Xarope de tapioca","Isomaltulose (Palatinose)","Beterraba em pó","Cloreto de sódio","Sulfato de magnésio","Citrato de potássio","Ácido cítrico"],"caso_uso_ideal":"Gel natural vegano, carbo de absorção rápida/média/lenta","fonte_url":"https://www.amazon.com.br/Dobro-Carboidrato-sabor-Beterraba-Laranja/dp/B0985F4F81","fonte_ano":2026,"obs":"20g carbo, 46mg sódio, 63mg magnésio, 80kcal. Vegano, sem corantes/conservantes. Carbo de tapioca+beterraba+palatinose.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"dobro-bt-gel-caf","nome":"Dobro BT Gel Cafeína (guaraná)","marca":"Dobro","tier":3,"tipo":"gel","carbo_g":20,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope tapioca + beterraba + palatinose)","sodio_mg":46,"cafeina_mg":75,"tecnologia":"Gel natural à base de palatinose + cafeína do guaraná, vegano","disponibilidade_br":"e-commerce-br","preco_brl_medio":8.99,"razao_na_cho":2.3,"ingredientes":["Xarope de tapioca","Isomaltulose (Palatinose)","Beterraba em pó","Cafeína natural (guaraná)","Cloreto de sódio","Sulfato de magnésio","Citrato de potássio","Ácido cítrico"],"caso_uso_ideal":"Gel natural vegano com 75mg cafeína do guaraná","fonte_url":"https://www.amazon.com.br/Dobro-Carboidrato-Beterraba-Cafe%C3%ADna-Natural/dp/B098583YKN","fonte_ano":2026,"obs":"20g carbo, 46mg sódio, 75mg cafeína natural do guaraná. Vegano.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"dobro-bt-nitrato-gel","nome":"Dobro BT Nitrato Gel 400 (cafeína)","marca":"Dobro","tier":3,"tipo":"gel","carbo_g":20,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + beterraba)","sodio_mg":null,"cafeina_mg":75,"tecnologia":"Gel com 400mg nitrato de beterraba + cafeína","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Beterraba em pó","Glicose de milho","Nitrato (beterraba)","Cloreto de sódio","Bisglicinato de magnésio","Cafeína","Ácido cítrico"],"caso_uso_ideal":"Gel com nitrato (400mg) para eficiência de O2 + 75mg cafeína","fonte_url":"https://www.supletotal.com.br/endurance/bt-nitrato-400-gel-carboidrato-1-sache-beterraba-dobro-todos-sabores","fonte_ano":2026,"obs":"20g carbo, 400mg nitrato de beterraba, 40mg magnésio, 40mg potássio, 75mg cafeína. Sódio por porção não publicado claramente.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"dobro-carbs-gel","nome":"Dobro Carbs Gel (sem cafeína)","marca":"Dobro","tier":3,"tipo":"gel","carbo_g":null,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + glicose + frutose)","sodio_mg":null,"cafeina_mg":0,"tecnologia":"Gel fluído de maltodextrina + eletrólitos","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Glicose de milho","Frutose","Cloreto de sódio","Ácido cítrico","Estévia"],"caso_uso_ideal":"Gel simples e leve de maltodextrina","fonte_url":"https://www.corpoevidashop.com.br/carbs-gel-sem-cafeina-30g-dobro","fonte_ano":2026,"obs":"Linha econômica. Carbo e sódio por porção não publicados em fonte oficial clara — confirmar rótulo.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"integral-vo2-c30-caf","nome":"Integralmedica VO2 Energy Gel C30 Cafeína","marca":"Integralmedica","tier":3,"tipo":"gel","carbo_g":30,"porcao_g":45,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":106,"cafeina_mg":85,"tecnologia":"Gel malto+frutose 1:0.8 + cafeína, sem palatinose","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":3.53,"ingredientes":["Maltodextrina","D-Frutose","Cafeína","Cloreto de sódio","Citrato trissódico","Ácido cítrico","Sorbato de potássio"],"caso_uso_ideal":"Gel 30g de carbo com 85mg cafeína, ratio 1:0.8","fonte_url":"https://www.integralmedica.com.br/energy-gel-vo2-c30-com-cafeina/p","fonte_ano":2026,"obs":"30g carbo, 106mg sódio, 85mg cafeína por sachê de 45g. Ratio 1:0.8, sem glúten. Sabores Chocolate, Double Espresso, Salted Caramel.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"integral-vo2-c30","nome":"Integralmedica VO2 Energy Gel C30 (sem cafeína)","marca":"Integralmedica","tier":3,"tipo":"gel","carbo_g":30,"porcao_g":45,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":106,"cafeina_mg":0,"tecnologia":"Gel malto+frutose 1:0.8, sem palatinose","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":3.53,"ingredientes":["Maltodextrina","D-Frutose","Cloreto de sódio","Citrato trissódico","Ácido cítrico","Sorbato de potássio"],"caso_uso_ideal":"Gel 30g de carbo, ratio 1:0.8, sem cafeína","fonte_url":"https://www.integralmedica.com.br/energy-gel-vo2-c30/p","fonte_ano":2026,"obs":"30g carbo, ~106mg sódio por sachê de 45g. Ratio 1:0.8, sem glúten.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"integral-vo2-xcaffeine","nome":"Integralmedica VO2 Gel X-Caffeine","marca":"Integralmedica","tier":3,"tipo":"gel","carbo_g":null,"porcao_g":null,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (blend)","sodio_mg":null,"cafeina_mg":null,"tecnologia":"Blend de carbo + cafeína + taurina + eletrólitos","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Frutose","Cafeína","Taurina","Sódio","Potássio"],"caso_uso_ideal":"Gel com cafeína + taurina para foco em treino/prova","fonte_url":"https://www.easysuplementos.com.br/carboidratos/2529-vo2-gel-x-caffeine-10-saches-integralmedica.html","fonte_ano":2026,"obs":"Blend carbo + cafeína + taurina + sódio/potássio. Valores exatos por porção não publicados claramente — confirmar rótulo.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"exceed-energy-gel","nome":"Exceed Energy Gel (sem cafeína)","marca":"Exceed","tier":3,"tipo":"gel","carbo_g":21,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope glicose + maltodextrina)","sodio_mg":null,"cafeina_mg":0,"tecnologia":"Carbo simples+complexo + vitaminas C/E + sódio","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Xarope de glicose","Maltodextrina","Cloreto de sódio","Citrato de sódio","Cloreto de potássio","Vitamina C","Vitamina E","Ácido cítrico"],"caso_uso_ideal":"Gel acessível com vitaminas antioxidantes, vegano","fonte_url":"https://www.tsnsuplementos.com.br/exceed-energy-gel-10sac-x-30g-exceed-727-p1459","fonte_ano":2026,"obs":"21g carbo, vit C/E + sódio por sachê de 30g. Maior variedade de sabores do mercado. Sódio por porção não especificado nesta versão.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"exceed-energy-gel-salted","nome":"Exceed Energy Gel Salted (alto sódio)","marca":"Exceed","tier":3,"tipo":"gel","carbo_g":21,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope glicose + maltodextrina)","sodio_mg":125,"cafeina_mg":0,"tecnologia":"Versão salgada com sódio reforçado + vitaminas C/E","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":5.95,"ingredientes":["Xarope de glicose","Maltodextrina","Cacau em pó","Citrato de sódio","Flor de sal","Ácido cítrico","Vitamina C","Vitamina E"],"caso_uso_ideal":"Gel com sódio reforçado (125mg) para reposição em calor","fonte_url":"https://www.bikefanstore.com.br/gel-de-carboidrato-exceed-energy-salted-caramelo-salgado","fonte_ano":2026,"obs":"21g carbo, 125mg sódio (versão Salted). Sabor Chocolate Flor de Sal / Caramelo Salgado.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"exceed-energy-shot-caf","nome":"Exceed Energy Shot Cafeína","marca":"Exceed","tier":3,"tipo":"gel","carbo_g":21,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope glicose + maltodextrina)","sodio_mg":null,"cafeina_mg":40,"tecnologia":"Gel com cafeína (versão Energy Shot)","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Xarope de glicose","Maltodextrina","Cafeína","Cloreto de sódio","Vitamina C","Vitamina E","Ácido cítrico"],"caso_uso_ideal":"Gel com 40mg de cafeína (dose leve)","fonte_url":"https://www.runnershop.com.br/exceed/gel","fonte_ano":2026,"obs":"21g carbo, 40mg cafeína (Energy Shot). Versão Double Espresso tem 70mg cafeína. Sódio por porção não especificado.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"vitafor-endurance-caf","nome":"Vitafor Endurance Caffeine Gel","marca":"Vitafor","tier":3,"tipo":"gel","carbo_g":null,"porcao_g":null,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose + D-ribose)","sodio_mg":57,"cafeina_mg":75,"tecnologia":"Gel fluído com blend de carbo + cafeína + vitaminas, vegano","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Frutose em pó","D-Ribose","Cafeína","Cacau em pó","Vitamina C","Cloreto de sódio","Vitaminas B3/B6/B12","Selênio","Citrato de sódio","Citrato de potássio"],"caso_uso_ideal":"Gel vegano com cafeína (75mg) + vitaminas do complexo B","fonte_url":"https://www.easysuplementos.com.br/energia/2139-endurance-caffeine-energy-gel-12-saches-vitafor.html","fonte_ano":2026,"obs":"~57mg sódio (mocha) / 60mg (chocolate belga), 75mg cafeína. Vegano. Carbo por porção não destacado em fonte — confirmar rótulo. Sabores Mocha, Chocolate Belga, Limão.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"z2-loadup-caf-40","nome":"Z2 LoadUp Cafeína 40","marca":"Z2 Performance","tier":3,"tipo":"gel","carbo_g":40,"porcao_g":55,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":100,"cafeina_mg":100,"tecnologia":"Blend malto:frutose 1:0.8 + cafeína, dose alta de carbo","disponibilidade_br":"e-commerce-br","preco_brl_medio":null,"razao_na_cho":2.5,"ingredientes":["Maltodextrina","D-Frutose","Água","Cafeína","Citrato trissódico","Aromatizantes","Ácido cítrico","Sorbato de potássio"],"caso_uso_ideal":"Maior dose de carbo (40g) + 100mg cafeína para prova longa","fonte_url":"https://z2performance.com/products/energy-gel-z2-original-sache-55g-40carb","fonte_ano":2026,"obs":"40g carbo, 100mg sódio, 100mg cafeína por sachê de 55g. Blend 1:0.8.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"probiotica-carbup-gel-black","nome":"Probiótica Carb-Up Gel Black","marca":"Probiotica","tier":3,"tipo":"gel","carbo_g":18,"porcao_g":30,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + waxy maize)","sodio_mg":null,"cafeina_mg":8,"tecnologia":"Gel energético com Energy Blend (cafeína+taurina+guaraná-like+vit B)","disponibilidade_br":"loja-nacional","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Waxy maize","Taurina (93mg)","Glucoronolactona (58mg)","Cafeína (8mg)","Inositol","Vitaminas B2/B6/B12","Niacina"],"caso_uso_ideal":"Gel energético leve (18g) com blend estimulante (taurina+cafeína)","fonte_url":"https://www.probiotica.com.br/carb-up-gel-black-10-saches-c--30g/p","fonte_ano":2026,"obs":"18g carbo, 72 kcal, 93mg taurina, apenas 8mg cafeína por sachê de 30g. Sódio por porção não publicado claramente.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"probiotica-carbup-gum","nome":"Probiótica Carb-Up Gum (goma)","marca":"Probiotica","tier":3,"tipo":"goma","carbo_g":21,"porcao_g":null,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio","sodio_mg":128,"cafeina_mg":0,"tecnologia":"Balas/gomas energéticas resistentes ao calor","disponibilidade_br":"loja-nacional","preco_brl_medio":null,"razao_na_cho":6.1,"ingredientes":["Carboidratos","Sódio","Eletrólitos"],"caso_uso_ideal":"Gomas mastigáveis para carbo+sódio em prova longa; resistem ao calor","fonte_url":"https://www.probiotica.com.br/carb-up-gum/p","fonte_ano":2026,"obs":"Porção de 6 gomas: 21g carbo, 128mg sódio. Resistente ao calor, boa pra triatlo.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"226ers-high-fructose-80","nome":"226ers High Fructose Gel 80g","marca":"226ers","tier":1,"tipo":"gel","carbo_g":55,"porcao_g":80,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":250,"cafeina_mg":0,"tecnologia":"Gel alto-carbo malto:frutose 1:0.8, selo Cologne List, vegano","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":4.55,"ingredientes":["Maltodextrina","Frutose","Água","Sal","Aroma natural","Ácido cítrico","Sorbato de potássio"],"caso_uso_ideal":"Gel de altíssimo carbo (55g) para bater metas de 90g+/h","fonte_url":"https://www.226ers.com/en/products/high-fructose-gel-energy-gel-80g-220566","fonte_ano":2026,"obs":"55g carbo, 250mg sódio, 220kcal por gel de 80g. Ratio 1:0.8. Vegano, sem glúten, selo Cologne List antidoping.","tags_cenario":["alto-carbo","sem-cafeina"],"formato_logistica":["bike","corrida","indoor"]},{"id":"226ers-high-fructose-44","nome":"226ers High Fructose Gel XS 44g","marca":"226ers","tier":1,"tipo":"gel","carbo_g":30,"porcao_g":44,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":140,"cafeina_mg":0,"tecnologia":"Versão XS do High Fructose, dose menor","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":4.67,"ingredientes":["Maltodextrina","Frutose","Água","Sal","Aroma natural","Ácido cítrico","Sorbato de potássio"],"caso_uso_ideal":"Dose intermediária (30g) com ratio 1:0.8","fonte_url":"https://www.226ers.com/en-eu/products/high-fructose-gel-xs-44g-220686","fonte_ano":2026,"obs":"30g carbo, 140mg sódio por stick XS de 44g. Versão com cafeína tem 55mg.","tags_cenario":["sem-cafeina"],"formato_logistica":["bike","corrida","indoor"]},{"id":"226ers-high-energy-76","nome":"226ers High Energy Gel 76g (cafeína)","marca":"226ers","tier":1,"tipo":"gel","carbo_g":50,"porcao_g":76,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (Cluster Dextrin + glicose + sacarose)","sodio_mg":null,"cafeina_mg":160,"tecnologia":"Gel com Cluster Dextrin + BCAA + cafeína","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Cluster Dextrin","Xarope de glicose","Sacarose","BCAA","Cafeína","Cloreto de sódio","Gellan gum"],"caso_uso_ideal":"Gel alto-carbo com Cluster Dextrin + 160mg cafeína (dose forte)","fonte_url":"https://www.226ers.com/en/high-energy-gel-76g-62291-48922.html","fonte_ano":2026,"obs":"50g carbo + BCAA por gel de 76g. Versão cereja 160mg cafeína; café 80mg. Sódio por porção não destacado.","tags_cenario":["alto-carbo","cafeina"],"formato_logistica":["bike","corrida","indoor"]},{"id":"226ers-isotonic-68","nome":"226ers Isotonic Gel 68g","marca":"226ers","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":68,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (Cluster Dextrin + malto + arroz + frutose)","sodio_mg":null,"cafeina_mg":0,"tecnologia":"Gel isotônico com Cluster Dextrin — não precisa de água","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Água","Maltodextrina","Cluster Dextrin","Amido de arroz","Frutose","Ácido cítrico","Citrato de sódio","Gellan gum","Estévia","Cloreto de sódio"],"caso_uso_ideal":"Gel isotônico que dispensa água — prático em prova longa","fonte_url":"https://www.laprimafit.com/en/energy/226ers-isotonic-energy-gel","fonte_ano":2026,"obs":"22g carbo (só 1.4g açúcar), 89kcal, isotônico (não requer água). Cluster Dextrin. Sabor Cola = 100mg cafeína. Sódio não destacado.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor","natacao"]},{"id":"226ers-isotonic-caf-68","nome":"226ers Isotonic Gel Cola (cafeína)","marca":"226ers","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":68,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (Cluster Dextrin + malto + frutose)","sodio_mg":null,"cafeina_mg":100,"tecnologia":"Gel isotônico Cluster Dextrin + cafeína — não precisa água","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Água","Maltodextrina","Cluster Dextrin","Frutose","Cafeína","Ácido cítrico","Citrato de sódio","Gellan gum","Cloreto de sódio"],"caso_uso_ideal":"Gel isotônico com 100mg cafeína, dispensa água","fonte_url":"https://www.226ers.com/en/products/isotonic-gel-68g-62304","fonte_ano":2026,"obs":"22g carbo, 100mg cafeína (sabor Cola) por stick de 68g. Isotônico.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor","natacao"]},{"id":"226ers-bio-energy-25","nome":"226ers Bio Energy Gel 25g","marca":"226ers","tier":1,"tipo":"gel","carbo_g":null,"porcao_g":25,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (xarope de trigo + fruta)","sodio_mg":null,"cafeina_mg":25,"tecnologia":"Gel BIO/orgânico com ingredientes de agricultura ecológica","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Xarope de trigo sem glúten (orgânico)","Morango em pó","Sal marinho","Cloreto de potássio","Aroma natural"],"caso_uso_ideal":"Gel orgânico compacto (25g), opção natural com cafeína leve","fonte_url":"https://www.226ers.com/en/bio-energy-gel-25gr-tub-61558.html","fonte_ano":2026,"obs":"Gel BIO de 25g. Versão Forest Fruit 100mg cafeína; morango/banana 25mg. Carbo/sódio por porção não destacados.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"maurten-gel-100","nome":"Maurten Gel 100","marca":"Maurten","tier":1,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"0.8:1","sodio_mg":22,"cafeina_mg":0,"tecnologia":"Hydrogel (alginato + pectina), 6 ingredientes","disponibilidade_br":"importacao","preco_brl_medio":32.0,"razao_na_cho":0.88,"ingredientes":["Água","Glicose","Frutose","Alginato de sódio","Ácido glucônico","Carbonato de cálcio"],"caso_uso_ideal":"Gel hydrogel referência, baixo risco GI, 25g carbo","fonte_url":"https://www.maurten.com/products/gel-100-box-us","fonte_ano":2026,"obs":"25g carbo, 22mg sódio, 6.4mg cálcio por sachê de 40g. Ratio glicose:frutose 0.8:1. Sem aromas/corantes.","tags_cenario":["hydrogel","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"maurten-gel-100-caf","nome":"Maurten Gel 100 Caf 100","marca":"Maurten","tier":1,"tipo":"gel","carbo_g":25,"porcao_g":40,"liquido_ml":0,"ratio_glicose_frutose":"0.8:1","sodio_mg":22,"cafeina_mg":100,"tecnologia":"Hydrogel + 100mg cafeína","disponibilidade_br":"importacao","preco_brl_medio":36.0,"razao_na_cho":0.88,"ingredientes":["Água","Glicose","Frutose","Alginato de sódio","Ácido glucônico","Carbonato de cálcio","Cafeína"],"caso_uso_ideal":"Gel hydrogel com 100mg cafeína (≈1.5 espressos)","fonte_url":"https://www.maurten.com/products/gel-100-caf-100-box-us","fonte_ano":2026,"obs":"25g carbo, 22mg sódio, 100mg cafeína por sachê de 40g. Efeito pico ~45min.","tags_cenario":["hydrogel","cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"maurten-gel-160","nome":"Maurten Gel 160","marca":"Maurten","tier":1,"tipo":"gel","carbo_g":40,"porcao_g":65,"liquido_ml":0,"ratio_glicose_frutose":"0.8:1","sodio_mg":22,"cafeina_mg":0,"tecnologia":"Hydrogel maior, 40g carbo","disponibilidade_br":"importacao","preco_brl_medio":42.0,"razao_na_cho":0.55,"ingredientes":["Água","Glicose","Frutose","Alginato de sódio","Ácido glucônico","Carbonato de cálcio"],"caso_uso_ideal":"Hydrogel de alto carbo (40g) para provas longas","fonte_url":"https://www.maurten.com/products/us/gel-160-us","fonte_ano":2026,"obs":"40g carbo (~160kcal) por sachê. Ratio 0.8:1. Vegano. Sódio baixo (~22mg) — pede sódio externo no calor.","tags_cenario":["hydrogel","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"sis-beta-fuel-gel","nome":"SiS Beta Fuel Gel 40","marca":"Science in Sport","tier":1,"tipo":"gel","carbo_g":40,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":null,"cafeina_mg":0,"tecnologia":"Gel dual-source malto:frutose 1:0.8, pH neutro","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Água","Maltodextrina (milho)","Frutose","Aromas","Ácido cítrico","Citrato de sódio","Gellan gum","Xantana","Cloreto de sódio"],"caso_uso_ideal":"Gel alto-carbo (40g) ratio 1:0.8, baixo desconforto GI","fonte_url":"https://www.scienceinsport.com/us/shop-sis/go-range/beta-fuel","fonte_ano":2026,"obs":"40g carbo por gel de 60ml. Ratio 1:0.8. pH neutro. Vegano. Sódio padrão não destacado (versão +Electrolyte tem 2000mg).","tags_cenario":["alto-carbo","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"sis-beta-fuel-gel-caf","nome":"SiS Beta Fuel + Nootropics Gel","marca":"Science in Sport","tier":1,"tipo":"gel","carbo_g":40,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"1:0.8","sodio_mg":null,"cafeina_mg":200,"tecnologia":"Beta Fuel + cafeína + taurina + teanina + citicolina","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Maltodextrina","Frutose","Citicolina (250mg)","Taurina (1g)","Teanina (200mg)","Cafeína (200mg)"],"caso_uso_ideal":"Gel alto-carbo + blend nootrópico para foco em prova","fonte_url":"https://www.scienceinsport.com/us/shop-sis/go-range/beta-fuel","fonte_ano":2026,"obs":"40g carbo + 250mg citicolina + 1g taurina + 200mg teanina + 200mg cafeína. Dose alta de cafeína — atenção ao acúmulo.","tags_cenario":["alto-carbo","cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"sis-go-isotonic","nome":"SiS Go Isotonic Energy Gel","marca":"Science in Sport","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina)","sodio_mg":null,"cafeina_mg":0,"tecnologia":"1º gel isotônico do mundo — não precisa de água","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Água","Maltodextrina","Aromas","Ácido cítrico","Citrato de sódio","Gellan gum","Sorbato de potássio"],"caso_uso_ideal":"Gel isotônico clássico, dispensa água, fácil digestão","fonte_url":"https://www.scienceinsport.com/us/shop-sis/go-range/go-gels","fonte_ano":2026,"obs":"22g carbo por gel de 60ml. Isotônico (não requer água). Até 10 sabores. Versão +Caffeine tem 75mg cafeína.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor","natacao"]},{"id":"sis-go-caf","nome":"SiS Go Energy + Caffeine Gel","marca":"Science in Sport","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina)","sodio_mg":null,"cafeina_mg":75,"tecnologia":"Go Isotonic + 75mg cafeína","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Água","Maltodextrina","Cafeína","Aromas","Ácido cítrico","Citrato de sódio","Gellan gum"],"caso_uso_ideal":"Gel isotônico com 75mg cafeína, tomar ~10min antes","fonte_url":"https://www.scienceinsport.com/us/shop-sis/go-range/go-gels","fonte_ano":2026,"obs":"22g carbo + 75mg cafeína por gel de 60ml. Isotônico.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor","natacao"]},{"id":"gu-energy-gel","nome":"GU Energy Gel (original)","marca":"GU","tier":1,"tipo":"gel","carbo_g":22,"porcao_g":32,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose)","sodio_mg":60,"cafeina_mg":20,"tecnologia":"Gel clássico malto+frutose + aminoácidos + eletrólitos","disponibilidade_br":"importacao","preco_brl_medio":16.0,"razao_na_cho":2.73,"ingredientes":["Maltodextrina","Frutose","Água","Aminoácidos (BCAA)","Citrato de sódio","Citrato de potássio","Ácido cítrico"],"caso_uso_ideal":"Gel referência de mercado, leve, vários sabores","fonte_url":"https://guenergy.com/products/energy-gel","fonte_ano":2026,"obs":"22g carbo, ~60mg sódio por sachê de 32g. Sabores com cafeína têm 20-40mg; sem cafeína 0mg. Linha original.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"gu-roctane-coldbrew","nome":"GU Roctane Gel Cold Brew (cafeína dupla)","marca":"GU","tier":1,"tipo":"gel","carbo_g":21,"porcao_g":32,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose)","sodio_mg":125,"cafeina_mg":70,"tecnologia":"Roctane sabor café com dose dupla de cafeína","disponibilidade_br":"importacao","preco_brl_medio":22.0,"razao_na_cho":5.95,"ingredientes":["Maltodextrina","Frutose","Água","BCAA","Citrato de sódio","Cafeína","Beta-alanina","Taurina"],"caso_uso_ideal":"Boost forte de cafeína (70mg) + sódio alto em prova longa","fonte_url":"https://guenergy.com/products/roctane-energy-gel","fonte_ano":2026,"obs":"21g carbo, 125mg sódio, 70mg cafeína (dobro dos demais Roctane). Sabor Cold Brew Coffee.","tags_cenario":["quente-alto-sodio","cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"gu-liquid-energy","nome":"GU Liquid Energy Gel","marca":"GU","tier":1,"tipo":"gel","carbo_g":23,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"sem-ratio (maltodextrina + frutose)","sodio_mg":65,"cafeina_mg":0,"tecnologia":"Gel em forma líquida, mais fluido, fácil de engolir","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":2.83,"ingredientes":["Maltodextrina","Frutose","Água","Eletrólitos","Aminoácidos"],"caso_uso_ideal":"Gel fluído fácil de ingerir, mid-long run, versões com/sem cafeína","fonte_url":"https://guenergy.com/products/liquid-energy","fonte_ano":2026,"obs":"~23g carbo por pouch de 60g, textura líquida. Versões com e sem cafeína. Sódio aproximado.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"pf-30-gel","nome":"Precision PF 30 Gel","marca":"Precision Fuel & Hydration","tier":1,"tipo":"gel","carbo_g":30,"porcao_g":51,"liquido_ml":0,"ratio_glicose_frutose":"2:1","sodio_mg":0,"cafeina_mg":0,"tecnologia":"Gel só-carbo 2:1, sem eletrólitos (usar com hidratação à parte)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":0.0,"ingredientes":["Maltodextrina","Água","Frutose","Pectina","Ácido cítrico","Sorbato de potássio","Lactato de cálcio"],"caso_uso_ideal":"Gel limpo de 30g carbo (ratio 2:1), número estampado na embalagem","fonte_url":"https://www.precisionhydration.com/us/en/products/","fonte_ano":2026,"obs":"30g carbo, 120kcal por sachê de 51g. Ratio 2:1. NÃO contém sódio/eletrólitos por design — combinar com hidratação Precision.","tags_cenario":["sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"pf-30-caf-gel","nome":"Precision PF 30 Caffeine Gel","marca":"Precision Fuel & Hydration","tier":1,"tipo":"gel","carbo_g":30,"porcao_g":51,"liquido_ml":0,"ratio_glicose_frutose":"2:1","sodio_mg":0,"cafeina_mg":100,"tecnologia":"PF 30 com 100mg cafeína, sem eletrólitos","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":0.0,"ingredientes":["Maltodextrina","Água","Frutose","Cafeína","Pectina","Ácido cítrico","Lactato de cálcio","Sorbato de potássio"],"caso_uso_ideal":"Gel de 30g carbo + 100mg cafeína, alternar com o PF 30 normal","fonte_url":"https://www.precisionhydration.com/us/en/products/pf-30-caffeine-gel/","fonte_ano":2026,"obs":"30g carbo, 100mg cafeína por sachê de 51g. Ratio 2:1. Sem eletrólitos.","tags_cenario":["cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"pf-60-drink-mix","nome":"Precision PF 60 Drink Mix","marca":"Precision Fuel & Hydration","tier":1,"tipo":"bebida-po","carbo_g":60,"porcao_g":null,"liquido_ml":946,"ratio_glicose_frutose":"2:1","sodio_mg":1000,"cafeina_mg":0,"tecnologia":"Pó com carbo 2:1 + sódio MUITO alto (1000mg/L)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":16.67,"ingredientes":["Maltodextrina","Frutose","Citrato trissódico","Cloreto de potássio","Ácido cítrico","Vitamina C","Cálcio","Magnésio"],"caso_uso_ideal":"Bebida de prova quente: maior razão Na:CHO do banco (16.7)","fonte_url":"https://thefeed.com/products/precision-hydration-pf30-drink-mix","fonte_ano":2026,"obs":"Por 946ml (32oz): 60g carbo + 1000mg sódio. Por scoop: 15g carbo + 250mg sódio. Razão Na:CHO 16.7 — campeã em calor.","tags_cenario":["quente-alto-sodio","alto-carbo","sem-cafeina"],"formato_logistica":["bike","indoor"]},{"id":"neversecond-c30-gel","nome":"Neversecond C30 Energy Gel","marca":"Neversecond","tier":1,"tipo":"gel","carbo_g":30,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"2:1","sodio_mg":200,"cafeina_mg":0,"tecnologia":"Gel isotônico modular, 30g carbo + 200mg sódio fixos","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":6.67,"ingredientes":["Maltodextrina","Frutose","Água","Citrato de sódio","Aroma natural"],"caso_uso_ideal":"Gel com sódio embutido (200mg) — não precisa salt tab à parte","fonte_url":"https://never2.com/products/c30-energy-gel-12ct-60ml","fonte_ano":2026,"obs":"30g carbo + 200mg sódio por gel de 60ml. Ratio 2:1, isotônico, Informed Sport. Sistema modular (tudo em incrementos de 30g/200mg).","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"neversecond-c30-caf","nome":"Neversecond C30+ Caffeine Gel","marca":"Neversecond","tier":1,"tipo":"gel","carbo_g":30,"porcao_g":60,"liquido_ml":0,"ratio_glicose_frutose":"2:1","sodio_mg":200,"cafeina_mg":75,"tecnologia":"C30 + 75mg cafeína, isotônico","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":6.67,"ingredientes":["Maltodextrina","Frutose","Água","Citrato de sódio","Cafeína","Aroma natural"],"caso_uso_ideal":"Gel com sódio alto + 75mg cafeína","fonte_url":"https://never2.com/products/c30-energy-gel-caffeine-12ct-60ml","fonte_ano":2026,"obs":"30g carbo + 200mg sódio + 75mg cafeína por gel de 60ml. Informed Sport.","tags_cenario":["quente-alto-sodio","cafeina"],"formato_logistica":["corrida","bike","indoor"]},{"id":"tailwind-endurance-caf","nome":"Tailwind Endurance Fuel (cafeinado)","marca":"Tailwind","tier":2,"tipo":"bebida-po","carbo_g":25,"porcao_g":null,"liquido_ml":710,"ratio_glicose_frutose":"sem-ratio (dextrose + sacarose)","sodio_mg":310,"cafeina_mg":35,"tecnologia":"Endurance Fuel all-in-one com cafeína orgânica","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":12.4,"ingredientes":["Dextrose (glicose)","Sacarose","Sódio","Potássio","Magnésio","Cálcio","Cafeína orgânica"],"caso_uso_ideal":"Bebida tudo-em-um com cafeína para volume sustentado","fonte_url":"https://www.amazon.com/Tailwind-Nutrition-Caffeinated-Endurance-Raspberry/dp/B016MUEWL4","fonte_ano":2026,"obs":"~25g carbo + 310mg sódio + 35mg cafeína por scoop (sabor Raspberry Buzz). Açúcares simples, baixa osmolalidade.","tags_cenario":["quente-alto-sodio","cafeina"],"formato_logistica":["bike","indoor"]},{"id":"tailwind-rapid-hydration","nome":"Tailwind Rapid Hydration","marca":"Tailwind","tier":2,"tipo":"bebida-po","carbo_g":11,"porcao_g":null,"liquido_ml":500,"ratio_glicose_frutose":"sem-ratio","sodio_mg":null,"cafeina_mg":0,"tecnologia":"Hidratação rápida, baixa caloria (45 kcal/porção)","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":null,"ingredientes":["Glicose","Sódio","Potássio","Magnésio","Cálcio"],"caso_uso_ideal":"Hidratação leve para treinos curtos/menos intensos","fonte_url":"https://tailwindnutrition.com/products/endurance-fuel","fonte_ano":2026,"obs":"~45 kcal/porção (~11g carbo). Foco em eletrólitos, não energia. Pra treino curto/leve.","tags_cenario":["sem-cafeina","eletrolito"],"formato_logistica":["bike","indoor"]},{"id":"skratch-hydration","nome":"Skratch Hydration Sport Drink Mix","marca":"Skratch Labs","tier":1,"tipo":"bebida-po","carbo_g":20,"porcao_g":null,"liquido_ml":500,"ratio_glicose_frutose":"sem-ratio (cana + dextrose)","sodio_mg":400,"cafeina_mg":0,"tecnologia":"Bebida de hidratação com açúcar de cana + fruta real","disponibilidade_br":"importacao","preco_brl_medio":null,"razao_na_cho":20.0,"ingredientes":["Açúcar de cana","Dextrose","Citrato de sódio","Sal marinho","Cloreto de potássio","Óxido de magnésio","Fruta real"],"caso_uso_ideal":"Hidratação 'comida real' com sódio alto, separar fuel da hidratação","fonte_url":"https://www.skratchlabs.com","fonte_ano":2026,"obs":"~80 kcal (~20g carbo) + 400mg sódio por porção. Filosofia: separar hidratação do fuel. Carbo de cana+dextrose + fruta real.","tags_cenario":["quente-alto-sodio","sem-cafeina"],"formato_logistica":["bike","indoor"]}];
-// ===== ESTADO =====
-const state = { tipo:'', sel:[] };
-const TIPO_LABELS={'gel':'Gel','bebida-po':'Pó / diluível','liquido-pronto':'Líquido pronto','barra':'Barra','capsula':'Cápsula','goma':'Goma'};
-const DISP_LABELS={'loja-nacional':'Loja física BR','e-commerce-br':'Comprar online BR','importacao':'Importação'};
-const TIER_COLORS={1:'#ff8a1c',2:'#e8b84a',3:'#7fb069'};
-const TIER_LABELS={1:'Premium global',2:'Mainstream',3:'Brasil'};
+const $ = id => document.getElementById(id);
+const prof = LMA.profile.load();
+LMA.profile.mountBadge($('prof-badge'));
 
-function fmt(v,suf=''){return (v===null||v===undefined)?'<span style="color:var(--faint)">n/d</span>':v+suf;}
-function nachoTxt(p){return (p.razao_na_cho===null||p.razao_na_cho===undefined||p.carbo_g<=2)?'n/d':p.razao_na_cho.toFixed(1);}
-
-// popula a scroll box de marcas (ordenada, com contagem)
-function buildBrands(){
-  const sel=document.getElementById('brandSel');
-  // placeholder no topo (não seleciona marca)
-  const ph=document.createElement('option');
-  ph.value='';ph.textContent='— selecione uma marca —';ph.disabled=true;ph.selected=true;
-  sel.appendChild(ph);
-  const marcas=[...new Set(PRODUTOS.map(p=>p.marca))].sort((a,b)=>a.localeCompare(b));
-  marcas.forEach(m=>{
-    const n=PRODUTOS.filter(p=>p.marca===m).length;
-    const o=document.createElement('option');
-    o.value=m;o.textContent=m+' ('+n+')';
-    sel.appendChild(o);
+let sport = 'bike';
+document.querySelectorAll('#sport-tabs .tab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#sport-tabs .tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); sport = b.dataset.sport; update();
   });
+});
+
+// Popular modalidades (catálogo compartilhado em LMA.modalidades)
+const MOD = LMA.modalidades;
+const catSel = $('cat'), modSel = $('mod');
+catSel.innerHTML = Object.entries(MOD).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+catSel.value = 'triatlo';
+function fillMods(){
+  const cat = catSel.value;
+  modSel.innerHTML = Object.entries(MOD[cat].opts).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  const defaults = {triatlo:'oly', duatlo:'standard', corrida:'21k', bike:'80k', natacao:'3800'};
+  modSel.value = defaults[cat] || Object.keys(MOD[cat].opts)[0];
+  applyPreset();
 }
-function setTipo(btn,tipo){
-  state.tipo=tipo;
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  render();
+function applyPreset(){
+  const m = MOD[catSel.value].opts[modSel.value];
+  const totalMin = (m.swim||0)+(m.t1||0)+(m.run1||0)+(m.bike||0)+(m.t2||0)+(m.run||0);
+  $('dur').value = Math.max(0.5, Math.min(14, +(totalMin/60).toFixed(1)));
+  update();
 }
-function resetTipo(){
-  state.tipo='';
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on',b.dataset.tipo===''));
-  render();
-}
-function onBrandChange(){
-  // ao escolher/trocar marca, volta o tipo para "Todos"
-  state.tipo='';
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on',b.dataset.tipo===''));
-  render();
-}
-function resetView(){
-  document.getElementById('brandSel').value='';
-  state.tipo='';
-  document.querySelectorAll('.type-btn').forEach(b=>b.classList.toggle('on',b.dataset.tipo===''));
-  render();
+catSel.addEventListener('change', fillMods);
+modSel.addEventListener('change', applyPreset);
+fillMods();
+
+
+// inicializa peso a partir do perfil
+$('w1').value = prof.massKg;
+$('w2').value = (prof.massKg - 1.2).toFixed(1);
+
+// Bench de supplements (preços R$ médios BR 2026; usuário pode editar nada por enquanto, mostra ranking)
+const SUPP = [
+  {name:'Gel Carbo Z (Probiotica) · 30g', carb:25, na:50, brl:6.50},
+  {name:'GU Roctane Gel · 32g',           carb:25, na:125,brl:14.00},
+  {name:'Maurten Gel 100 · 40g',          carb:25, na:0,  brl:18.00},
+  {name:'Maurten Drink Mix 320 · 80g',    carb:80, na:0,  brl:22.00},
+  {name:'Maltodextrina Atlhetica · 1kg',  carb:950, na:0, brl:55.00},
+  {name:'SiS Beta Fuel 80 · 82g',         carb:80, na:200, brl:24.00},
+  {name:'Pasta de tâmara caseira · 30g',  carb:22, na:5,  brl:1.50},
+];
+
+function calcSweat(){
+  const t=+$('t').value, rh=+$('rh').value, intP=+$('int').value;
+  const w1=+$('w1').value, w2=+$('w2').value, fl=+$('fl').value, td=+$('td').value;
+
+  // base do teste (Sawka)
+  const lossKg = Math.max(0, w1 - w2);
+  const baseRate = (lossKg + fl/1000) / td; // L/h
+
+  // ajuste ambiental se teste foi feito em condições diferentes
+  const tempAdj  = 1 + Math.max(0, t-20) * 0.03;
+  const humAdj   = 1 + Math.max(0, rh-60) * 0.005;
+  const intAdj   = intP>90 ? (1 + (intP-90)*0.04) : 1;
+  // sports modifier
+  const sportAdj = sport==='swim' ? 0.5 : (sport==='run' ? 1.1 : 1.0);
+
+  const SR = baseRate * tempAdj * humAdj * intAdj * sportAdj;
+  return Math.max(0.2, Math.min(3.5, SR));
 }
 
-function passes(p){
-  const marca=document.getElementById('brandSel').value;
-  if(marca && p.marca!==marca)return false;
-  if(state.tipo && p.tipo!==state.tipo)return false;
-  return true;
-}
-function sortList(list){
-  return list.sort((a,b)=>a.tier-b.tier || a.marca.localeCompare(b.marca) || (b.carbo_g||0)-(a.carbo_g||0));
-}
-function tagChips(p){
-  const out=[];const t=p.tags_cenario||[];
-  if(t.includes('quente-alto-sodio'))out.push('<span class="tag t-quente">sódio alto</span>');
-  if(t.includes('hydrogel'))out.push('<span class="tag t-hydro">hydrogel</span>');
-  if(p.cafeina_mg>0)out.push('<span class="tag t-caf">'+p.cafeina_mg+'mg cafeína</span>');
-  if(t.includes('eletrolito'))out.push('<span class="tag">eletrólito</span>');
-  if(t.includes('alto-carbo'))out.push('<span class="tag">alto carbo</span>');
-  return out.join('');
-}
-function card(p){
-  const sel=state.sel.includes(p.id);
-  const liq=p.liquido_ml>0?' / '+p.liquido_ml+'ml':'';
-  return `<div class="card${sel?' sel':''}" style="--tier-c:${TIER_COLORS[p.tier]}" onclick="toggleSel('${p.id}')">
-    <div class="card-check">${sel?'✓':''}</div>
-    <div class="card-top">
-      <div><div class="card-name">${p.nome}</div><div class="card-brand">${p.marca} · ${TIER_LABELS[p.tier]}</div></div>
-    </div>
-    <div class="specs">
-      <div class="spec"><div class="sk">Carbo</div><div class="sv amber">${fmt(p.carbo_g,'g')}</div></div>
-      <div class="spec"><div class="sk">Sódio</div><div class="sv">${fmt(p.sodio_mg,'mg')}</div></div>
-      <div class="spec"><div class="sk">Cafeína</div><div class="sv ${p.cafeina_mg>0?'caf':''}">${p.cafeina_mg>0?p.cafeina_mg+'mg':'—'}</div></div>
-    </div>
-    <div style="font-family:var(--mono);font-size:.66rem;color:var(--faint)">${p.porcao_g?'porção '+p.porcao_g+'g'+liq:''} · ratio ${p.ratio_glicose_frutose?p.ratio_glicose_frutose.split(' ')[0]:'n/d'}</div>
-    <div class="card-tags">${tagChips(p)}</div>
-    <div class="card-foot">
-      <span class="nacho">Na:CHO <b>${nachoTxt(p)}</b></span>
-      <span class="card-pick${sel?' on':''}">${sel?'✓ selecionado':'tocar p/ selecionar'}</span>
-    </div>
-    <div class="card-src">fonte: <a href="${p.fonte_url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${p.marca} oficial</a> · ${p.fonte_ano}</div>
-  </div>`;
-}
-function render(){
-  const marca=document.getElementById('brandSel').value;
-  const typeBtns=document.getElementById('typeBtns');
-  // antes de escolher marca: nada de produtos, esconde botões de tipo
-  if(!marca){
-    grid.innerHTML='';
-    typeBtns.style.display='none';
-    cnt.textContent='0';
-    cntSel.textContent=state.sel.length;
-    empty.style.display='block';
-    empty.innerHTML='Escolha uma marca acima para ver os produtos.';
-    renderTray();renderRank();
-    return;
-  }
-  typeBtns.style.display='flex';
-  let list=sortList(PRODUTOS.filter(passes));
-  grid.innerHTML=list.map(card).join('');
-  cnt.textContent=list.length;
-  empty.style.display=list.length?'none':'block';
-  if(!list.length)empty.innerHTML='Nenhum produto desse tipo nesta marca. <a href="#" onclick="resetTipo();return false" style="color:var(--amber)">Ver todos os tipos</a>.';
-  cntSel.textContent=state.sel.length;
-  renderTray();renderRank();
-}
-function toggleSel(id){
-  const i=state.sel.indexOf(id);
-  if(i>=0)state.sel.splice(i,1);
-  else{ if(state.sel.length>=3){flashTray();return;} state.sel.push(id); }
-  render();
-}
-function clearSel(){state.sel=[];render();}
-function flashTray(){const t=document.getElementById('tray');t.style.borderTopColor='#d4504a';setTimeout(()=>t.style.borderTopColor='',400);}
-function renderTray(){
-  const t=document.getElementById('tray');
-  document.getElementById('trayItems').innerHTML=state.sel.map(id=>{
-    const p=PRODUTOS.find(x=>x.id===id);
-    return `<span class="tray-item">${p.nome}<button onclick="toggleSel('${id}')">✕</button></span>`;
-  }).join('');
-  t.classList.toggle('up',state.sel.length>0);
-  document.getElementById('trayCmp').disabled=state.sel.length<2;
-  const ob=document.getElementById('openCmpBtn');
-  ob.disabled=state.sel.length<2;ob.textContent='Abrir comparação ('+state.sel.length+')';
-}
-function openCompare(){
-  if(state.sel.length<2)return;
-  const ps=state.sel.map(id=>PRODUTOS.find(x=>x.id===id));
-  const rows=[
-    ['Marca',p=>p.marca,null],['Tier',p=>TIER_LABELS[p.tier],null],['Tipo',p=>TIPO_LABELS[p.tipo]||p.tipo,null],
-    ['Carboidrato',p=>p.carbo_g,'carbo_g','max','g'],['Sódio',p=>p.sodio_mg,'sodio_mg','max','mg'],
-    ['Cafeína',p=>p.cafeina_mg,'cafeina_mg',null,'mg'],
-    ['Razão Na:CHO',p=>(p.razao_na_cho===null||p.razao_na_cho===undefined||p.carbo_g<=2)?null:p.razao_na_cho,'razao_na_cho','max'],
-    ['Ratio glic:frut',p=>p.ratio_glicose_frutose?p.ratio_glicose_frutose.split(' ')[0]:null,null],
-    ['Porção',p=>p.porcao_g,null,'','g'],['Líquido',p=>p.liquido_ml>0?p.liquido_ml:null,null,'','ml'],
-    ['Tecnologia',p=>p.tecnologia,null]
-  ];
-  let html='<tr><th></th>'+ps.map(p=>'<th>'+p.nome+'</th>').join('')+'</tr>';
-  for(const [label,fn,key,best,suf] of rows){
-    let bestVal=null;
-    if(best==='max'){bestVal=Math.max(...ps.map(p=>{const v=fn(p);return (v===null||v===undefined)?-Infinity:v;}));}
-    html+='<tr><td>'+label+'</td>';
-    for(const p of ps){
-      let v=fn(p);
-      const disp=(v===null||v===undefined)?'<span style="color:var(--faint)">n/d</span>':(v+(suf||''));
-      const isBest=best==='max'&&v!==null&&v!==undefined&&v===bestVal&&bestVal!==-Infinity&&ps.length>1;
-      html+='<td class="'+(isBest?'cmp-best':'')+'">'+disp+'</td>';
-    }
-    html+='</tr>';
-  }
-  document.getElementById('cmpTable').innerHTML=html;
-  document.getElementById('modal').classList.add('on');
-}
-function closeCompare(){document.getElementById('modal').classList.remove('on');}
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeCompare();});
-function renderRank(){
-  const list=PRODUTOS.filter(p=>p.razao_na_cho!==null&&p.razao_na_cho!==undefined&&p.carbo_g>2)
-    .sort((a,b)=>b.razao_na_cho-a.razao_na_cho).slice(0,12);
-  const max=Math.max(...list.map(p=>p.razao_na_cho));
-  document.getElementById('rank').innerHTML=list.map(p=>`
-    <div class="rank-row">
-      <div class="rank-name">${p.nome}<small>${p.marca} · ${p.carbo_g}g carbo / ${p.sodio_mg}mg sódio</small></div>
-      <div class="rank-bar-wrap"><div class="rank-bar"><i style="width:${(p.razao_na_cho/max*100).toFixed(0)}%"></i></div><span class="rank-val">${p.razao_na_cho.toFixed(1)}</span></div>
-    </div>`).join('');
-}
-function initHud(){
-  hudTotal.textContent=PRODUTOS.length;
-  hudPo.textContent=PRODUTOS.filter(p=>p.tipo==='bebida-po').length;
-  hudBr.textContent=PRODUTOS.filter(p=>p.disponibilidade_br!=='importacao').length;
-}
-function checkImport(){
-  const q=new URLSearchParams(location.search);
-  const carbo=q.get('carbo'),sodio=q.get('sodio'),caf=q.get('cafeina'),liq=q.get('liquido');
-  if(carbo||sodio||caf||liq){
-    const parts=[];
-    if(carbo)parts.push(carbo+'g CHO');if(sodio)parts.push(sodio+'mg Na');
-    if(caf)parts.push(caf+'mg cafeína');if(liq)parts.push((liq/1000)+'L líquido');
-    document.getElementById('ibVals').textContent=parts.join(' · ');
-    document.getElementById('importBanner').classList.add('on');
-    window.__alvos={carbo,sodio,caf,liq};
-  }
-}
-function clearImport(){document.getElementById('importBanner').classList.remove('on');window.__alvos=null;}
+function update(){
+  // labels
+  $('lbl-t').textContent  = `${+$('t').value} °C`;
+  $('lbl-rh').textContent = `${+$('rh').value} %`;
+  $('lbl-int').textContent= `${+$('int').value} % FTP`;
+  $('lbl-dur').textContent= `${(+$('dur').value).toFixed(1)} h`;
+  $('lbl-w1').textContent = `${(+$('w1').value).toFixed(1)} kg`;
+  $('lbl-w2').textContent = `${(+$('w2').value).toFixed(1)} kg`;
+  $('lbl-fl').textContent = `${+$('fl').value} ml`;
+  $('lbl-td').textContent = `${(+$('td').value).toFixed(2)} h`;
+  $('lbl-wk').textContent = `${+$('wk').value} de 8`;
 
-// ============ FASE 2 · MONTADOR DE KIT ============
-const RACE_MODELS={
-  'tri-sprint':[['Pré-largada',15],['Natação',18],['Bike',40],['Corrida',27]],
-  'tri-olimpico':[['Pré-largada',20],['Natação',30],['Bike',75],['T2',2],['Corrida',55]],
-  'tri-703':[['Pré-largada',30],['Natação',40],['T1',3],['Bike',160],['T2',3],['Corrida',120]],
-  'tri-1406':[['Pré-largada',40],['Natação',75],['T1',6],['Bike',360],['T2',6],['Corrida',290]],
-  'run-10k':[['Pré-largada',15],['Corrida',50]],
-  'run-21k':[['Pré-largada',20],['Corrida',110]],
-  'run-42k':[['Pré-largada',30],['Corrida',240]],
-  'run-ultra':[['Pré-largada',40],['Corrida',480]],
-  'bike-long':[['Pré-pedal',20],['Pedal',180]],
-  'bike-fondo':[['Pré-largada',30],['Pedal',300]],
-  'swim-long':[['Pré-largada',20],['Natação',90]],
-  'custom':[['Bloco 1',60]]
-};
-const CLIMATE_TARGETS={
-  'fresco':{sodio:400,liquido:500},
-  'moderado':{sodio:600,liquido:600},
-  'quente':{sodio:800,liquido:750},
-  'muito-quente':{sodio:1000,liquido:900}
-};
-const CAF_CEILING=400;
-let kit={blocks:[]};
-let blockSeq=0;
+  const SR = calcSweat();
+  const dur = +$('dur').value;
+  $('r-sweat').textContent = SR.toFixed(2);
 
-function loadRaceModel(){
-  const t=document.getElementById('raceType').value;
-  kit.blocks=RACE_MODELS[t].map(([nome,min])=>({id:++blockSeq,nome,min,items:[]}));
-  recalc();
-}
-function addBlock(){kit.blocks.push({id:++blockSeq,nome:'Novo bloco',min:30,items:[]});recalc();}
-function delBlock(id){kit.blocks=kit.blocks.filter(b=>b.id!==id);recalc();}
-function renameBlock(id,v){const b=kit.blocks.find(x=>x.id===id);if(b)b.nome=v;}
-function setDur(id,v){const b=kit.blocks.find(x=>x.id===id);if(b){b.min=Math.max(1,parseInt(v)||1);recalc();}}
-function addProd(id,pid){
-  if(!pid)return;
-  const b=kit.blocks.find(x=>x.id===id);
-  const ex=b.items.find(i=>i.pid===pid);
-  if(ex)ex.qty++;else b.items.push({pid,qty:1});
-  recalc();
-}
-function chgQty(id,pid,d){
-  const b=kit.blocks.find(x=>x.id===id);
-  const it=b.items.find(i=>i.pid===pid);
-  if(!it)return;
-  it.qty+=d;
-  if(it.qty<=0)b.items=b.items.filter(i=>i.pid!==pid);
-  recalc();
-}
-function blockSum(b){
-  let c=0,s=0,l=0,caf=0;
-  b.items.forEach(it=>{
-    const p=PRODUTOS.find(x=>x.id===it.pid);if(!p)return;
-    c+=(p.carbo_g||0)*it.qty;s+=(p.sodio_mg||0)*it.qty;
-    l+=(p.liquido_ml||0)*it.qty;caf+=(p.cafeina_mg||0)*it.qty;
-  });
-  return {c,s,l,caf};
-}
-function getAthlete(){
-  const v=id=>{const e=document.getElementById(id);return e?e.value:null;};
-  return {
-    weight: parseFloat(v('weight'))||null,
-    sweat: parseInt(v('sweat'))||900,      // ml/h
-    sweatNa: parseInt(v('sweatNa'))||900,  // mg/L
-    caffeine: v('caffeine')||'usa'
-  };
-}
-function getTargets(){
-  const cap=parseInt(document.getElementById('capacity').value);
-  const clim=CLIMATE_TARGETS[document.getElementById('climate').value];
-  const a=getAthlete();
-  // alvos vindos do Race Fueling têm prioridade
-  if(window.__alvos && (window.__alvos.carbo||window.__alvos.sodio)){
-    return {
-      carbo: window.__alvos.carbo?parseInt(window.__alvos.carbo):cap,
-      sodio: window.__alvos.sodio?parseInt(window.__alvos.sodio):clim.sodio,
-      liquido: window.__alvos.liq?parseInt(window.__alvos.liq):clim.liquido,
-      cafCeil: CAF_CEILING, src:'race'
-    };
-  }
-  // se o atleta preencheu peso/suor, calcula personalizado (base Jeukendrup/Burke)
-  if(a.weight){
-    // líquido/h = taxa de sudorese; sódio/h = sudorese(L) × sódio no suor(mg/L)
-    const liquido = a.sweat;
-    const sodio = Math.round((a.sweat/1000) * a.sweatNa);
-    return {carbo:cap,sodio,liquido,cafCeil:CAF_CEILING,src:'atleta'};
-  }
-  return {carbo:cap,sodio:clim.sodio,liquido:clim.liquido,cafCeil:CAF_CEILING,src:'clima'};
-}
-function toggleAthlete(){
-  const pn=document.getElementById('athletePanel');
-  const on=pn.style.display==='none';
-  pn.style.display=on?'block':'none';
-  document.getElementById('athleteChevron').textContent=on?'▴':'▾';
-}
-function rateColor(val,target){
-  if(target<=0)return 'green';
-  const r=val/target;
-  if(r>1.15)return 'red';
-  if(r<0.7)return 'amber';
-  return 'green';
-}
-function recalc(){
-  if(!kit.blocks.length){loadRaceModel();return;}
-  const tg=getTargets();
-  document.getElementById('tgCarbo').textContent=tg.carbo;
-  document.getElementById('tgSodio').textContent=tg.sodio;
-  document.getElementById('tgLiquido').textContent=tg.liquido;
-  document.getElementById('tgCaf').textContent=tg.cafCeil;
-  const srcTxt={
-    'race':'Alvos importados do Race Fueling.',
-    'atleta':'Alvos calculados a partir dos seus dados (peso, suor e sódio no suor).',
-    'clima':'Alvos de referência pelo clima e capacidade. Preencha "Seus dados" ou gere seu plano no Race Fueling para personalizar.'
-  };
-  document.getElementById('targetsSrc').textContent = srcTxt[tg.src]||srcTxt['clima'];
+  const fluidTotal = SR * dur;
+  $('r-fluid').innerHTML = `${fluidTotal.toFixed(1)}<span class="u">L</span>`;
 
-  const pool = state.sel.length ? state.sel.map(id=>PRODUTOS.find(p=>p.id===id)) : PRODUTOS;
-  const opts = '<option value="">+ adicionar produto…</option>' +
-    pool.map(p=>`<option value="${p.id}">${p.nome} (${p.carbo_g||'?'}g)</option>`).join('');
+  // sódio/h = SR × concentração do perfil
+  const naH = SR * prof.sweatNa;
+  $('r-na').innerHTML = `${Math.round(naH)}<span class="u">mg</span>`;
 
-  let totC=0,totS=0,totL=0,totCaf=0,totMin=0;
-  const html=kit.blocks.map(b=>{
-    const sum=blockSum(b);
-    const h=b.min/60;
-    const cH=h>0?sum.c/h:0, sH=h>0?sum.s/h:0, lH=h>0?sum.l/h:0;
-    totC+=sum.c;totS+=sum.s;totL+=sum.l;totCaf+=sum.caf;totMin+=b.min;
-    const items=b.items.map(it=>{
-      const p=PRODUTOS.find(x=>x.id===it.pid);
-      return `<div class="prod-line">
-        <div class="pl-name">${p.nome}<small>${p.carbo_g||'?'}g carbo · ${p.sodio_mg||0}mg Na${p.cafeina_mg>0?' · '+p.cafeina_mg+'mg caf':''} cada</small></div>
-        <div class="qty"><button onclick="chgQty(${b.id},'${it.pid}',-1)">−</button><span>${it.qty}</span><button onclick="chgQty(${b.id},'${it.pid}',1)">+</button></div>
-        <button class="pl-del" onclick="chgQty(${b.id},'${it.pid}',-99)">✕</button>
-      </div>`;
-    }).join('');
-    return `<div class="block">
-      <div class="block-head">
-        <input class="block-name" style="background:none;border:none;color:var(--ink)" value="${b.nome}" onchange="renameBlock(${b.id},this.value)">
-        <div class="block-dur"><input type="number" value="${b.min}" min="1" onchange="setDur(${b.id},this.value)"> min</div>
-        <button class="block-del" onclick="delBlock(${b.id})">✕</button>
-      </div>
-      <div class="block-rate">
-        <span class="rate-item"><span class="rate-dot ${rateColor(cH,tg.carbo)}"></span>Carbo <b>${cH.toFixed(0)} g/h</b></span>
-        <span class="rate-item"><span class="rate-dot ${rateColor(sH,tg.sodio)}"></span>Sódio <b>${sH.toFixed(0)} mg/h</b></span>
-        <span class="rate-item"><span class="rate-dot ${rateColor(lH,tg.liquido)}"></span>Líquido <b>${lH.toFixed(0)} ml/h</b></span>
-      </div>
-      ${items||'<div class="block-empty">Nenhum produto neste bloco ainda.</div>'}
-      <div class="add-prod"><select onchange="addProd(${b.id},this.value);this.value=''">${opts}</select></div>
+  // % reposição se beber 750 ml/h (típico)
+  const rep = Math.min(150, Math.round(750/(SR*1000)*100));
+  $('r-rep').innerHTML = `${rep}<span class="u">%</span>`;
+
+  // gut training: semana atual
+  const wk = +$('wk').value;
+  const carbH = 50 + wk*10; // 60..130
+  const carbHcapped = Math.min(120, carbH);
+  $('r-carb').innerHTML = `${carbHcapped}<span class="u">g</span>`;
+
+  // mix 1:0.8
+  const fru = Math.round(carbHcapped / 1.8 * 0.8);
+  const glu = carbHcapped - fru;
+  $('mix-glu').textContent = `${glu} g`;
+  $('mix-fru').textContent = `${fru} g`;
+  $('mix-ratio').textContent = (fru/glu).toFixed(2);
+  const gluPct = (glu/carbHcapped*100).toFixed(0);
+  const fruPct = 100 - gluPct;
+  $('mix-bar').innerHTML = `
+    <div class="mix-seg" style="width:${gluPct}%;background:var(--amber)">GLU ${gluPct}%</div>
+    <div class="mix-seg" style="width:${fruPct}%;background:var(--signal)">FRU ${fruPct}%</div>
+  `;
+
+  // gut grid
+  const grid = $('gut-grid');
+  grid.innerHTML = '';
+  for(let w=1;w<=8;w++){
+    const v = Math.min(120, 50 + w*10);
+    grid.innerHTML += `<div class="gut-cell${w===wk?' active':''}">
+      <div class="wk">Sem ${w}</div>
+      <div class="val">${v}</div>
+      <div class="note">g/h</div>
     </div>`;
+  }
+
+  // supplements ranking
+  const ranked = [...SUPP].map(s=>({...s, rg: s.brl/s.carb}))
+                          .sort((a,b)=>a.rg-b.rg);
+  const minR = ranked[0].rg, maxR = ranked[ranked.length-1].rg;
+  const tbody = $('supp-tbl').querySelector('tbody');
+  tbody.innerHTML = ranked.map(s=>{
+    const cls = s.rg===minR?'best':(s.rg===maxR?'bad':'');
+    return `<tr><td class="name">${s.name}</td><td>${s.carb}</td><td>${s.brl.toFixed(2)}</td><td class="${cls}">R$ ${s.rg.toFixed(3)}</td><td>${s.na}</td></tr>`;
   }).join('');
-  document.getElementById('blocks').innerHTML=html;
-
-  const totH=totMin/60;
-  document.getElementById('thDur').textContent='· '+(totMin>=60?(totH).toFixed(1)+'h':totMin+'min');
-  document.getElementById('thCarbo').textContent=totC.toFixed(0)+'g';
-  document.getElementById('thCarboH').textContent=(totH>0?(totC/totH).toFixed(0):0)+' g/h';
-  document.getElementById('thSodio').textContent=totS.toFixed(0)+'mg';
-  document.getElementById('thSodioH').textContent=(totH>0?(totS/totH).toFixed(0):0)+' mg/h';
-  document.getElementById('thLiquido').textContent=totL.toFixed(0)+'ml';
-  document.getElementById('thLiquidoH').textContent=(totH>0?(totL/totH).toFixed(0):0)+' ml/h';
-  document.getElementById('thCaf').textContent=totCaf.toFixed(0)+'mg';
-  const cafEl=document.getElementById('thCafWarn');
-  if(totCaf>tg.cafCeil){cafEl.textContent='acima de '+tg.cafCeil+'mg';cafEl.className='th-sub over';}
-  else if(totCaf>0){cafEl.textContent='dentro da referência';cafEl.className='th-sub ok';}
-  else{cafEl.textContent='';cafEl.className='th-sub';}
-
-  // ===== COPILOTO: análise com ações concretas =====
-  const adv=[];
-  const carboH=totH>0?totC/totH:0;
-  const sodioH=totH>0?totS/totH:0;
-  const a=getAthlete();
-
-  if(totC===0){
-    adv.push(['','Monte seu kit adicionando produtos aos blocos — ou clique em "Sugerir um kit" e ajuste depois. Dica: selecione no banco acima os produtos que você tem em casa para a análise focar neles.']);
-  } else {
-    // produtos que ELE já pôs no kit (os que tem/testou)
-    const usados=[...new Set(kit.blocks.flatMap(b=>b.items.map(i=>i.pid)))].map(id=>PRODUTOS.find(p=>p.id===id)).filter(Boolean);
-    const usadosCarbo=usados.filter(p=>(p.carbo_g||0)>0).sort((x,y)=>(y.carbo_g||0)-(x.carbo_g||0));
-    const usadosSodio=usados.filter(p=>(p.sodio_mg||0)>0).sort((x,y)=>(y.sodio_mg||0)-(x.sodio_mg||0));
-
-    // ---- CARBO ----
-    if(carboH < tg.carbo*0.85){
-      const faltaH = tg.carbo - carboH;
-      const faltaTotal = Math.round(faltaH*totH);
-      // tenta completar com algo que ele JÁ usa
-      let sugestao;
-      if(usadosCarbo.length){
-        const p=usadosCarbo[0];
-        const n=Math.max(1,Math.round(faltaTotal/(p.carbo_g||25)));
-        sugestao=`Faltam ~${faltaTotal}g de carbo no total (${faltaH.toFixed(0)} g/h). Complete com <b>+${n}× ${p.nome}</b>, que você já incluiu.`;
-      } else {
-        sugestao=`Faltam ~${faltaTotal}g de carbo. Adicione mais produtos aos blocos.`;
-      }
-      // se o que ele tem é pouco variado, sugere do banco também
-      const doBanco=bestFromBank('carbo',a);
-      if(doBanco && (!usadosCarbo.length || usadosCarbo[0].carbo_g<40)){
-        sugestao+=` Se quiser uma opção de mais carbo por porção, o banco tem o <b>${doBanco.nome}</b> (${doBanco.carbo_g}g).`;
-      }
-      adv.push(['warn',sugestao]);
-    } else if(carboH > tg.carbo*1.15){
-      const sobra=Math.round((carboH-tg.carbo)*totH);
-      adv.push(['over',`Carbo ${carboH.toFixed(0)} g/h acima da sua capacidade (${tg.carbo} g/h) — ~${sobra}g a mais no total. Se sentir o estômago pesado, tire 1 porção de gel/líquido de um bloco mais cheio.`]);
-    } else {
-      adv.push(['ok',`Carbo equilibrado: ${carboH.toFixed(0)} g/h, dentro do seu alvo (${tg.carbo} g/h). Se você já testou esses produtos e se dá bem com eles, está pronto. 👍`]);
-    }
-
-    // ---- SÓDIO ----
-    if(sodioH < tg.sodio*0.8){
-      const faltaNa=Math.round((tg.sodio-sodioH)*totH);
-      let s=`Sódio ${sodioH.toFixed(0)} mg/h abaixo do alvo (${tg.sodio} mg/h) — faltam ~${faltaNa}mg no total.`;
-      // 1) tenta produto salgado que ele já usa
-      if(usadosSodio.length && usadosSodio[0].sodio_mg>=150){
-        s+=` Você pode aumentar o <b>${usadosSodio[0].nome}</b> (${usadosSodio[0].sodio_mg}mg cada), que já está no seu kit.`;
-      } else {
-        // 2) cai pro banco: melhor opção de sódio
-        const naBank=bestFromBank('sodio',a);
-        if(naBank) s+=` Os produtos que você escolheu têm pouco sódio — considere <b>cápsula de sal</b> (~1/h) ou trocar um item pelo <b>${naBank.nome}</b> (${naBank.sodio_mg}mg).`;
-        else s+=` Considere <b>cápsulas de sal</b> à parte (~1/h).`;
-      }
-      if(a.sweatNa>=1300) s+=` Como você perde bastante sódio no suor, isso é importante — mas a dose exata confirme com seu nutricionista.`;
-      adv.push(['warn',s]);
-    } else if(sodioH>0){
-      adv.push(['ok',`Sódio em ${sodioH.toFixed(0)} mg/h — adequado para o clima. 👍`]);
-    }
-
-    // ---- CAFEÍNA ----
-    if(totCaf>tg.cafCeil){
-      adv.push(['over',`Cafeína total ${totCaf.toFixed(0)}mg acima da referência de ${tg.cafCeil}mg. Espace as doses ou troque um item cafeinado por versão sem cafeína — a dose ideal é individual, confirme com seu nutricionista.`]);
-    }
-  }
-  document.getElementById('advice').innerHTML=adv.map(([cls,txt])=>`<div class="advice-item ${cls}">${txt}</div>`).join('');
-}
-// melhor produto do banco para tapar um buraco (carbo ou sodio), respeitando cafeína
-function bestFromBank(metric,a){
-  let pool=PRODUTOS.filter(p=>(p.carbo_g||0)>0||metric==='sodio');
-  if(a && a.caffeine==='evita')pool=pool.filter(p=>!(p.cafeina_mg>0));
-  if(metric==='carbo')return pool.filter(p=>p.carbo_g).sort((x,y)=>y.carbo_g-x.carbo_g)[0];
-  if(metric==='sodio')return pool.filter(p=>p.sodio_mg).sort((x,y)=>y.sodio_mg-x.sodio_mg)[0];
-  return null;
 }
 
-// ===== SUGESTÃO DE KIT =====
-let suggestPref={mode:'auto',brand:'',style:'any'};
-function setBrandPref(btn,v){
-  suggestPref.mode=v;
-  document.querySelectorAll('#brandPrefBtns .type-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('brandPrefMarca').style.display = v==='marca'?'block':'none';
-  document.getElementById('brandPrefStyle').style.display = v==='auto'?'block':'none';
-}
-function setStyle(btn,v){
-  suggestPref.style=v;
-  document.querySelectorAll('#brandPrefStyle .type-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-}
-function buildSuggestBrands(){
-  const sel=document.getElementById('suggestBrand');
-  if(!sel)return;
-  const marcas=[...new Set(PRODUTOS.map(p=>p.marca))].sort((a,b)=>a.localeCompare(b));
-  sel.innerHTML=marcas.map(m=>`<option value="${m}">${m}</option>`).join('');
-  if(!suggestPref.brand)suggestPref.brand=marcas[0];
-}
-// define POPULAR/nacional e premium por marca
-const BRAND_STYLE={
-  // premium global
-  'Maurten':'premium','Science in Sport':'premium','GU':'premium','226ers':'premium',
-  'Precision Fuel & Hydration':'premium','Neversecond':'premium','Tailwind':'premium','Skratch Labs':'premium',
-  // nacionais (fácil de achar no BR)
-  'Z2 Performance':'nacional','DUX':'nacional','Probiotica':'nacional','Integralmedica':'nacional',
-  'Dobro':'nacional','Exceed':'nacional','Vitafor':'nacional','Atlhetica':'nacional','LIQUIDZ':'nacional'
-};
-// popularidade aproximada p/ desempate no "tanto faz" (mais usados nas provas BR)
-const BRAND_POP=['Z2 Performance','DUX','Maurten','GU','Probiotica','Science in Sport','Integralmedica','226ers','Precision Fuel & Hydration','Tailwind','Dobro','Exceed','Neversecond','Skratch Labs','Vitafor','Atlhetica','LIQUIDZ'];
-
-// escolhe a marca da sugestão e devolve {marca, motivo}
-function chooseBrand(cands){
-  // 1) atleta escolheu marca específica
-  if(suggestPref.mode==='marca' && suggestPref.brand){
-    return {marca:suggestPref.brand, motivo:`Você escolheu a marca <b>${suggestPref.brand}</b>.`};
-  }
-  // 2) automático: filtra por estilo, escolhe marca com cobertura (tem gel E líquido de preferência) + popular
-  let marcasDisp=[...new Set(cands.map(p=>p.marca))];
-  if(suggestPref.style==='nacional')marcasDisp=marcasDisp.filter(m=>BRAND_STYLE[m]==='nacional');
-  if(suggestPref.style==='premium')marcasDisp=marcasDisp.filter(m=>BRAND_STYLE[m]==='premium');
-  if(!marcasDisp.length)marcasDisp=[...new Set(cands.map(p=>p.marca))]; // fallback: ignora estilo
-  // pontua: cobertura de tipos + popularidade
-  marcasDisp.sort((a,b)=>{
-    const cov=m=>{const ps=cands.filter(p=>p.marca===m);return (ps.some(p=>p.tipo==='gel')?1:0)+(ps.some(p=>p.tipo==='bebida-po')?1:0)+Math.min(ps.length,3)*0.2;};
-    const popi=m=>{const i=BRAND_POP.indexOf(m);return i<0?99:i;};
-    return (cov(b)-cov(a)) || (popi(a)-popi(b));
-  });
-  const marca=marcasDisp[0];
-  const estiloTxt = suggestPref.style==='nacional'?'fácil de achar no Brasil':suggestPref.style==='premium'?'premium global':'popular e versátil';
-  return {marca, motivo:`Escolhi <b>${marca}</b> por ser uma marca ${estiloTxt} e ter os tipos de produto que sua prova pede.`};
-}
-// Classifica produtos para escolha inteligente
-function pickProducts(){
-  const pool = state.sel.length ? state.sel.map(id=>PRODUTOS.find(p=>p.id===id)) : PRODUTOS.slice();
-  const a=getAthlete();
-  let cands=pool.filter(p=>(p.carbo_g||0)>0);
-  if(a.caffeine==='evita') cands=cands.filter(p=>!(p.cafeina_mg>0));
-  return cands;
-}
-function suggestKit(){
-  const tg=getTargets();
-  const a=getAthlete();
-  // captura marca escolhida no select se modo=marca
-  if(suggestPref.mode==='marca'){const sb=document.getElementById('suggestBrand');if(sb&&!suggestPref.brand)suggestPref.brand=sb.value;}
-  const candsAll=pickProducts();
-  if(!candsAll.length){
-    document.getElementById('advice').innerHTML='<div class="advice-item warn">Selecione alguns produtos no banco acima (ou deixe nenhum selecionado para usar o banco todo) e tente de novo.</div>';
-    document.getElementById('kit')?.scrollIntoView({behavior:'smooth'});
-    return;
-  }
-  // escolhe a marca única
-  const {marca,motivo}=chooseBrand(candsAll);
-  // candidatos da marca; se a marca não cobre um tipo, permite fallback do resto
-  let cands=candsAll.filter(p=>p.marca===marca);
-  const candsFallback=candsAll; // usado só se a marca não tiver o tipo necessário
-  const explic=[];
-  explic.push(`🏷️ ${motivo}`);
-
-  // separa por tipo (da marca; fallback global)
-  const byType=(arr,t)=>arr.filter(p=>p.tipo===t).sort((x,y)=>(y.carbo_g||0)-(x.carbo_g||0));
-  const liquidos = byType(cands,'bebida-po').length?byType(cands,'bebida-po'):byType(candsFallback,'bebida-po');
-  const geis = byType(cands,'gel').length?byType(cands,'gel'):byType(candsFallback,'gel');
-  let usouFallback=false;
-  const markFb=(p)=> (p.marca!==marca && (usouFallback=true), p);
-
-  // estratégia: bike usa líquido (squeeze), corrida usa gel; pré-largada 1 gel
-  kit.blocks.forEach(b=>{
-    b.items=[]; // limpa
-    const nome=b.nome.toLowerCase();
-    const h=b.min/60;
-    if(h<=0)return;
-    const alvoCarbo=tg.carbo*h; // carbo total do bloco
-    // natação e transições curtas: sem fuel sólido
-    if(nome.includes('nata')||nome.includes('t1')||nome.includes('t2')){
-      return;
-    }
-    if(nome.includes('pré')||nome.includes('pre')){
-      let g = (a.caffeine==='usa' && geis.some(p=>p.cafeina_mg>0)) ? geis.find(p=>p.cafeina_mg>0) : geis[0]||liquidos[0];
-      if(g){markFb(g);b.items.push({pid:g.id,qty:1});explic.push(`<b>Pré-largada:</b> 1× ${g.nome} para começar com o tanque cheio${g.cafeina_mg>0?' (cafeína para ativação)':''}.`);}
-      return;
-    }
-    const ehBike = nome.includes('bike')||nome.includes('pedal')||nome.includes('cicl');
-    if(ehBike && liquidos.length){
-      const L=liquidos[0];markFb(L);
-      const qtd=Math.max(1,Math.round(alvoCarbo/(L.carbo_g||30)));
-      b.items.push({pid:L.id,qty:qtd});
-      explic.push(`<b>${b.nome}:</b> ${qtd}× ${L.nome} — na bike o líquido é prático (squeeze) e entrega muito carbo de uma vez.`);
-    } else if(geis.length){
-      const G=geis[0];markFb(G);
-      const qtd=Math.max(1,Math.round(alvoCarbo/(G.carbo_g||25)));
-      b.items.push({pid:G.id,qty:qtd});
-      explic.push(`<b>${b.nome}:</b> ${qtd}× ${G.nome} — gel é prático de carregar no bolso e rápido de consumir correndo.`);
-    } else if(liquidos.length){
-      const L=liquidos[0];markFb(L);
-      const qtd=Math.max(1,Math.round(alvoCarbo/(L.carbo_g||30)));
-      b.items.push({pid:L.id,qty:qtd});
-      explic.push(`<b>${b.nome}:</b> ${qtd}× ${L.nome}.`);
-    }
-  });
-
-  recalc();
-
-  // explicação adicional sobre sódio (salty sweater) e clima
-  const extra=[];
-  const clima=document.getElementById('climate').value;
-  if(a.sweatNa>=1300 || clima==='quente' || clima==='muito-quente'){
-    // verifica se o sódio do kit está abaixo do alvo
-    let totS=0,totMin=0;
-    kit.blocks.forEach(b=>{totS+=blockSum(b).s;totMin+=b.min;});
-    const sodioH=totMin>0?totS/(totMin/60):0;
-    if(sodioH<tg.sodio*0.8){
-      extra.push(`💧 <b>Sódio:</b> você ${a.sweatNa>=1300?'perde muito sódio no suor':'vai competir no calor'}, e o kit sugerido fica abaixo do alvo de ${tg.sodio} mg/h. Considere <b>cápsulas de sal</b> à parte (ex.: 1/h) ou um eletrólito como o LIQUIDZ — a dose ideal você confirma com seu nutricionista.`);
-    }
-  }
-  extra.push(`☕ <b>Cafeína:</b> ${a.caffeine==='evita'?'kit montado sem cafeína, como você pediu.':'inclui produtos com cafeína; o resumo abaixo mostra o total acumulado. A dose ideal é individual — confirme com seu nutricionista.'}`);
-  if(usouFallback)extra.push(`ℹ️ A marca <b>${marca}</b> não tinha todos os tipos que sua prova pede (ex.: líquido para a bike), então completei com outra marca nesse ponto.`);
-
-  // monta painel de explicação acima do resumo
-  const box=document.getElementById('suggestExplain');
-  box.style.display='block';
-  box.innerHTML='<div class="se-title">⚡ Kit sugerido — por que cada escolha</div>'+
-    explic.map(e=>`<div class="se-item">${e}</div>`).join('')+
-    extra.map(e=>`<div class="se-item se-note">${e}</div>`).join('')+
-    '<div class="se-foot">Sugestão automática baseada nos seus dados e nos produtos disponíveis. Ajuste as quantidades nos blocos como preferir. Não substitui orientação de nutricionista.</div>';
-  document.getElementById('suggestExplain').scrollIntoView({behavior:'smooth',block:'center'});
-}
-
-// ===== GERAR PDF (Fase 3) =====
-function gerarPDF(){
-  if(!window.jspdf){alert('Biblioteca de PDF ainda carregando, tente de novo em 1 segundo.');return;}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({unit:'mm',format:'a4'});
-  const W=210, M=15; let y=0;
-  const bg=[10,10,12], amber=[255,138,28], ink=[40,40,46], dim=[120,118,112], line=[210,208,202];
-  const tg=getTargets();
-  const a=getAthlete();
-  const raceTxt=document.getElementById('raceType').selectedOptions[0].text;
-  const climaTxt=document.getElementById('climate').selectedOptions[0].text;
-
-  doc.setFillColor(...bg);doc.rect(0,0,W,26,'F');
-  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(18);
-  doc.text('LM',M,16);doc.setTextColor(...amber);doc.text('Aero',M+9,16);doc.setTextColor(255,255,255);doc.text('Fit',M+25,16);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(180,178,172);
-  doc.text('FUEL LAB · CHECKLIST DE PROVA',M,22);
-  doc.setFontSize(7);doc.text(new Date().toLocaleDateString('pt-BR'),W-M,22,{align:'right'});
-  y=36;
-
-  doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.setFontSize(13);
-  doc.text(raceTxt,M,y);y+=7;
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(...dim);
-  doc.text(`Clima: ${climaTxt}   ·   Capacidade: ${tg.carbo} g/h${a.weight?'   ·   Peso: '+a.weight+' kg':''}`,M,y);y+=9;
-
-  doc.setDrawColor(...line);doc.setFillColor(248,247,244);
-  doc.roundedRect(M,y,W-2*M,18,2,2,'FD');
-  const cols=[M+5,M+50,M+95,M+140];
-  const alvos=[['CARBO ALVO',tg.carbo+' g/h'],['SODIO ALVO',tg.sodio+' mg/h'],['LIQUIDO ALVO',tg.liquido+' ml/h'],['TETO CAFEINA',tg.cafCeil+' mg']];
-  alvos.forEach((al,i)=>{
-    doc.setFontSize(6.5);doc.setTextColor(...dim);doc.text(al[0],cols[i],y+6);
-    doc.setFontSize(12);doc.setTextColor(...amber);doc.setFont('helvetica','bold');doc.text(al[1],cols[i],y+13);
-    doc.setFont('helvetica','normal');
-  });
-  y+=25;
-
-  doc.setFontSize(10);doc.setTextColor(...ink);doc.setFont('helvetica','bold');
-  doc.text('TIMELINE DA PROVA',M,y);y+=2;
-  doc.setDrawColor(...amber);doc.setLineWidth(0.5);doc.line(M,y,M+45,y);y+=6;
-  doc.setFont('helvetica','normal');
-
-  const consolida={};
-  let totC=0,totS=0,totL=0,totCaf=0,totMin=0;
-  kit.blocks.forEach(b=>{
-    const sum=blockSum(b);const h=b.min/60;
-    totC+=sum.c;totS+=sum.s;totL+=sum.l;totCaf+=sum.caf;totMin+=b.min;
-    if(y>262){doc.addPage();y=20;}
-    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(...ink);
-    doc.text(`${b.nome}`,M,y);
-    doc.setFont('helvetica','normal');doc.setTextColor(...dim);doc.setFontSize(8);
-    doc.text(`${b.min} min  ·  ${(h>0?(sum.c/h).toFixed(0):0)} g/h carbo`,W-M,y,{align:'right'});
-    y+=5;
-    if(b.items.length){
-      b.items.forEach(it=>{
-        const p=PRODUTOS.find(x=>x.id===it.pid);if(!p)return;
-        consolida[p.nome]=(consolida[p.nome]||0)+it.qty;
-        doc.setTextColor(...ink);doc.setFontSize(8.5);
-        doc.text(`  ${it.qty}x  ${p.nome}`,M+2,y);
-        doc.setTextColor(...dim);doc.setFontSize(7.5);
-        doc.text(`${(p.carbo_g||0)*it.qty}g${p.sodio_mg?' · '+(p.sodio_mg*it.qty)+'mg Na':''}${p.cafeina_mg?' · '+(p.cafeina_mg*it.qty)+'mg caf':''}`,W-M,y,{align:'right'});
-        y+=4.5;
-      });
-    } else {doc.setTextColor(...dim);doc.setFontSize(7.5);doc.text('  (sem fuel neste bloco)',M+2,y);y+=4.5;}
-    y+=3;
-  });
-
-  if(y>250){doc.addPage();y=20;}
-  y+=2;
-  doc.setFontSize(10);doc.setTextColor(...ink);doc.setFont('helvetica','bold');
-  doc.text('SEPARAR ANTES DA PROVA',M,y);y+=2;
-  doc.setDrawColor(...amber);doc.line(M,y,M+55,y);y+=6;
-  doc.setFont('helvetica','normal');doc.setFontSize(9);
-  const itens=Object.entries(consolida);
-  if(itens.length){
-    itens.forEach(([nome,qt])=>{
-      if(y>275){doc.addPage();y=20;}
-      doc.setDrawColor(...dim);doc.rect(M,y-3.5,4,4);
-      doc.setTextColor(...ink);doc.text(`${qt}x  ${nome}`,M+7,y);y+=6;
-    });
-  } else {doc.setTextColor(...dim);doc.text('Monte o kit no item 06 para listar os itens aqui.',M,y);y+=6;}
-
-  if(y>240){doc.addPage();y=20;}
-  y+=3;
-  const totH=totMin/60;
-  doc.setFillColor(248,247,244);doc.setDrawColor(...line);
-  doc.roundedRect(M,y,W-2*M,16,2,2,'FD');
-  const tot=[['CARBO',totC.toFixed(0)+'g',(totH>0?(totC/totH).toFixed(0):0)+' g/h'],['SODIO',totS.toFixed(0)+'mg',(totH>0?(totS/totH).toFixed(0):0)+' mg/h'],['LIQUIDO',totL.toFixed(0)+'ml',(totH>0?(totL/totH).toFixed(0):0)+' ml/h'],['CAFEINA',totCaf.toFixed(0)+'mg','total']];
-  tot.forEach((t,i)=>{
-    doc.setFontSize(6.5);doc.setTextColor(...dim);doc.text(t[0],cols[i],y+5);
-    doc.setFontSize(11);doc.setTextColor(...ink);doc.setFont('helvetica','bold');doc.text(t[1],cols[i],y+10);
-    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...dim);doc.text(t[2],cols[i],y+14);
-  });
-  y+=22;
-
-  const advs=[...document.querySelectorAll('#advice .advice-item')].map(e=>e.innerText);
-  if(advs.length){
-    if(y>270){doc.addPage();y=20;}
-    doc.setFontSize(10);doc.setTextColor(...ink);doc.setFont('helvetica','bold');
-    doc.text('ANALISE DO COCKPIT',M,y);y+=2;doc.setDrawColor(...amber);doc.line(M,y,M+48,y);y+=6;
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
-    advs.forEach(t=>{
-      if(y>278){doc.addPage();y=20;}
-      const lines=doc.splitTextToSize('• '+t,W-2*M);
-      doc.setTextColor(...ink);doc.text(lines,M,y);y+=lines.length*4.5+1.5;
-    });
-  }
-
-  const n=doc.internal.getNumberOfPages();
-  for(let i=1;i<=n;i++){
-    doc.setPage(i);
-    doc.setDrawColor(...line);doc.line(M,287,W-M,287);
-    doc.setFontSize(6.5);doc.setTextColor(...dim);
-    doc.text('LMAeroFit · Fuel Lab · lmaerofit.com.br — Conteudo educativo, nao substitui nutricionista ou medico. Teste tudo em treino.',M,291);
-    doc.text(i+'/'+n,W-M,291,{align:'right'});
-  }
-  doc.save('checklist-fuel-lab.pdf');
-}
-
-buildBrands();buildSuggestBrands();initHud();checkImport();render();loadRaceModel();
-
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
+update();
 </script>
 </body>
 </html>
