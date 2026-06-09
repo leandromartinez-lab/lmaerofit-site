@@ -29,6 +29,10 @@ input,select,textarea{font-family:inherit;color:inherit}
 .nav-brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
 .nav-brand img{height:24px;width:auto;display:block}
 .nav-brand .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber);padding:3px 7px;border:1px solid var(--amber);border-radius:4px;text-transform:uppercase}
+/* A logo já traz a marca — esconde o texto "LMAeroFit" redundante ao lado do logo.
+   O Session Debrief usa <span style="display:none"> + onerror que volta a exibir
+   inline se a imagem falhar; como esta regra não usa !important, esse fallback continua valendo. */
+.nav-brand > span:not(.tag){display:none}
 .nav-right{display:flex;align-items:center;gap:8px}
 .nav-back{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;padding:8px 12px;border:1px solid var(--line-strong);border-radius:var(--r-sm);transition:all .2s var(--ease)}
 .nav-back:hover{color:var(--amber);border-color:var(--amber)}
