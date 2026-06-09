@@ -55,6 +55,7 @@
       <span>LMAeroFit</span><span class="tag">Briefing</span>
     </a>
     <div class="nav-right">
+      <span id="race-badge"></span>
       <span id="prof-badge"></span>
       <a href="./index.html" class="nav-back">← Voltar</a>
     </div>
@@ -225,6 +226,7 @@
 <script src="./assets/activity-importer.js"></script>
 <script src="./assets/bike-model.js"></script>
 <script src="./assets/profile.js"></script>
+<script src="./assets/race-context.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const prof = LMA.profile.load();
@@ -487,8 +489,17 @@ function update(){
   renderRoadTT();
 }
 
+// Pré-preenche com o Contexto da Prova, se existir
+function applyRaceContext(){
+  if(!(window.LMA && LMA.race && LMA.race.isSet())) return;
+  const rc = LMA.race.load();
+  if(rc.dateISO) $('race-date').value = rc.dateISO;
+  $('t').value = rc.temp; $('wind').value = rc.windKmh; $('wdir').value = rc.windFromDeg;
+  update(); renderReadiness();
+}
 document.querySelectorAll('input[type=range]').forEach(el=>el.addEventListener('input',()=>{update(); renderReadiness();}));
 update();
+applyRaceContext();
 
 // =============== IMPORTADOR UNIFICADO (GPX · FIT · TCX · CSV) ===============
 // Mantido por compatibilidade: parser GPX local (não mais usado diretamente).

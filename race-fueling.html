@@ -59,6 +59,7 @@
       <span>LMAeroFit</span><span class="tag">Nutrição</span>
     </a>
     <div class="nav-right">
+      <span id="race-badge"></span>
       <span id="prof-badge"></span>
       <a href="./index.html" class="nav-back">← Voltar</a>
     </div>
@@ -187,6 +188,7 @@
 <footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · NUTRIÇÃO v2026 · FLOW</div></footer>
 
 <script src="./assets/profile.js"></script>
+<script src="./assets/race-context.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const prof = LMA.profile.load();
@@ -414,8 +416,17 @@ function renderKit(){
 document.querySelectorAll('#kit-tabs .tab').forEach(b=>{
   b.addEventListener('click', ()=>{ document.querySelectorAll('#kit-tabs .tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderKit(); });
 });
+// Pré-preenche com o Contexto da Prova, se existir
+function applyRaceContext(){
+  if(!(window.LMA && LMA.race && LMA.race.isSet())) return;
+  const rc = LMA.race.load();
+  if(MOD[rc.cat]){ catSel.value = rc.cat; fillMods(); if(MOD[rc.cat].opts[rc.mod]){ modSel.value = rc.mod; applyPreset(); } }
+  $('t').value = rc.temp; $('rh').value = rc.humidity;
+  update();
+}
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
 fillMods();
+applyRaceContext();
 </script>
 </body>
 </html>
