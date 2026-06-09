@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Race Briefing · LMAeroFit</title>
-<meta name="description" content="Briefing meteo + análise unificada de GPX (natação, bike, corrida) com risco de crosswind e pacing.">
+<meta name="description" content="Briefing meteo + análise unificada de percurso (GPX/FIT/TCX: natação, bike, corrida) com risco de crosswind e pacing.">
 <meta name="theme-color" content="#0a0c0e">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -63,7 +63,7 @@
 <header class="head">
   <div class="eyebrow">Instrumento · Briefing meteo</div>
   <h1>Race <em>Briefing</em></h1>
-  <p class="sub">Suba os 3 GPX da prova (natação, bike, corrida) ou só os que tiver. Setup inicial vem da previsão; ajuste à mão pra simular cenários.</p>
+  <p class="sub">Suba os 3 arquivos da prova (GPX, FIT ou TCX) — natação, bike, corrida — ou só os que tiver. Setup inicial vem da previsão; ajuste à mão pra simular cenários.</p>
 </header>
 <main class="wrap">
 
@@ -81,26 +81,26 @@
 
   <div class="grid grid-2">
     <div class="card">
-      <div class="card-title">⤓ GPX da prova · até 3 arquivos</div>
+      <div class="card-title">⤓ Arquivo da prova · até 3 (GPX / FIT / TCX)</div>
 
       <div class="gpx-upload swim">
-        <label>1. Natação (GPX águas abertas)</label>
-        <input type="file" id="gpx-swim" accept=".gpx,.xml">
+        <label>1. Natação (GPX/FIT/TCX águas abertas)</label>
+        <input type="file" id="gpx-swim" accept=".gpx,.xml,.fit,.tcx,.csv,.txt">
         <div class="msg" id="gpx-swim-msg">Arquivo do percurso aquático (opcional).</div>
       </div>
       <div class="gpx-upload bike">
-        <label>2. Bike (GPX) · principal pra análise de vento</label>
-        <input type="file" id="gpx-bike" accept=".gpx,.xml">
+        <label>2. Bike (GPX/FIT/TCX) · principal pra análise de vento</label>
+        <input type="file" id="gpx-bike" accept=".gpx,.xml,.fit,.tcx,.csv,.txt">
         <div class="msg" id="gpx-bike-msg">Bike é o trecho que define vento médio/yaw/elev.</div>
       </div>
       <div class="gpx-upload run">
-        <label>3. Corrida (GPX)</label>
-        <input type="file" id="gpx-run" accept=".gpx,.xml">
+        <label>3. Corrida (GPX/FIT/TCX)</label>
+        <input type="file" id="gpx-run" accept=".gpx,.xml,.fit,.tcx,.csv,.txt">
         <div class="msg" id="gpx-run-msg">Percurso da corrida (opcional).</div>
       </div>
 
       <div class="union" id="union">
-        <div class="ut">◉ União dos 3 GPX</div>
+        <div class="ut">◉ União dos 3 arquivos</div>
         <div class="row">
           <div><span class="k">Swim</span><span class="v" id="u-sw">—</span></div>
           <div><span class="k">Bike</span><span class="v" id="u-bk">—</span></div>
@@ -175,6 +175,8 @@
 </main>
 <footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · RACE BRIEFING v2026</div></footer>
 
+<script src="./assets/fit-parser.js"></script>
+<script src="./assets/activity-importer.js"></script>
 <script src="./assets/profile.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -438,7 +440,8 @@ function update(){
 document.querySelectorAll('input[type=range]').forEach(el=>el.addEventListener('input',()=>{update(); renderReadiness();}));
 update();
 
-// =============== GPX PARSER (multi: swim/bike/run) ===============
+// =============== IMPORTADOR UNIFICADO (GPX · FIT · TCX · CSV) ===============
+// Mantido por compatibilidade: parser GPX local (não mais usado diretamente).
 function parseGpx(text){
   const doc = new DOMParser().parseFromString(text, 'application/xml');
   const pts = [...doc.getElementsByTagName('trkpt')];
@@ -492,10 +495,12 @@ function refreshUnion(){
 
 async function handleFile(side, file){
   if(!file) return;
-  const text = await file.text();
   const msg = $(`gpx-${side}-msg`);
   try{
-    const r = parseGpx(text);
+    if(!(window.LMA && LMA.import)) throw new Error('Importador não carregou (assets/activity-importer.js).');
+    const act = await LMA.import.fromFile(file);
+    if(!act.route.hasGps) throw new Error('Arquivo sem GPS/trajeto — use GPX, TCX ou FIT com rota (CSV não tem coordenadas).');
+    const r = { distKm: act.route.distKm, gainM: act.route.gainM, bearing: act.route.bearing, tech: act.route.tech };
     gpxData[side] = r;
     msg.innerHTML = `✓ <span style="color:var(--aero-bright)">${r.distKm.toFixed(2)} km · +${r.gainM} m · bearing ${r.bearing}°</span>`;
     refreshUnion();

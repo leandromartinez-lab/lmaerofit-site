@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Road vs TT · LMAeroFit</title>
+<style>
+  :root{
+    --bg:#0a0c0e;--panel:#11151a;--panel2:#161b22;--line:#222a32;
+    --ink:#e8eef2;--mut:#8b97a3;--dim:#5c6772;
+    --teal:#13a089;--teal2:#1bd1b0;--blue:#4a9fe0;--red:#e0563f;--yellow:#e0b341;--green:#26c281;--purple:#9b8cff;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 20px 90px}
+  a{color:var(--teal2)}
+  .kicker{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal2);font-weight:700}
+  h1{font-size:30px;margin:8px 0 6px;font-weight:800;letter-spacing:-.5px}
+  h1 em{font-style:normal;color:var(--mut)}
+  .sub{color:var(--mut);max-width:660px;margin:0 0 22px}
+
+  .drop{border:1.5px dashed #2c3742;border-radius:var(--radius);background:var(--panel);
+    padding:22px;text-align:center;transition:.15s;cursor:pointer}
+  .drop:hover,.drop.over{border-color:var(--teal);background:rgba(19,160,137,.06)}
+  .drop .big{font-size:15px;font-weight:700}
+  .drop .small{color:var(--mut);font-size:13px;margin-top:4px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button{font:inherit;font-weight:700;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--ink);padding:9px 15px;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--teal)}
+  button.primary{background:linear-gradient(90deg,var(--teal),var(--teal2));color:#04110d;border:none}
+  .loaded{font-size:13px;color:var(--green)}
+  .err{display:none;margin-top:10px;padding:11px 15px;border-radius:10px;background:rgba(224,86,63,.1);border:1px solid rgba(224,86,63,.35);color:#f2b8ad;font-size:14px}
+
+  .cols{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:18px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .panel h3{margin:0 0 12px;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--teal2)}
+  .panel h3.road{color:var(--blue)} .panel h3.tt{color:var(--teal2)}
+  .field{margin:10px 0}
+  .field label{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+  .field label b{color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--teal);margin-top:6px}
+  .mini{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  #out{display:none;margin-top:20px}
+  .verdict{border-radius:var(--radius);padding:20px 22px;border:1px solid var(--line);background:var(--panel);
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .verdict .big{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .verdict .delta{font-size:46px;font-weight:800;letter-spacing:-2px;line-height:1}
+  .verdict .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .pill{font-size:12px;font-weight:800;padding:5px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em}
+  .pill.tt{background:rgba(27,209,176,.15);color:var(--teal2);border:1px solid rgba(27,209,176,.4)}
+  .pill.road{background:rgba(74,159,224,.15);color:var(--blue);border:1px solid rgba(74,159,224,.4)}
+  .pill.empate{background:rgba(224,179,65,.15);color:var(--yellow);border:1px solid rgba(224,179,65,.4)}
+
+  .grid4{display:grid;gap:12px;grid-template-columns:repeat(4,1fr);margin-top:14px}
+  @media(max-width:760px){.grid4{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .kpi .lab{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .kpi .val{font-size:22px;font-weight:800;margin-top:3px;letter-spacing:-.5px}
+  .kpi .val small{font-size:12px;color:var(--mut);font-weight:600}
+  .val.blue{color:var(--blue)}.val.teal{color:var(--teal2)}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  @media(max-width:600px){.split{grid-template-columns:1fr}}
+  .bk{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .bk .t{font-size:13px;color:var(--mut);margin-bottom:8px}
+  .bkrow{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .bkrow:last-child{border-bottom:none}
+  .bkrow b{font-variant-numeric:tabular-nums}
+  .gain{color:var(--teal2)} .loss{color:var(--red)}
+
+  .caveats{margin-top:14px;border-left:3px solid var(--yellow);background:rgba(224,179,65,.07);padding:12px 16px;border-radius:0 10px 10px 0}
+  .caveats ul{margin:6px 0 0;padding-left:18px;color:#e6d6ad;font-size:13.5px}
+  .note{color:var(--dim);font-size:12.5px;margin-top:16px}
+  .decision{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:14px;color:#cdd6dd}
+  .decision b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">LMAeroFit · Instrumento de decisão</div>
+  <h1>Road vs TT <em>· vale levar/alugar a TT?</em></h1>
+  <p class="sub">Sobe o GPX da prova e descobre, para o <b>seu</b> perfil e a <b>meteorologia</b> do dia, quanto tempo a TT ganha (ou perde) da road naquele percurso. Decida com número se vale levar a sua, alugar uma TT lá fora — ou ir de speed.</p>
+
+  <div class="drop" id="drop">
+    <div class="big">Arraste o GPX/FIT/TCX da prova ou clique</div>
+    <div class="small">.gpx · .fit · .tcx — processado localmente, nada sai do navegador</div>
+    <input type="file" id="file" accept=".gpx,.fit,.tcx" hidden>
+  </div>
+  <div class="row">
+    <button class="primary" id="sample">▶ Carregar percurso de exemplo</button>
+    <span class="loaded" id="loaded"></span>
+  </div>
+  <div class="err" id="err"></div>
+
+  <div class="cols">
+    <div class="panel">
+      <h3>Atleta</h3>
+      <div class="field"><label>Peso do atleta <b id="lwR">72 kg</b></label><input type="range" id="riderW" min="45" max="110" step="1" value="72"></div>
+      <div class="field"><label>FTP <b id="lftp">280 W</b></label><input type="range" id="ftp" min="120" max="450" step="5" value="280"></div>
+      <div class="field"><label>Intensidade alvo <b id="lint">78 % FTP</b></label><input type="range" id="intensity" min="55" max="95" step="1" value="78"></div>
+    </div>
+    <div class="panel">
+      <h3>Meteorologia da prova</h3>
+      <div class="field"><label>Vento médio <b id="lwind">18 km/h</b></label><input type="range" id="wind" min="0" max="50" step="1" value="18"></div>
+      <div class="field"><label>Direção do vento (de onde vem) <b id="lwdir">90°</b></label><input type="range" id="wdir" min="0" max="359" step="5" value="90"></div>
+      <div class="mini">
+        <div class="field"><label>Temperatura <b id="ltemp">26 °C</b></label><input type="range" id="temp" min="-5" max="45" step="1" value="26"></div>
+        <div class="field"><label>Altitude base <b id="lalt">50 m</b></label><input type="range" id="alt" min="0" max="3000" step="10" value="50"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 class="road">Setup ROAD (speed)</h3>
+      <div class="field"><label>CdA <b id="lrcda">0.310 m²</b></label><input type="range" id="rcda" min="0.250" max="0.380" step="0.005" value="0.310"></div>
+      <div class="mini">
+        <div class="field"><label>Crr <b id="lrcrr">0.0050</b></label><input type="range" id="rcrr" min="0.0030" max="0.0070" step="0.0001" value="0.0050"></div>
+        <div class="field"><label>Peso bike <b id="lrbk">8.0 kg</b></label><input type="range" id="rbk" min="6.5" max="11" step="0.1" value="8.0"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 class="tt">Setup TT (contrarrelógio)</h3>
+      <div class="field"><label>CdA <b id="ltcda">0.240 m²</b></label><input type="range" id="tcda" min="0.190" max="0.320" step="0.005" value="0.240"></div>
+      <div class="mini">
+        <div class="field"><label>Crr <b id="ltcrr">0.0040</b></label><input type="range" id="tcrr" min="0.0030" max="0.0070" step="0.0001" value="0.0040"></div>
+        <div class="field"><label>Peso bike <b id="ltbk">9.0 kg</b></label><input type="range" id="tbk" min="7.0" max="12" step="0.1" value="9.0"></div>
+      </div>
+      <div class="field" style="margin-top:8px"><label style="cursor:pointer"><input type="checkbox" id="deep" checked> Rodas profundas (&gt;50 mm) na TT</label></div>
+    </div>
+  </div>
+
+  <div id="out">
+    <div class="verdict" id="verdict"></div>
+
+    <div class="grid4" id="course"></div>
+
+    <div class="split">
+      <div class="bk">
+        <div class="t">Tempo por terreno — <b style="color:var(--blue)">ROAD</b> vs <b style="color:var(--teal2)">TT</b></div>
+        <div id="phases"></div>
+      </div>
+      <div class="bk">
+        <div class="t">Onde a diferença aparece (road − tt)</div>
+        <div id="delta"></div>
+      </div>
+    </div>
+
+    <div class="caveats" id="caveats" style="display:none"></div>
+    <div class="decision" id="decision"></div>
+    <div class="note">Modelo: Martin et al. (1998) por segmento do GPX, com densidade do ar por altitude/temperatura e vento relativo (headwind/crosswind por orientação do trecho). Velocidade resolvida por bisseção na potência-alvo. Precisão da ordem de ±5–8% vs. cronômetro real — serve para <b>decidir</b>, não para prometer. Ajuste os presets de CdA/Crr ao seu caso.</div>
+  </div>
+</div>
+
+<script src="fit-parser.js"></script>
+<script src="activity-importer.js"></script>
+<script src="bike-model.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let RECORDS = null;
+
+// ---- liga labels dos sliders ----
+const bind=(id,lab,fmt)=>{ const el=$('#'+id); const out=$('#'+lab);
+  const upd=()=>{ out.textContent=fmt(el.value); compute(); }; el.addEventListener('input',upd); };
+bind('riderW','lwR',v=>v+' kg'); bind('ftp','lftp',v=>v+' W'); bind('intensity','lint',v=>v+' % FTP');
+bind('wind','lwind',v=>v+' km/h'); bind('wdir','lwdir',v=>v+'°');
+bind('temp','ltemp',v=>v+' °C'); bind('alt','lalt',v=>v+' m');
+bind('rcda','lrcda',v=>(+v).toFixed(3)+' m²'); bind('rcrr','lrcrr',v=>(+v).toFixed(4)); bind('rbk','lrbk',v=>(+v).toFixed(1)+' kg');
+bind('tcda','ltcda',v=>(+v).toFixed(3)+' m²'); bind('tcrr','ltcrr',v=>(+v).toFixed(4)); bind('tbk','ltbk',v=>(+v).toFixed(1)+' kg');
+$('#deep').addEventListener('change',compute);
+
+function fmtT(s){ const m=Math.floor(s/60), ss=Math.round(s%60); return m+':'+String(ss).padStart(2,'0'); }
+function showErr(m){ const e=$('#err'); e.style.display='block'; e.textContent='⚠ '+m; }
+function clrErr(){ $('#err').style.display='none'; }
+
+function readParams(){
+  return {
+    athlete:{ massRider:+$('#riderW').value, FTP:+$('#ftp').value, intensity:+$('#intensity').value/100, eta:0.977 },
+    weather:{ wind:+$('#wind').value, windFromDeg:+$('#wdir').value, temp:+$('#temp').value, baseAltitude:+$('#alt').value },
+    setups:{
+      road:{ cda:+$('#rcda').value, crr:+$('#rcrr').value, massBike:+$('#rbk').value, deepWheels:false },
+      tt:{ cda:+$('#tcda').value, crr:+$('#tcrr').value, massBike:+$('#tbk').value, deepWheels:$('#deep').checked },
+    }
+  };
+}
+
+function compute(){
+  if(!RECORDS) return;
+  clrErr();
+  let r;
+  try{ const p=readParams(); r=LMAModel.compare(RECORDS, p.athlete, p.weather, p.setups); }
+  catch(e){ showErr(e.message); return; }
+
+  const rec=r.recommendation, min=Math.abs(rec.deltaMin);
+  const winner = rec.verdict==='tt'?'TT':(rec.verdict==='road'?'ROAD':'EMPATE');
+  const pillClass = rec.verdict==='empate'?'empate':rec.verdict;
+  const txt = rec.verdict==='empate' ? 'Tecnicamente empatado'
+    : (rec.verdict==='tt' ? 'A TT é mais rápida' : 'A road é mais rápida (ou equivalente e mais segura)');
+  $('#verdict').innerHTML = `
+    <div><div class="lab">Recomendação</div><div class="big">${txt}</div>
+      <span class="pill ${pillClass}">${winner}${rec.level?' · '+rec.level:''}</span></div>
+    <div style="margin-left:auto;text-align:right">
+      <div class="lab">Diferença estimada</div>
+      <div class="delta" style="color:${rec.verdict==='tt'?'var(--teal2)':rec.verdict==='road'?'var(--blue)':'var(--yellow)'}">${min.toFixed(1)}<small style="font-size:18px"> min</small></div>
+      <div class="lab">${rec.verdict==='tt'?'a favor da TT':(rec.verdict==='road'?'a favor da road':'entre as duas')}</div>
+    </div>`;
+
+  const p=r.profile;
+  $('#course').innerHTML=[
+    ['Distância',(p.totalM/1000).toFixed(1),'km'],
+    ['Ganho de elevação',Math.round(p.ascentM),'m'],
+    ['Trecho em subida',(p.climbPct*100).toFixed(0),'%'],
+    ['Sinuosidade',p.turnsPerKm.toFixed(1),'curvas/km'],
+  ].map(([l,v,u])=>`<div class="kpi"><div class="lab">${l}</div><div class="val">${v} <small>${u}</small></div></div>`).join('');
+
+  $('#phases').innerHTML = phaseRow('Tempo total', r.road.timeSec, r.tt.timeSec, true)
+    + phaseRow('Plano', r.road.flatTime, r.tt.flatTime)
+    + phaseRow('Subida', r.road.climbTime, r.tt.climbTime)
+    + phaseRow('Descida', r.road.descTime, r.tt.descTime)
+    + `<div class="bkrow"><span>Vel. média</span><b>${(r.road.avgSpeed*3.6).toFixed(1)} · ${(r.tt.avgSpeed*3.6).toFixed(1)} km/h</b></div>`;
+
+  const dF=r.road.flatTime-r.tt.flatTime, dC=r.road.climbTime-r.tt.climbTime, dD=r.road.descTime-r.tt.descTime;
+  $('#delta').innerHTML = deltaRow('No plano',dF)+deltaRow('Na subida',dC)+deltaRow('Na descida',dD)
+    + `<div class="bkrow"><span>Crosswind médio (TT)</span><b>${r.tt.avgCrosswind.toFixed(1)} m/s</b></div>`;
+
+  const cav=$('#caveats');
+  if(rec.caveats.length){ cav.style.display='block';
+    cav.innerHTML='<b style="color:var(--yellow);font-size:12px;letter-spacing:.1em;text-transform:uppercase">Ressalvas do percurso</b><ul>'+rec.caveats.map(c=>'<li>'+c+'</li>').join('')+'</ul>'; }
+  else cav.style.display='none';
+
+  $('#decision').innerHTML = decisionText(rec, r);
+  $('#out').style.display='block';
+}
+
+function phaseRow(l,road,tt,bold){
+  const b=bold?'style="font-weight:800"':'';
+  return `<div class="bkrow" ${b}><span>${l}</span><b><span style="color:var(--blue)">${fmtT(road)}</span> · <span style="color:var(--teal2)">${fmtT(tt)}</span></b></div>`;
+}
+function deltaRow(l,sec){
+  const cls=sec>1?'gain':(sec<-1?'loss':'');
+  const sign=sec>0?'TT +':(sec<0?'road +':'≈ ');
+  const val=Math.abs(sec)<1?'empate':(sign+(Math.abs(sec)/60).toFixed(1)+' min');
+  return `<div class="bkrow"><span>${l}</span><b class="${cls}">${val}</b></div>`;
+}
+function decisionText(rec,r){
+  const m=Math.abs(rec.deltaMin);
+  if(rec.verdict==='tt' && (rec.level==='forte'||rec.level==='clara'))
+    return `<b>Vale a TT.</b> Ela economiza ~<b>${m.toFixed(1)} min</b> neste percurso e condição. Se você já tem TT, leve-a; se não tem, o aluguel de uma TT lá tende a se pagar em tempo — desde que você treine a posição antes da prova.`;
+  if(rec.verdict==='tt' && rec.level==='leve')
+    return `<b>TT ganha, mas pouco (~${m.toFixed(1)} min).</b> Com as ressalvas abaixo, o ganho pode não compensar o custo/logística de levar ou alugar a TT. Se a prioridade é conforto, segurança ou economia, a road é uma escolha defensável.`;
+  if(rec.verdict==='empate')
+    return `<b>Empate técnico (~${m.toFixed(1)} min).</b> A diferença é menor que a margem de erro do modelo. Decida por conforto, manejo e custo — provavelmente <b>não compensa</b> levar/alugar a TT só por tempo.`;
+  return `<b>Fique na road.</b> Neste percurso/condição a TT não compensa (e a road pode ser mais segura). Não vale o custo de levar ou alugar a TT.`;
+}
+
+// ---- upload + exemplo ----
+function load(records, label){ RECORDS=records; $('#loaded').textContent='✓ '+label+' · '+records.filter(r=>r.lat!=null).length+' pontos'; compute(); }
+function handleFile(file){
+  LMAImport.importFile(file).then(act=>{
+    if(!act.summary.hasGps) { showErr('Esse arquivo não tem GPS/percurso — preciso de lat/lng para simular o trajeto.'); return; }
+    load(act.records, file.name);
+  }).catch(e=>showErr(e.message));
+}
+const drop=$('#drop'), fileInput=$('#file');
+drop.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) handleFile(f); });
+
+// percurso de exemplo: 40 km com um morro no meio + alguns trechos sinuosos
+$('#sample').addEventListener('click',()=>{
+  const recs=[]; const n=600; const totalDeg=40/111.32;
+  for(let i=0;i<=n;i++){ const f=i/n;
+    const elev = 60 + (f<0.5? f*2*420 : (1-f)*2*420) + 12*Math.sin(f*40);
+    const wiggle = 0.0008*Math.sin(f*60);          // leve sinuosidade
+    recs.push({ lat: 0.0002 + wiggle, lng: f*totalDeg, altitude: elev, t:null });
+  }
+  load(recs,'percurso de exemplo (40 km · morro central)');
+});
+</script>
+</body>
+</html>

@@ -147,25 +147,25 @@
       </div>
 
       <div class="card-title" style="margin-top:18px">Arquivos por segmento</div>
-      <p style="font-size:12px;color:var(--ink-mute)">Suba 1, 2 ou 3 arquivos (GPX, CSV, TCX). A análise é por segmento e na união cronológica.</p>
+      <p style="font-size:12px;color:var(--ink-mute)">Suba 1, 2 ou 3 arquivos (GPX, FIT, CSV, TCX). A análise é por segmento e na união cronológica.</p>
 
       <div class="seg-grid">
         <div class="seg-box" id="box-swim">
           <h4>Natação <span class="mono" id="tag-swim" style="color:var(--ink-mute);font-size:9px">vazio</span></h4>
-          <input type="file" id="f-swim" accept=".csv,.gpx,.xml,.tcx,.txt">
-          <div class="seg-msg" id="m-swim">GPX águas abertas · CSV com pace/HR.</div>
+          <input type="file" id="f-swim" accept=".csv,.gpx,.xml,.tcx,.txt,.fit">
+          <div class="seg-msg" id="m-swim">GPX águas abertas · CSV com pace/HR · FIT do relógio.</div>
           <div class="seg-stats" id="s-swim" style="display:none"></div>
         </div>
         <div class="seg-box active" id="box-bike">
           <h4>Bike <span class="mono" id="tag-bike" style="color:var(--ink-mute);font-size:9px">vazio</span></h4>
-          <input type="file" id="f-bike" accept=".csv,.gpx,.xml,.tcx,.txt">
-          <div class="seg-msg" id="m-bike">CSV com power · GPX para distância.</div>
+          <input type="file" id="f-bike" accept=".csv,.gpx,.xml,.tcx,.txt,.fit">
+          <div class="seg-msg" id="m-bike">CSV/FIT com power · GPX para distância.</div>
           <div class="seg-stats" id="s-bike" style="display:none"></div>
         </div>
         <div class="seg-box" id="box-run">
           <h4>Corrida <span class="mono" id="tag-run" style="color:var(--ink-mute);font-size:9px">vazio</span></h4>
-          <input type="file" id="f-run" accept=".csv,.gpx,.xml,.tcx,.txt">
-          <div class="seg-msg" id="m-run">GPX para pace · CSV com HR/cadência.</div>
+          <input type="file" id="f-run" accept=".csv,.gpx,.xml,.tcx,.txt,.fit">
+          <div class="seg-msg" id="m-run">GPX/FIT para pace · CSV com HR/cadência.</div>
           <div class="seg-stats" id="s-run" style="display:none"></div>
         </div>
       </div>
@@ -268,6 +268,8 @@
 </main>
 <footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · SESSION DEBRIEF v2026.3</div></footer>
 
+<script src="./assets/fit-parser.js"></script>
+<script src="./assets/activity-importer.js"></script>
 <script src="./assets/profile.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -352,6 +354,12 @@ function parseGPX(text){
   return {distKm: dist/1000, durSec, gainM: gain, hr, pw, startTime: times[0]||null};
 }
 
+// ============ FIT (binário Garmin) — via ./assets/fit-parser.js ============
+function parseFITfile(buf){
+  if(!(window.LMA && LMA.fit && LMA.fit.fitToSeg)) return null;
+  return LMA.fit.fitToSeg(buf); // {distKm, durSec, gainM, hr, pw, spd, startTime}
+}
+
 function parseCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length<5) return null;
@@ -401,22 +409,15 @@ function computeSegFromData(d){
 }
 
 async function handleFile(sport, file){
-  const name = file.name.toLowerCase();
   const msg = $('m-'+sport);
-  if(name.endsWith('.fit')){
-    msg.innerHTML = '⚠ <span style="color:var(--warn)">FIT binário não suportado. Exporte CSV ou GPX.</span>';
-    return;
-  }
   try{
-    const text = await file.text();
-    let data;
-    if(name.endsWith('.gpx') || name.endsWith('.tcx') || name.endsWith('.xml') || text.trim().startsWith('<?xml')){
-      data = parseGPX(text);
-    } else {
-      data = parseCSV(text);
+    if(!(window.LMA && LMA.import)){
+      msg.innerHTML = '⚠ <span style="color:var(--warn)">Importador não carregou (assets/activity-importer.js).</span>';
+      return;
     }
-    if(!data){ msg.textContent='⚠ Não consegui ler o arquivo.'; return; }
-    const seg = computeSegFromData(data);
+    // Importador unificado: FIT · GPX · TCX · CSV → mesmo schema (act.seg)
+    const act = await LMA.import.fromFile(file);
+    const seg = computeSegFromData(act.seg);
     SEG[sport] = seg;
     $('tag-'+sport).textContent = '● carregado';
     $('tag-'+sport).style.color = 'var(--aero-bright)';
