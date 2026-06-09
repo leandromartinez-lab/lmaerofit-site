@@ -172,11 +172,58 @@
       </div>
     </div>
   </div>
+
+  <!-- ====== ROAD vs TT ====== -->
+  <div class="card" id="roadtt-card" style="margin-top:14px">
+    <div class="card-title">🚴 Road vs TT · vale levar/alugar a TT?</div>
+    <p style="font-size:12px;color:var(--ink-mute);margin-bottom:6px">Usa o percurso da <strong>bike</strong> que você subiu acima + o vento e a temperatura desta página + o seu perfil. Estima quanto a TT ganha (ou perde) da road neste percurso e condição.</p>
+
+    <div id="roadtt-empty" style="padding:14px;background:var(--bg-0);border:1px dashed var(--line-strong);border-radius:var(--r-md);font-size:12px;color:var(--ink-mute)">
+      Suba o <strong style="color:var(--amber)">GPX/FIT da bike</strong> (campo 2 acima) para liberar a comparação.
+    </div>
+
+    <div id="roadtt-body" style="display:none">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px">
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--signal);text-transform:uppercase;margin-bottom:4px">Setup ROAD (speed)</div>
+          <div class="field" style="margin-bottom:8px"><label>CdA road <span class="val" id="lbl-rcda">0.310 m²</span></label>
+            <input type="range" id="rt-rcda" min="0.250" max="0.380" step="0.005" value="0.310"></div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;margin-bottom:4px">Setup TT (contrarrelógio)</div>
+          <div class="field" style="margin-bottom:8px"><label>CdA TT <span class="val" id="lbl-tcda">0.240 m²</span></label>
+            <input type="range" id="rt-tcda" min="0.190" max="0.320" step="0.005" value="0.240"></div>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin-bottom:12px;cursor:pointer"><input type="checkbox" id="rt-deep" checked> Rodas profundas (&gt;50 mm) na TT</label>
+
+      <div id="rt-verdict"></div>
+
+      <div class="metrics" style="margin-top:12px">
+        <div class="metric signal"><div class="k">Road</div><div class="v mono" id="rt-troad">—</div></div>
+        <div class="metric"><div class="k">TT</div><div class="v mono" id="rt-ttt">—</div></div>
+        <div class="metric"><div class="k">Diferença</div><div class="v mono" id="rt-delta">—</div></div>
+        <div class="metric"><div class="k">Crosswind TT</div><div class="v mono" id="rt-cw">—</div></div>
+      </div>
+
+      <div id="rt-phases" style="margin-top:12px"></div>
+      <div id="rt-caveats" style="margin-top:10px"></div>
+      <div id="rt-decision" style="margin-top:12px"></div>
+
+      <div class="note">
+        <details>
+          <summary>Como calcula</summary>
+          <p style="margin-top:8px">Martin 1998 por trecho do GPX: densidade do ar por altitude+temperatura, vento relativo (headwind/crosswind pela orientação de cada trecho), velocidade resolvida na potência-alvo (78% FTP). Precisão ~±5-8% vs cronômetro real — serve pra <strong>decidir</strong>, não prometer. Ajuste os CdA ao seu caso.</p>
+        </details>
+      </div>
+    </div>
+  </div>
 </main>
 <footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · RACE BRIEFING v2026</div></footer>
 
 <script src="./assets/fit-parser.js"></script>
 <script src="./assets/activity-importer.js"></script>
+<script src="./assets/bike-model.js"></script>
 <script src="./assets/profile.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -184,6 +231,7 @@ const prof = LMA.profile.load();
 LMA.profile.mountBadge($('prof-badge'));
 
 const gpxData = {swim:null, bike:null, run:null};
+let bikeRecords = null; // stream completo da bike (lat/lng/altitude) p/ Road vs TT
 
 // ============== READINESS / FORMA ==============
 const RACE_KEY = 'lma.briefing.raceDate';
@@ -435,6 +483,8 @@ function update(){
       <div class="pwr ${cls}">${W} W</div>
     </div>`;
   }).join('');
+
+  renderRoadTT();
 }
 
 document.querySelectorAll('input[type=range]').forEach(el=>el.addEventListener('input',()=>{update(); renderReadiness();}));
@@ -502,6 +552,7 @@ async function handleFile(side, file){
     if(!act.route.hasGps) throw new Error('Arquivo sem GPS/trajeto — use GPX, TCX ou FIT com rota (CSV não tem coordenadas).');
     const r = { distKm: act.route.distKm, gainM: act.route.gainM, bearing: act.route.bearing, tech: act.route.tech };
     gpxData[side] = r;
+    if(side==='bike') bikeRecords = act.records; // guarda o stream p/ Road vs TT
     msg.innerHTML = `✓ <span style="color:var(--aero-bright)">${r.distKm.toFixed(2)} km · +${r.gainM} m · bearing ${r.bearing}°</span>`;
     refreshUnion();
   }catch(e){
@@ -512,6 +563,62 @@ async function handleFile(side, file){
 $('gpx-swim').addEventListener('change', e=>handleFile('swim', e.target.files[0]));
 $('gpx-bike').addEventListener('change', e=>handleFile('bike', e.target.files[0]));
 $('gpx-run').addEventListener('change',  e=>handleFile('run',  e.target.files[0]));
+
+// =============== ROAD vs TT ===============
+function renderRoadTT(){
+  const empty = $('roadtt-empty'), body = $('roadtt-body');
+  const rcda = +$('rt-rcda').value, tcda = +$('rt-tcda').value;
+  $('lbl-rcda').textContent = rcda.toFixed(3)+' m²';
+  $('lbl-tcda').textContent = tcda.toFixed(3)+' m²';
+  if(!bikeRecords){ empty.style.display='block'; empty.innerHTML='Suba o <strong style="color:var(--amber)">GPX/FIT da bike</strong> (campo 2 acima) para liberar a comparação.'; body.style.display='none'; return; }
+
+  const p = LMA.profile.load();
+  const athlete = { massRider: p.massKg||72, FTP: p.ftpW||250, intensity: 0.78, eta: 0.977 };
+  const weather = { wind:+$('wind').value, windFromDeg:+$('wdir').value, temp:+$('t').value, baseAltitude: p.altitudeM||5 };
+  const setups = {
+    road:{ cda:rcda, crr:0.005, massBike:8.0, deepWheels:false },
+    tt:{ cda:tcda, crr:0.004, massBike:9.0, deepWheels:$('rt-deep').checked },
+  };
+  let r;
+  try{ r = LMAModel.compare(bikeRecords, athlete, weather, setups); }
+  catch(e){ empty.style.display='block'; empty.textContent='⚠ '+e.message; body.style.display='none'; return; }
+  empty.style.display='none'; body.style.display='block';
+
+  const ft = s => { const m=Math.floor(s/60); return m+':'+String(Math.round(s%60)).padStart(2,'0'); };
+  const rec = r.recommendation, min = Math.abs(rec.deltaMin);
+  const color = rec.verdict==='tt'?'var(--amber)':(rec.verdict==='road'?'var(--signal)':'var(--warn)');
+  const word = rec.verdict==='tt'?'A TT é mais rápida':(rec.verdict==='road'?'A road é mais rápida / equivalente':'Empate técnico');
+  const pill = rec.verdict==='empate'?'EMPATE':(rec.verdict.toUpperCase()+(rec.level?' · '+rec.level:''));
+  $('rt-verdict').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px;border-radius:var(--r-md);background:var(--bg-0);border:1px solid var(--line-strong)">
+    <div><div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase">Recomendação</div>
+      <div style="font-size:18px;font-weight:600;color:var(--ink)">${word}</div></div>
+    <div style="text-align:right"><div style="font-family:var(--mono);font-size:34px;color:${color};line-height:1">${min.toFixed(1)}<span style="font-size:13px;color:var(--ink-mute)"> min</span></div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:${color};text-transform:uppercase">${pill}</div></div>
+  </div>`;
+
+  $('rt-troad').textContent = ft(r.road.timeSec);
+  $('rt-ttt').textContent = ft(r.tt.timeSec);
+  $('rt-delta').innerHTML = `<span style="color:${color}">${rec.deltaMin>=0?'TT ':'road '}+${min.toFixed(1)}m</span>`;
+  $('rt-cw').innerHTML = `${r.tt.avgCrosswind.toFixed(1)}<span class="u">m/s</span>`;
+
+  const dF=r.road.flatTime-r.tt.flatTime, dC=r.road.climbTime-r.tt.climbTime, dD=r.road.descTime-r.tt.descTime;
+  const row=(l,sec)=>{const c=sec>1?'var(--amber)':(sec<-1?'var(--signal)':'var(--ink-mute)');
+    const txt=Math.abs(sec)<1?'empate':((sec>0?'TT +':'road +')+(Math.abs(sec)/60).toFixed(1)+' min');
+    return `<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:5px 0;border-bottom:1px dashed var(--line)"><span style="color:var(--ink-mute)">${l}</span><span style="color:${c}">${txt}</span></div>`;};
+  $('rt-phases').innerHTML = `<div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-mute);text-transform:uppercase;margin-bottom:4px">Onde a diferença aparece · ${(r.profile.totalM/1000).toFixed(1)} km · ${(r.profile.climbPct*100).toFixed(0)}% subindo</div>`+row('No plano',dF)+row('Na subida',dC)+row('Na descida',dD);
+
+  $('rt-caveats').innerHTML = rec.caveats.length
+    ? `<div style="border-left:3px solid var(--warn);background:rgba(244,185,66,.07);padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;color:#e6d6ad">${rec.caveats.map(c=>'▸ '+c).join('<br>')}</div>`
+    : '';
+
+  let dec;
+  if(rec.verdict==='tt' && (rec.level==='forte'||rec.level==='clara')) dec=`<strong>Vale a TT.</strong> Economiza ~<strong>${min.toFixed(1)} min</strong> neste percurso/condição. Se já tem, leve; se não, o aluguel tende a se pagar em tempo — treine a posição antes da prova.`;
+  else if(rec.verdict==='tt' && rec.level==='leve') dec=`<strong>TT ganha pouco (~${min.toFixed(1)} min).</strong> Com as ressalvas acima, pode não compensar o custo/logística de levar ou alugar. A road é uma escolha defensável.`;
+  else if(rec.verdict==='empate') dec=`<strong>Empate técnico (~${min.toFixed(1)} min)</strong> — dentro da margem de erro do modelo. Decida por conforto, manejo e custo; provavelmente não compensa levar/alugar a TT só por tempo.`;
+  else dec=`<strong>Fique na road.</strong> Neste percurso/condição a TT não compensa (e a road é mais segura). Não vale o custo de levar/alugar.`;
+  $('rt-decision').innerHTML = `<div style="font-size:13px;color:#cdd6dd;background:var(--bg-0);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px">${dec}</div>`;
+}
+$('rt-deep').addEventListener('change', renderRoadTT);
 </script>
 </body>
 </html>
