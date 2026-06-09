@@ -261,11 +261,11 @@ function update(){
   $('lbl-td').textContent=`${(+$('td').value).toFixed(2)} h`;
 
   const tsw=+$('tsw').value,tt1=+$('tt1').value,trn1=+$('trn1').value,tbk=+$('tbk').value,tt2=+$('tt2').value,trn=+$('trn').value;
-  $('lbl-tsw').textContent=`${tsw} min`;$('lbl-tt1').textContent=`${tt1} min`;
-  $('lbl-trn1').textContent=`${trn1} min`;
-  $('lbl-tbk').textContent=tbk>60?`${(tbk/60).toFixed(1)} h`:`${tbk} min`;
-  $('lbl-tt2').textContent=`${tt2} min`;
-  $('lbl-trn').textContent=trn>60?`${(trn/60).toFixed(1)} h`:`${trn} min`;
+  $('lbl-tsw').textContent=fmt(tsw); $('lbl-tt1').textContent=fmt(tt1);
+  $('lbl-trn1').textContent=fmt(trn1);
+  $('lbl-tbk').textContent=fmt(tbk);
+  $('lbl-tt2').textContent=fmt(tt2);
+  $('lbl-trn').textContent=fmt(trn);
 
   const total = tsw+tt1+trn1+tbk+tt2+trn;
   const wk = +$('wk').value, gutCap = gutCapacity(wk);
