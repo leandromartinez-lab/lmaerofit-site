@@ -11,8 +11,8 @@
     massKg: 72,
     heightCm: 175,
     ftpW: 280,
-    runThrPace: 240, // s/km @ threshold
-    swimCss: 95,     // s/100m
+    runThrPace: 240, // s/km @ threshold (armazenado em SEGUNDOS; input é min:seg)
+    swimCss: 95,     // s/100m (armazenado em SEGUNDOS; input é min:seg)
     sweatRate: 1.0,  // L/h base
     sweatNa: 800,    // mg/L
     altitudeM: 100,
@@ -37,6 +37,26 @@
     p = p || load();
     if(!p.onboarded) return false;
     return REQUIRED.every(k => p[k] !== '' && p[k] != null && !(typeof p[k]==='number' && isNaN(p[k])));
+  }
+
+  // ----- Pace helpers: armazenamos em segundos, mas o atleta digita min:seg -----
+  function secToPace(sec){
+    if(sec == null || isNaN(sec)) return '';
+    sec = Math.round(sec);
+    return Math.floor(sec/60) + ':' + String(sec % 60).padStart(2,'0');
+  }
+  function paceToSec(str){
+    if(str == null) return null;
+    str = String(str).trim().replace(',', '.');
+    if(str === '') return null;
+    if(str.indexOf(':') >= 0){
+      const parts = str.split(':');
+      return Math.round((+parts[0] || 0) * 60 + (+parts[1] || 0));
+    }
+    const num = +str;
+    if(isNaN(num)) return null;
+    // sem ':' — heurística: valor pequeno = minutos (ex.: "4" = 4:00); grande = segundos
+    return Math.round(num < 20 ? num * 60 : num);
   }
 
 
@@ -120,8 +140,8 @@
           <div><label>FTP W <span class="req">*</span></label><input id="p-ftp" type="number" value="${p.ftpW||''}"></div>
         </div>
         <div class="row">
-          <div><label>Limiar corrida (s/km)</label><input id="p-run" type="number" value="${p.runThrPace}"></div>
-          <div><label>CSS natação (s/100m)</label><input id="p-swim" type="number" value="${p.swimCss}"></div>
+          <div><label>Limiar corrida (min/km)</label><input id="p-run" type="text" inputmode="numeric" value="${secToPace(p.runThrPace)}" placeholder="4:00"></div>
+          <div><label>CSS natação (min/100m)</label><input id="p-swim" type="text" inputmode="numeric" value="${secToPace(p.swimCss)}" placeholder="1:35"></div>
         </div>
         <div class="row">
           <div><label>Taxa de suor (L/h)</label><input id="p-sw" type="number" step="0.05" value="${p.sweatRate}"></div>
@@ -180,8 +200,8 @@
         massKg: +wrap.querySelector('#p-mass').value,
         heightCm: +wrap.querySelector('#p-h').value,
         ftpW: +wrap.querySelector('#p-ftp').value,
-        runThrPace: +wrap.querySelector('#p-run').value || DEFAULTS.runThrPace,
-        swimCss: +wrap.querySelector('#p-swim').value || DEFAULTS.swimCss,
+        runThrPace: paceToSec(wrap.querySelector('#p-run').value) || DEFAULTS.runThrPace,
+        swimCss: paceToSec(wrap.querySelector('#p-swim').value) || DEFAULTS.swimCss,
         sweatRate: +wrap.querySelector('#p-sw').value || DEFAULTS.sweatRate,
         sweatNa: +wrap.querySelector('#p-na').value || DEFAULTS.sweatNa,
         ctl, atl, tsb,
@@ -382,6 +402,6 @@
   }
 
   window.LMA = window.LMA || {};
-  window.LMA.profile = { load, save, patch, mountBadge, openModal, isComplete, requireProfile, formReadiness };
+  window.LMA.profile = { load, save, patch, mountBadge, openModal, isComplete, requireProfile, formReadiness, secToPace, paceToSec };
   window.LMA.modalidades = MODALIDADES;
 })();
