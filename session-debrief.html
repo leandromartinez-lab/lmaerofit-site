@@ -196,7 +196,10 @@
         <textarea id="ctx-strat" class="lma-text" placeholder="Pacing, nutrição, zonas alvo, cadência, watts/km alvo…"></textarea>
       </div>
 
-      <div class="card-title" style="margin-top:18px">Arquivos por segmento</div>
+      <div class="card-title" style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span>Arquivos por segmento</span>
+        <button id="reset-btn" type="button" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink-soft);padding:5px 10px;border:1px solid var(--line-strong);border-radius:6px;background:transparent;cursor:pointer;text-transform:uppercase">↺ Limpar / nova análise</button>
+      </div>
       <p style="font-size:12px;color:var(--ink-mute)">Suba 1, 2 ou 3 arquivos (GPX, FIT, CSV, TCX). A análise é por segmento e na união cronológica.</p>
 
       <div class="seg-grid">
@@ -552,6 +555,37 @@ function fillSliders(seg){
     const f = e.target.files[0]; if(f) handleFile(s, f);
   });
 });
+
+// ============ Limpar / nova análise ============
+const SEG_MSG = {
+  swim:'GPX águas abertas · CSV com pace/HR · FIT do relógio.',
+  bike:'CSV/FIT com power · GPX para distância.',
+  run:'GPX/FIT para pace · CSV com HR/cadência.'
+};
+function resetAll(){
+  ['swim','bike','run'].forEach(s=>{
+    SEG[s]=null; ACT[s]=null;
+    const fi=$('f-'+s); if(fi) fi.value='';
+    const tag=$('tag-'+s); if(tag){ tag.textContent='vazio'; tag.style.color='var(--ink-mute)'; }
+    const st=$('s-'+s); if(st){ st.style.display='none'; st.innerHTML=''; }
+    const m=$('m-'+s); if(m) m.innerHTML=SEG_MSG[s];
+    const box=$('box-'+s); if(box) box.classList.toggle('active', s==='bike');
+  });
+  // volta o tab de sessão para Bike (padrão)
+  document.querySelectorAll('#sport-tabs .tab').forEach(x=>x.classList.toggle('active', x.dataset.s==='bike'));
+  // esconde relatório e união
+  const rc=$('report-card'); if(rc) rc.style.display='none';
+  $('report-body').innerHTML=''; $('report-tag').textContent='';
+  $('report-tabs').style.display='none'; $('report-tabs').innerHTML='';
+  $('union-card').style.display='none';
+  // limpa contexto (texto livre) — mantém tipo de sessão
+  $('ctx-goal').value=''; $('ctx-strat').value='';
+  window._latest=null;
+  update();
+  // feedback visual no botão
+  const b=$('reset-btn'); if(b){ const t=b.textContent; b.textContent='✓ Limpo'; setTimeout(()=>b.textContent=t,1400); }
+}
+$('reset-btn').addEventListener('click', resetAll);
 
 // ============ Sparkline + sliders update ============
 function sparkline(){
