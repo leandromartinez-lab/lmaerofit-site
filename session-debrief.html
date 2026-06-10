@@ -58,6 +58,50 @@
   .compromise h4{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--warn);text-transform:uppercase;margin-bottom:8px}
   .compromise .line{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:6px 0;padding-left:14px;position:relative}
   .compromise .line::before{content:'▸';position:absolute;left:0;color:var(--warn)}
+
+  /* ===== Relatório Pós-Prova (debrief-engine) ===== */
+  .dbf-report{font-size:14px;color:var(--ink-soft)}
+  .dbf-sec{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+  .dbf-sec:first-child{border-top:0;margin-top:0;padding-top:0}
+  .dbf-sec-k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--amber);text-transform:uppercase;margin-bottom:12px}
+  .dbf-diag{padding:12px 14px;border-radius:var(--r-md);background:var(--bg-0);border:1px solid var(--line-strong);font-size:13.5px;line-height:1.5;margin-bottom:14px}
+  .dbf-diag-tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-right:8px}
+  .dbf-good{color:var(--aero-bright)}.dbf-warn{color:var(--warn)}.dbf-bad{color:var(--crit)}.dbf-info{color:var(--ink-soft)}.dbf-mut{color:var(--ink-mute)}
+  .dbf-scores{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border-radius:var(--r-md);overflow:hidden}
+  @media(max-width:640px){.dbf-scores{grid-template-columns:repeat(3,1fr)}}
+  .dbf-score{background:var(--bg-1);padding:12px 6px;text-align:center}
+  .dbf-score-v{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1}
+  .dbf-score-l{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase;margin-top:5px}
+  .dbf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:var(--r-md);overflow:hidden}
+  @media(max-width:640px){.dbf-kpis{grid-template-columns:repeat(2,1fr)}}
+  .dbf-kpi{background:var(--bg-1);padding:11px 10px}
+  .dbf-kpi-l{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase}
+  .dbf-kpi-v{font-family:var(--mono);font-size:19px;color:var(--ink);margin-top:4px}
+  .dbf-kpi-u{font-size:11px;color:var(--ink-mute);margin-left:2px}
+  .dbf-kpi-n{font-size:10px;color:var(--ink-mute);margin-top:2px}
+  .dbf-flag{margin-top:12px;padding:11px 13px;border-radius:var(--r-md);font-size:12.5px;line-height:1.5;border:1px solid var(--line-strong)}
+  .dbf-flag.warn{background:rgba(244,185,66,.07);border-color:rgba(244,185,66,.3)}
+  .dbf-flag.info{background:rgba(120,140,180,.07)}
+  .dbf-chart{margin:12px 0;background:var(--bg-0);border:1px solid var(--line);border-radius:var(--r-md);padding:12px}
+  .dbf-chart-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:8px}
+  .dbf-chart-sub{font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:8px}
+  .dbf-p{font-size:13px;line-height:1.55;margin:10px 0}
+  .dbf-tbl-w{overflow-x:auto;margin-top:8px}
+  .dbf-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+  .dbf-tbl th{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line-strong);font-size:9px;letter-spacing:.08em;color:var(--ink-mute);text-transform:uppercase;font-weight:400;white-space:nowrap}
+  .dbf-tbl td{padding:7px 9px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+  .dbf-tbl td.dbf-mut{font-family:var(--body);font-size:11.5px}
+  .dbf-recs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.dbf-recs{grid-template-columns:1fr}}
+  .dbf-rec-h{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.06em;margin-bottom:6px}
+  .dbf-recs ul{margin:0;padding-left:16px}.dbf-recs li{font-size:12.5px;line-height:1.5;margin:5px 0;color:var(--ink-soft)}
+  .dbf-sem{display:grid;gap:1px;background:var(--line);border-radius:var(--r-md);overflow:hidden}
+  .dbf-sem-row{display:grid;grid-template-columns:16px 130px 1fr;gap:10px;align-items:center;background:var(--bg-1);padding:10px 12px;font-size:12.5px}
+  .dbf-dot{width:9px;height:9px;border-radius:50%}
+  .dbf-sem-a{color:var(--ink);font-weight:500}.dbf-sem-c{font-family:var(--mono);font-size:11px;color:var(--ink-mute)}
+  .dbf-alert{font-size:12.5px;line-height:1.5;padding:8px 11px;border-radius:var(--r-sm);margin:6px 0;background:var(--bg-0);border:1px solid var(--line)}
+  .dbf-bad-a{border-color:rgba(225,90,79,.35)}.dbf-warn-a{border-color:rgba(244,185,66,.3)}.dbf-info-a{border-color:var(--line)}
+  .dbf-foot{font-size:11px;color:var(--ink-mute);line-height:1.5;margin-top:20px;font-style:italic}
 </style>
 </head>
 <body data-lma="tool">
@@ -265,12 +309,22 @@
     <div class="card-title">União cronológica · prova/brick completo</div>
     <div id="union-body"></div>
   </div>
+
+  <!-- ============ RELATÓRIO PÓS-PROVA (detalhado) ============ -->
+  <div class="card" id="report-card" style="margin-top:14px;display:none">
+    <div class="card-title">Relatório Pós-Prova · análise detalhada <span class="mono" id="report-tag" style="color:var(--ink-mute);font-size:10px;font-weight:400"></span></div>
+    <p style="font-size:12px;color:var(--ink-mute);margin-bottom:14px">Leitura estilo método norueguês a partir dos streams do arquivo (potência, FC, pace, altitude, cadência). Substitui lactato por NP · IF · VI · EF · Pa:Hr · zonas · tempo acima do limiar.</p>
+    <div class="report-tabs tabs" id="report-tabs" style="display:none"></div>
+    <div id="report-body"></div>
+  </div>
 </main>
 <footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · SESSION DEBRIEF v2026.3</div></footer>
 
-<script src="./assets/fit-parser.js"></script>
-<script src="./assets/activity-importer.js"></script>
-<script src="./assets/profile.js"></script>
+<script src="./assets/fit-parser.js?v=2"></script>
+<script src="./assets/activity-importer.js?v=2"></script>
+<script src="./assets/debrief-core.js?v=1"></script>
+<script src="./assets/debrief-render.js?v=1"></script>
+<script src="./assets/profile.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 const prof = LMA.profile.load();
@@ -325,6 +379,8 @@ renderPMC();
 
 // ============ Per-segment data store ============
 const SEG = { swim:null, bike:null, run:null };
+const ACT = { swim:null, bike:null, run:null };   // atividade completa (com records) p/ Relatório Pós-Prova
+const SPORT_MAP = { swim:'swimming', bike:'cycling', run:'running' };
 
 function parseGPX(text){
   const doc = new DOMParser().parseFromString(text, 'application/xml');
@@ -419,6 +475,7 @@ async function handleFile(sport, file){
     const act = await LMA.import.fromFile(file);
     const seg = computeSegFromData(act.seg);
     SEG[sport] = seg;
+    ACT[sport] = act;
     $('tag-'+sport).textContent = '● carregado';
     $('tag-'+sport).style.color = 'var(--aero-bright)';
     $('box-'+sport).classList.add('active');
@@ -437,7 +494,40 @@ async function handleFile(sport, file){
     const active = document.querySelector('#sport-tabs .tab.active').dataset.s;
     if(active === sport) fillSliders(seg);
     update();
+    showReport(sport);   // Relatório Pós-Prova detalhado
   }catch(e){ msg.textContent='⚠ '+e.message; }
+}
+
+// ============ Relatório Pós-Prova detalhado (debrief-engine) ============
+function showReport(sport){
+  if(!(window.LMA && LMA.debrief)) return;
+  const filled = ['swim','bike','run'].filter(s=>ACT[s]);
+  if(!filled.length){ $('report-card').style.display='none'; return; }
+  $('report-card').style.display='block';
+
+  // abas por segmento (se houver mais de um arquivo)
+  const tabsEl = $('report-tabs');
+  if(filled.length>1){
+    tabsEl.style.display='flex';
+    const labels = {swim:'Natação', bike:'Bike', run:'Corrida'};
+    tabsEl.innerHTML = filled.map(s=>`<button class="tab${s===sport?' active':''}" data-rs="${s}">${labels[s]}</button>`).join('');
+    tabsEl.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+      tabsEl.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); renderReportFor(b.dataset.rs);
+    }));
+  } else { tabsEl.style.display='none'; }
+  renderReportFor(sport);
+}
+function renderReportFor(sport){
+  const act = ACT[sport]; if(!act) return;
+  try{
+    const report = LMA.debrief.analyze(act, prof, {sport: SPORT_MAP[sport]});
+    LMA.debrief.renderReport(report, $('report-body'));
+    const g = report.general || {};
+    $('report-tag').textContent = act.source ? '· '+act.source.toUpperCase()+(g.distKm?' · '+g.distKm.toFixed(1)+' km':'') : '';
+  }catch(e){
+    $('report-body').innerHTML = '<p style="color:var(--warn)">Não foi possível gerar o relatório detalhado: '+e.message+'</p>';
+  }
 }
 
 function fillSliders(seg){
