@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/cockpit.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
   .verdict{padding:18px;border-radius:var(--r-md);margin-top:18px;background:var(--bg-0);border:1px solid var(--line-strong)}
   .verdict .v-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--amber);text-transform:uppercase;margin-bottom:8px}
@@ -85,6 +87,10 @@
   .dbf-chart{margin:12px 0;background:var(--bg-0);border:1px solid var(--line);border-radius:var(--r-md);padding:12px}
   .dbf-chart-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:8px}
   .dbf-chart-sub{font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:8px}
+  .dbf-map{height:320px;width:100%;border-radius:var(--r-md);overflow:hidden;background:var(--bg-0)}
+  @media(max-width:640px){.dbf-map{height:260px}}
+  .dbf-map .leaflet-control-attribution{font-size:9px;background:rgba(10,12,14,.7);color:var(--ink-mute)}
+  .dbf-map .leaflet-control-attribution a{color:var(--ink-soft)}
   .dbf-p{font-size:13px;line-height:1.55;margin:10px 0}
   .dbf-tbl-w{overflow-x:auto;margin-top:8px}
   .dbf-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
@@ -323,7 +329,7 @@
 <script src="./assets/fit-parser.js?v=2"></script>
 <script src="./assets/activity-importer.js?v=2"></script>
 <script src="./assets/debrief-core.js?v=1"></script>
-<script src="./assets/debrief-render.js?v=1"></script>
+<script src="./assets/debrief-report.js?v=1"></script>
 <script src="./assets/profile.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
