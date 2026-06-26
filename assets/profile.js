@@ -150,7 +150,7 @@
 
         <div style="margin-top:18px;padding-top:14px;border-top:1px dashed rgba(255,255,255,.1)">
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:#ff8a1c;text-transform:uppercase;margin-bottom:4px">◉ Forma & carga (opcional)</div>
-          <div style="font-size:11px;color:#7a8088;line-height:1.5;margin-bottom:8px">Cole do TrainingPeaks / Intervals.icu / Strava. Usado pelo Race Briefing pra estimar desempenho na data da prova. Atualize a cada 7-14 dias.</div>
+          <div style="font-size:11px;color:#7a8088;line-height:1.5;margin-bottom:8px">Copie do seu painel de treino (onde você acompanha CTL / ATL / TSB). Usado pelo Race Briefing pra estimar desempenho na data da prova. Atualize a cada 7-14 dias.</div>
         </div>
         <div class="row">
           <div><label>CTL atual (fitness)</label><input id="p-ctl" type="number" step="1" value="${p.ctl||''}" placeholder="ex: 75"></div>
