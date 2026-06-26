@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Physio Lab · LMAeroFit</title>
+<meta name="description" content="Traduz o laudo fisiológico (ergoespirometria, bioimpedância, força, pisada) em zonas de treino, combustível e parecer integrado — com fonte e grau de confiança em cada número.">
+<meta name="theme-color" content="#0a0c0e">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,1,400;9..144,1,500&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cockpit.css?v=3">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  .pl-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 20px}
+  .pl-btn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:10px 16px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:transparent;color:var(--ink-soft);cursor:pointer;transition:all .2s var(--ease)}
+  .pl-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .pl-btn.primary{background:var(--amber);color:#0a0c0e;border-color:var(--amber);font-weight:600}
+  .pl-btn.primary:hover{color:#0a0c0e;background:var(--amber-bright)}
+  .form-grid{display:grid;gap:16px}
+  @media(min-width:780px){.form-grid{grid-template-columns:1fr 1fr}}
+  .fcard{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--line);border-radius:var(--r-lg);padding:18px}
+  .fcard h3{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .frow.f3{grid-template-columns:1fr 1fr 1fr}
+  .ff label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-mute);text-transform:uppercase;margin-bottom:4px}
+  .ff input,.ff select{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:8px 10px;font-size:13px;color:var(--ink)}
+  .ff input:focus,.ff select:focus{outline:none;border-color:var(--amber)}
+  .ff textarea{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;color:var(--ink);font-family:var(--mono);min-height:64px}
+  #report{margin-top:10px}
+  .pl-uploads{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  @media(max-width:640px){.pl-uploads{grid-template-columns:1fr}}
+  .upzone{display:flex;flex-direction:column;gap:3px;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px dashed var(--line-strong);border-radius:var(--r-lg);padding:16px 18px;cursor:pointer;transition:border-color .2s var(--ease)}
+  .upzone:hover{border-color:var(--amber)}
+  .upzone .upn{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.05em}
+  .upzone .upd{font-size:11.5px;color:var(--ink-mute)}
+  .upzone input{margin-top:8px;font-size:11px;color:var(--ink-soft)}
+  .up-status{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);margin-bottom:16px;min-height:16px;line-height:1.5}
+  .priv{font-size:11px;color:var(--ink-mute);font-family:var(--mono);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+  .print-only{display:none}
+  /* tema claro de relatório — usado no PDF (html2pdf) e na impressão */
+  .pl-light{background:#fff!important;color:#1a1a20;font-family:var(--body)}
+  .pl-light .print-only{display:block!important}
+  .pl-light .pl-sec{border-top:1px solid #e2e2e2!important;padding:14px 0}
+  .pl-light .pl-mark{color:#999!important}.pl-light .pl-h2{color:#1a1a20!important}.pl-light .pl-h2 em{color:#c96d1a!important}.pl-light .pl-note{color:#666!important}.pl-light .conf-legend{color:#444!important}
+  .pl-light .pl-metric,.pl-light .pl-zone,.pl-light .pl-fcard,.pl-light .pl-parecer,.pl-light .pl-flag{background:#fff!important;border:1px solid #dcdcdc!important;box-shadow:none!important}
+  .pl-light .pl-metric .lab{color:#777!important}.pl-light .pl-metric .val{color:#1a1a20!important}.pl-light .pl-metric .ctx{color:#444!important}
+  .pl-light .pl-metric.warn .val{color:#b26a00!important}.pl-light .pl-metric.crit .val{color:#b23b33!important}.pl-light .pl-metric.ok .val{color:#2f7d2f!important}
+  .pl-light .pl-zname{color:#1a1a20!important}.pl-light .pl-zpurpose,.pl-light .pl-zdata .d{color:#444!important}.pl-light .pl-zdata .d b{color:#1a1a20!important}
+  .pl-light .pl-fcard .dur{color:#c96d1a!important}.pl-light .pl-fcard .gph{color:#1a1a20!important}.pl-light .pl-fcard .desc{color:#444!important}
+  .pl-light .pl-parecer{border-left:3px solid #c96d1a!important;color:#1a1a20!important}.pl-light .pl-parecer p{color:#1a1a20!important}.pl-light .pl-parecer strong{color:#c96d1a!important}.pl-light .pl-parecer .pmono{color:#b26a00!important}
+  .pl-light .pl-flag{background:#fff7ef!important;border-color:#f0c389!important}.pl-light .pl-flag .ft{color:#b26a00!important}.pl-light .pl-flag p{color:#444!important}.pl-light .pl-flag strong{color:#1a1a20!important}
+  .pl-light .pl-flag.safe{background:#f1f8ee!important;border-color:#bcd9ab!important}.pl-light .pl-flag.safe .ft{color:#2f7d2f!important}
+  .pl-light .pl-src{color:#888!important}
+  .pl-pdf-wrap{width:760px;padding:6px 4px}
+  @media print{
+    @page{margin:14mm}
+    .nav,.pl-toolbar,.form-section,.priv,footer,.head .sub{display:none!important}
+    .wrap{max-width:none;padding:0}.head{padding:0!important}.head .eyebrow::before{display:none}.head h1{font-size:26px}
+    .pl-sec{page-break-inside:avoid}.pl-metric,.pl-zone,.pl-fcard,.pl-parecer,.pl-flag{break-inside:avoid}
+  }
+</style>
+</head>
+<body data-lma="physio">
+<nav class="nav"><div class="nav-inner">
+  <a href="./index.html" class="nav-brand"><img src="./assets/lmaerofit-logo-transparent.png" alt="LMAeroFit"><span class="tag">Physio Lab</span></a>
+  <div class="nav-right"><span id="prof-badge"></span><a href="./index.html" class="nav-back">← Voltar</a></div>
+</div></nav>
+
+<header class="head">
+  <div class="eyebrow">Instrumento · laudo → decisão de treino</div>
+  <h1>Physio <em>Lab</em></h1>
+  <p class="sub">Cole os números do seu laudo (ergoespirometria, bioimpedância, força, pisada). A ferramenta devolve zonas, combustível e um retrato integrado dos 7 módulos — <strong>com fonte e grau de confiança em cada número</strong>. Roda no navegador; o PDF não é guardado.</p>
+</header>
+
+<main class="wrap">
+  <div class="pl-toolbar">
+    <button class="pl-btn primary" id="gen">⚙ Gerar parecer</button>
+    <button class="pl-btn" id="ex">Carregar exemplo (laudo IEMEX)</button>
+    <button class="pl-btn" id="clr">Limpar</button>
+    <button class="pl-btn" id="pdf" style="display:none">⤓ Exportar PDF</button>
+    <button class="pl-btn" id="csv" style="display:none">⤓ Exportar CSV</button>
+  </div>
+
+  <div class="form-section">
+  <div class="pl-uploads">
+    <label class="upzone"><span class="upn">① Suba o laudo (PDF)</span><span class="upd">ergoespirometria tipo IEMEX/TCPE — extrai e preenche os campos automaticamente</span><input type="file" id="up-pdf" accept=".pdf,application/pdf"></label>
+    <label class="upzone"><span class="upn">② Suba o treino (FIT / GPX / TCX / CSV)</span><span class="upd">cruza com o laudo: FTP real × LV2 + decoupling Pw:Hr na conciliação</span><input type="file" id="up-act" accept=".fit,.gpx,.tcx,.csv,.xml,.txt"></label>
+  </div>
+  <div class="up-status" id="up-status">◉ Tudo roda no seu navegador — o PDF e o treino não são enviados nem guardados.</div>
+  <div class="form-grid">
+    <div class="fcard"><h3>Atleta &amp; antropometria</h3>
+      <div class="frow"><div class="ff"><label>Iniciais</label><input id="a-init" type="text" placeholder="L.M."></div><div class="ff"><label>Sexo</label><select id="a-sex"><option value="M">Masculino</option><option value="F">Feminino</option></select></div></div>
+      <div class="frow f3"><div class="ff"><label>Idade</label><input id="a-age" type="number"></div><div class="ff"><label>Peso (kg)</label><input id="a-weight" type="number" step="0.1"></div><div class="ff"><label>Altura (cm)</label><input id="a-height" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label>% gordura</label><input id="a-bf" type="number" step="0.1"></div><div class="ff"><label>Método</label><input id="a-bfm" type="text" placeholder="bioimpedância"></div><div class="ff"><label>Massa magra (kg)</label><input id="a-lean" type="number" step="0.1"></div></div>
+      <div class="frow"><div class="ff"><label>Modo do teste</label><select id="a-mode"><option value="">—</option><option value="cicloergômetro">Cicloergômetro</option><option value="esteira">Esteira</option><option value="pista">Pista (corrida)</option></select></div><div class="ff"><label>Data</label><input id="a-date" type="text" placeholder="03/12/2025"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Aeróbio máximo</h3>
+      <div class="frow"><div class="ff"><label>VO₂máx (ml/kg/min)</label><input id="ae-vo2" type="number" step="0.1"></div><div class="ff"><label>RER de pico</label><input id="ae-rer" type="number" step="0.01"></div></div>
+      <div class="frow f3"><div class="ff"><label>FC máx</label><input id="ae-hrmax" type="number"></div><div class="ff"><label>FC repouso</label><input id="ae-hrrest" type="number"></div><div class="ff"><label>Wmax/Vmax</label><input id="ae-wmax" type="number"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Limiares (medidos no laudo)</h3>
+      <div class="frow f3"><div class="ff"><label>LV1 · potência (W)</label><input id="l1-p" type="number"></div><div class="ff"><label>LV1 · FC</label><input id="l1-h" type="number"></div><div class="ff"><label>LV1 · VO₂</label><input id="l1-v" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label>LV2 · potência (W)</label><input id="l2-p" type="number"></div><div class="ff"><label>LV2 · FC</label><input id="l2-h" type="number"></div><div class="ff"><label>LV2 · VO₂</label><input id="l2-v" type="number" step="0.1"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Eficiência do motor</h3>
+      <div class="frow f3"><div class="ff"><label>Rec. FC 1′ (bpm)</label><input id="ef-hrr" type="number"></div><div class="ff"><label>Pulso O₂</label><input id="ef-pulse" type="number" step="0.1"></div><div class="ff"><label>OUES</label><input id="ef-oues" type="number"></div></div>
+      <div class="frow f3"><div class="ff"><label>VE/VCO₂ slope</label><input id="ef-vevco2" type="number" step="0.1"></div><div class="ff"><label>Reserva vent. (%)</label><input id="ef-br" type="number" step="0.1"></div><div class="ff"><label>VO₂/W</label><input id="ef-vo2wr" type="number" step="0.1"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Composição (bioimpedância)</h3>
+      <div class="frow f3"><div class="ff"><label>Ângulo de fase (°)</label><input id="co-phase" type="number" step="0.1"></div><div class="ff"><label>AEC</label><input id="co-aec" type="number" step="0.01"></div><div class="ff"><label>TMB (kcal)</label><input id="co-tmb" type="number"></div></div>
+      <div class="frow"><div class="ff"><label>Substrato FAT %</label><input id="su-fat" type="number"></div><div class="ff"><label>Substrato CHO %</label><input id="su-cho" type="number"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Força &amp; pisada</h3>
+      <div class="frow f3"><div class="ff"><label>Salto vertical (cm)</label><input id="st-jump" type="number" step="0.1"></div><div class="ff"><label>Resultado salto</label><input id="st-jumpres" type="text" placeholder="Fraco"></div><div class="ff"><label>Preensão D/E</label><input id="st-grip" type="text" placeholder="56/55,3"></div></div>
+      <div class="frow f3"><div class="ff"><label>Coxa D/E (cm)</label><input id="st-thigh" type="text" placeholder="56/54,5"></div><div class="ff"><label>Pisada</label><select id="fo-strike"><option value="">—</option><option value="neutra">Neutra</option><option value="pronada">Pronada</option><option value="supinada">Supinada</option></select></div><div class="ff"><label>Anterior (%)</label><input id="fo-ant" type="number" step="0.1"></div></div>
+      <div class="frow"><div class="ff"><label>Carga E (%)</label><input id="fo-loadl" type="number" step="0.1"></div><div class="ff"><label>Carga D (%)</label><input id="fo-loadr" type="number" step="0.1"></div></div>
+    </div>
+
+    <div class="fcard"><h3>ECG &amp; espirometria</h3>
+      <div class="frow"><div class="ff"><label>ECG (resultado)</label><input id="ec-result" type="text" placeholder="Sem isquemia, sem arritmia"></div><div class="ff"><label>VEF1/CVF (%)</label><input id="ec-ratio" type="number" step="0.1"></div></div>
+      <div class="frow"><div class="ff"><label>CRM (liberação)</label><input id="ec-crm" type="text" placeholder="CRM-PR 12255"></div><div class="ff"><label>Data liberação</label><input id="ec-date" type="text" placeholder="03/12/2025"></div></div>
+    </div>
+
+    <div class="fcard"><h3>Campo · teste de pista / bike (DFA-α1)</h3>
+      <div class="frow f3"><div class="ff"><label>FTP de campo (W)</label><input id="fi-ftp" type="number"></div><div class="ff"><label>ou pot. 20 min (W)</label><input id="fi-p20" type="number"></div><div class="ff"><label>Decoupling Pw:Hr (%)</label><input id="fi-dec" type="number" step="0.1"></div></div>
+      <div class="frow"><div class="ff"><label>Tipo do teste de campo</label><select id="dfa-type"><option value="bike">Bike — carga em watts</option><option value="pista">Pista / corrida — pace mm:ss</option></select></div><div class="ff"><label>&nbsp;</label><div style="font-size:11px;color:var(--ink-mute);font-family:var(--mono);padding-top:8px">DFA-α1 cruza 0,75 (LV1) e 0,50 (LV2)</div></div></div>
+      <div class="ff"><label>Estágios DFA-α1 · uma linha: <b>carga(W) ou pace(mm:ss)</b>, FC, α1</label><textarea id="dfa-text" placeholder="bike → 200,135,0.80&#10;pista → 4:30,150,0.78"></textarea></div>
+    </div>
+
+    <div class="fcard"><h3>Energia &amp; combustível (estilo INSCYD)</h3>
+      <div class="ff"><label>Curva estágio a estágio · uma linha: <b>carga(W), VO₂(ml/min), VCO₂(ml/min), RER, FC</b></label><textarea id="stage-text" placeholder="150,2400,2000,0.83,120&#10;200,3000,2700,0.90,135&#10;250,3500,3400,0.97,148"></textarea></div>
+      <div class="frow f3"><div class="ff"><label>Prova: duração (h)</label><input id="fp-dur" type="number" step="0.25" placeholder="3"></div><div class="ff"><label>Zona-alvo</label><select id="fp-zone"><option value="2">Z2</option><option value="1">Z1</option><option value="3">Z3</option><option value="4">Z4</option><option value="5">Z5</option></select></div><div class="ff"><label>Glicogênio (g)</label><input id="fp-gly" type="number" placeholder="estimado"></div></div>
+      <div class="ff"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="fp-gut" style="width:auto"> intestino treinado (teto 120 g/h)</label></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="print-only" id="print-head">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #c96d1a;padding-bottom:8px;margin-bottom:14px">
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a20">LMAeroFit · Physio Lab</div><div style="font-size:11px;color:#666">Parecer Fisiológico — avaliação traduzida em decisão de treino</div></div>
+      <div id="print-meta" style="font-size:11px;color:#444;text-align:right;font-family:'JetBrains Mono',monospace"></div>
+    </div>
+  </div>
+  <div id="report"></div>
+  <div class="print-only" id="print-foot" style="margin-top:16px;border-top:1px solid #ddd;padding-top:8px;font-size:9.5px;color:#777;line-height:1.5">
+    A ferramenta não diagnostica, não prescreve dieta e não libera para treino — registra o que o laudo/médico disse, com fonte e grau de confiança em cada número. Cada saída é rotulada como medido · estimado · populacional. Gerado em LMAeroFit · Physio Lab.
+  </div>
+
+  <div class="priv">◉ Privacidade: a ferramenta não guarda o seu laudo — só usa os números enquanto a aba está aberta. Dado de saúde é sensível (LGPD). · A ferramenta não diagnostica, não prescreve dieta e não libera para treino: registra o que o laudo/médico disse, com fonte e grau de confiança em cada número.</div>
+</main>
+<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · PHYSIO LAB v2026.1</div></footer>
+
+<script src="./assets/profile.js?v=2"></script>
+<script src="./assets/fit-parser.js?v=2"></script>
+<script src="./assets/activity-importer.js?v=2"></script>
+<script src="./assets/debrief-core.js?v=1"></script>
+<script src="./assets/physio-pdf.js?v=1"></script>
+<script src="./assets/physio-core.js?v=1"></script>
+<script src="./assets/physio-render.js?v=1"></script>
+<script>
+const $ = id => document.getElementById(id);
+if(window.LMA && LMA.profile){ LMA.profile.mountBadge($('prof-badge')); }
+const v = id => { const el=$(id); if(!el) return null; const t=(el.value||'').trim().replace(',','.'); return t===''?null:(isNaN(+t)?t:+t); };
+const vs = id => { const el=$(id); return el? (el.value||'').trim() : ''; };
+function pair(id){ const s=vs(id); if(!s) return [null,null]; const p=s.split('/').map(x=>{const n=+x.trim().replace(',','.'); return isNaN(n)?null:n;}); return [p[0]??null,p[1]??null]; }
+
+function buildInput(){
+  const [gr,gl]=pair('st-grip'), [tr,tl]=pair('st-thigh');
+  const dfaType=vs('dfa-type')||'bike';
+  const dfa=(vs('dfa-text')||'').split(/\n/).map(l=>l.split(',').map(x=>x.trim())).filter(a=>a.length>=3&&a[2]!==''&&!isNaN(+String(a[2]).replace(',','.'))).map(a=>{
+    const hr=+String(a[1]).replace(',','.')||null, a1=+String(a[2]).replace(',','.');
+    return dfaType==='pista' ? {pace:a[0], hr, dfaA1:a1} : {load:+String(a[0]).replace(',','.')||null, hr, dfaA1:a1};
+  });
+  const num1=x=>{const n=+String(x||'').trim().replace(',','.'); return isNaN(n)?null:n;};
+  const stages=(vs('stage-text')||'').split(/\n/).map(l=>l.split(',')).filter(a=>a.length>=3).map(a=>({load:num1(a[0]),vo2:num1(a[1]),vco2:num1(a[2]),rer:num1(a[3]),hr:num1(a[4])})).filter(s=>s.vo2!=null&&s.vco2!=null);
+  const fuelPlan={durationH:v('fp-dur'),targetZone:v('fp-zone'),glycogenG:v('fp-gly'),gutTrained:($('fp-gut')&&$('fp-gut').checked)};
+  return {
+    athlete:{initials:vs('a-init'),sex:vs('a-sex'),age:v('a-age'),weightKg:v('a-weight'),heightCm:v('a-height'),bodyFatPct:v('a-bf'),bodyFatMethod:vs('a-bfm'),leanMassKg:v('a-lean'),testMode:vs('a-mode'),protocol:vs('a-mode'),testDate:vs('a-date')},
+    aerobic:{vo2max_mlkg:v('ae-vo2'),hrMax:v('ae-hrmax'),hrRest:v('ae-hrrest'),wmax:v('ae-wmax'),rerPeak:v('ae-rer')},
+    lt1:{power:v('l1-p'),hr:v('l1-h'),vo2:v('l1-v')}, lt2:{power:v('l2-p'),hr:v('l2-h'),vo2:v('l2-v')},
+    efficiency:{hrr1:v('ef-hrr'),pulseO2:v('ef-pulse'),oues:v('ef-oues'),veVco2Slope:v('ef-vevco2'),br:v('ef-br'),vo2wrSlope:v('ef-vo2wr')},
+    composition:{phaseAngle:v('co-phase'),aec:v('co-aec'),bmr:v('co-tmb')},
+    substrate:{fatPct:v('su-fat'),choPct:v('su-cho')},
+    strength:{verticalJumpCm:v('st-jump'),jumpResult:vs('st-jumpres'),gripR:gr,gripL:gl,thighR:tr,thighL:tl},
+    foot:{strikeType:vs('fo-strike'),antPct:v('fo-ant'),loadL:v('fo-loadl'),loadR:v('fo-loadr')},
+    ecg:{result:vs('ec-result'),crm:vs('ec-crm'),date:vs('ec-date')}, spirometry:{ratio:v('ec-ratio')},
+    field:{ftp:v('fi-ftp'),power20:v('fi-p20'),decouplingPct:v('fi-dec')}, dfa, stages, fuelPlan,
+  };
+}
+let lastInput=null, lastReport=null;
+function generate(){
+  lastInput=buildInput(); lastReport=LMA.physio.analyze(lastInput);
+  LMA.physio.renderReport(lastReport, $('report'));
+  $('pdf').style.display=''; $('csv').style.display='';
+  // cabeçalho do relatório (impressão / PDF)
+  const a=lastInput.athlete||{};
+  const nivel = (lastInput.aerobic&&lastInput.aerobic.vo2max_mlkg!=null) ? 'Nível A · laboratório'
+              : (lastInput.dfa&&lastInput.dfa.length) ? 'Nível C · campo / DFA-α1'
+              : (lastInput.field&&(lastInput.field.ftp!=null||lastInput.field.power20!=null)) ? 'Nível B/C · campo' : '';
+  const meta=[a.initials?('Atleta '+a.initials):'', a.age?(a.age+' anos'):'', a.testDate?('Teste '+a.testDate):'', nivel, 'Gerado '+new Date().toLocaleDateString('pt-BR')].filter(Boolean);
+  const pm=$('print-meta'); if(pm) pm.innerHTML=meta.join('<br>');
+  document.title='Parecer Physio Lab'+(a.initials?' · '+a.initials:'');
+  // handoff para a Nutrição (Race Fueling lê isto)
+  try{ const pl=lastReport&&lastReport.modules&&lastReport.modules.energy&&lastReport.modules.energy.plan;
+    if(pl) localStorage.setItem('lma.physio.fuel.v1', JSON.stringify({zone:pl.zone,choBurnH:pl.choBurnH,intakePerH:pl.intakePerH,glycogenG:pl.glycogenG,durationH:pl.durationH,capped:pl.capped,ceiling:pl.ceiling,ts:Date.now()}));
+  }catch(e){}
+  $('report').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('gen').addEventListener('click', generate);
+function exportPDF(){
+  const rep=$('report');
+  if(!rep || !rep.innerHTML.trim()){ stat('⚠ Gere o parecer antes de exportar.','var(--warn)'); return; }
+  const headHTML=($('print-head')?$('print-head').innerHTML:'');
+  const footHTML='<div style="margin-top:14px;border-top:1px solid #ddd;padding-top:8px;font-size:9.5px;color:#777;line-height:1.5">A ferramenta não diagnostica, não prescreve dieta e não libera para treino — registra o que o laudo/médico disse, com fonte e grau de confiança. Cada saída é rotulada como medido · estimado · populacional.</div>';
+  const fn='Parecer-Physio-Lab'+((lastInput&&lastInput.athlete&&lastInput.athlete.initials)?'-'+String(lastInput.athlete.initials).replace(/[^\w]/g,''):'')+'.pdf';
+  if(window.html2pdf){
+    const wrap=document.createElement('div'); wrap.className='pl-light pl-pdf-wrap';
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;width:760px;padding:14px;background:#fff';
+    wrap.innerHTML=headHTML+rep.innerHTML+footHTML;
+    document.body.appendChild(wrap);
+    stat('◌ Gerando o PDF do parecer…');
+    html2pdf().set({margin:[10,10,12,10],filename:fn,image:{type:'jpeg',quality:0.97},html2canvas:{scale:2,backgroundColor:'#ffffff',windowWidth:820},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy'],avoid:'.pl-sec'}})
+      .from(wrap).save().then(()=>{wrap.remove();stat('✓ PDF do parecer baixado.','var(--aero-bright)');}).catch(()=>{wrap.remove();fallbackPrint();});
+  } else fallbackPrint();
+}
+function fallbackPrint(){ document.body.classList.add('pl-light'); window.print(); setTimeout(()=>document.body.classList.remove('pl-light'),500); }
+$('pdf').addEventListener('click', exportPDF);
+$('csv').addEventListener('click', ()=>{
+  if(!lastInput) return;
+  const rows=[['campo','valor']]; const walk=(o,pre)=>{for(const k in o){const val=o[k]; if(val&&typeof val==='object'&&!Array.isArray(val)) walk(val,pre+k+'.'); else if(!Array.isArray(val)&&val!=null&&val!=='') rows.push([pre+k,String(val)]);}};
+  walk(lastInput,'');
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='physio-lab-dados.csv'; a.click();
+});
+$('clr').addEventListener('click', ()=>{ document.querySelectorAll('.fcard input, .fcard textarea').forEach(e=>e.value=''); $('report').innerHTML=''; $('pdf').style.display='none'; $('csv').style.display='none'; });
+
+// pré-preenche do perfil do atleta, se houver
+(function prefill(){ try{ const p=LMA.profile.load(); if(p&&p.onboarded){ if(p.age)$('a-age').value=p.age; if(p.massKg)$('a-weight').value=p.massKg; if(p.heightCm)$('a-height').value=p.heightCm; if(p.sex)$('a-sex').value=p.sex; } }catch(e){} })();
+
+// ===== Upload ① laudo (PDF) — extração no navegador via pdf.js =====
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const stat=(msg,col)=>{const e=$('up-status'); e.innerHTML=msg; e.style.color=col||'var(--ink-soft)';};
+const FMAP={'athlete.sex':'a-sex','athlete.age':'a-age','athlete.weightKg':'a-weight','athlete.heightCm':'a-height','athlete.bodyFatPct':'a-bf','athlete.bodyFatMethod':'a-bfm','athlete.leanMassKg':'a-lean','athlete.testMode':'a-mode','athlete.testDate':'a-date',
+'aerobic.vo2max_mlkg':'ae-vo2','aerobic.hrMax':'ae-hrmax','aerobic.hrRest':'ae-hrrest','aerobic.rerPeak':'ae-rer',
+'lt1.power':'l1-p','lt1.hr':'l1-h','lt1.vo2':'l1-v','lt2.power':'l2-p','lt2.hr':'l2-h','lt2.vo2':'l2-v',
+'efficiency.hrr1':'ef-hrr','efficiency.pulseO2':'ef-pulse','efficiency.oues':'ef-oues','efficiency.veVco2Slope':'ef-vevco2','efficiency.br':'ef-br','efficiency.vo2wrSlope':'ef-vo2wr',
+'composition.phaseAngle':'co-phase','composition.aec':'co-aec','composition.bmr':'co-tmb','substrate.fatPct':'su-fat','substrate.choPct':'su-cho',
+'strength.verticalJumpCm':'st-jump','strength.jumpResult':'st-jumpres','foot.strikeType':'fo-strike','foot.antPct':'fo-ant','foot.loadL':'fo-loadl','foot.loadR':'fo-loadr',
+'ecg.result':'ec-result','ecg.crm':'ec-crm','ecg.date':'ec-date','spirometry.ratio':'ec-ratio'};
+function setField(id,val){const e=$(id); if(!e||val==null||val==='')return; if(e.tagName==='SELECT'){[...e.options].forEach(o=>{if(o.value.toLowerCase()===String(val).toLowerCase())e.value=o.value});} else e.value=val; e.style.background='rgba(255,138,28,.16)'; setTimeout(()=>{e.style.transition='background .8s';e.style.background='';},1000);}
+function fillFromParsed(f){
+  for(const path in FMAP){ const ks=path.split('.'); let v=f; for(const k of ks){v=v&&v[k];} if(v!=null&&v!=='') setField(FMAP[path],v); }
+  if(f.strength){ if(f.strength.gripR!=null) setField('st-grip', f.strength.gripR+(f.strength.gripL!=null?'/'+f.strength.gripL:'')); if(f.strength.thighR!=null) setField('st-thigh', f.strength.thighR+(f.strength.thighL!=null?'/'+f.strength.thighL:'')); }
+}
+$('up-pdf').addEventListener('change', async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  if(!window.pdfjsLib){ stat('⚠ Leitor de PDF não carregou (precisa de internet). Preencha à mão.','var(--warn)'); return; }
+  stat('◌ Lendo o PDF no seu navegador (não é enviado nem guardado)…');
+  try{
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    let full='';
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p); const tc=await page.getTextContent();
+      const items=tc.items.map(i=>({s:i.str,x:i.transform[4],y:Math.round(i.transform[5])}));
+      const byY={}; items.forEach(i=>{(byY[i.y]=byY[i.y]||[]).push(i)});
+      Object.keys(byY).map(Number).sort((a,b)=>b-a).forEach(y=>{const l=byY[y].sort((a,b)=>a.x-b.x).map(i=>i.s).join(' ').replace(/\s+/g,' ').trim(); if(l) full+=l+'\n';});
+      full+='\n';
+    }
+    const r=LMA.physio.parseLaudoText(full); fillFromParsed(r.fields);
+    if(r.hits.length>=6){ stat('✓ <b>'+r.hits.length+' campos</b> preenchidos do laudo (destacados em âmbar). Confira e clique em <b>Gerar parecer</b>.','var(--aero-bright)'); if(r.hits.length>=8) generate(); }
+    else stat('⚠ Reconheci só '+r.hits.length+' campos — formato de laudo diferente do IEMEX. Complete os campos à mão.','var(--warn)');
+  }catch(err){ stat('⚠ Não consegui ler este PDF ('+err.message+'). Pode preencher à mão.','var(--warn)'); }
+});
+// ===== Upload ② treino (FIT/GPX/CSV) — cruza com o laudo =====
+$('up-act').addEventListener('change', async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  if(!(window.LMA&&LMA.import)){ stat('⚠ Importador de treino não carregou.','var(--warn)'); return; }
+  stat('◌ Lendo o treino…');
+  try{
+    const act=await LMA.import.fromFile(file);
+    let p20=null,dec=null;
+    if(LMA.debrief&&LMA.debrief.analyze){
+      const sport=act.sport==='running'?'running':act.sport==='swimming'?'swimming':'cycling';
+      const rep=LMA.debrief.analyze(act, (LMA.profile?LMA.profile.load():{}), {sport});
+      if(rep.general&&rep.general.pdc&&rep.general.pdc[1200]) p20=rep.general.pdc[1200];
+      if(rep.decoup) dec=Math.round(rep.decoup.pct*10)/10;
+    }
+    if(p20) setField('fi-p20',p20); if(dec!=null) setField('fi-dec',dec);
+    // estágios de DFA a partir dos laps (teste incremental de pista/bike)
+    let lapMsg='';
+    if(/\.fit$/i.test(file.name) && window.LMA && LMA.fit){
+      try{
+        const fit=LMA.fit.parseFIT(await file.arrayBuffer());
+        const laps=(fit.laps||[]).filter(l=>l.avgHeartRate && (l.avgSpeed||l.avgPower));
+        if(laps.length>=3){
+          const isRun = fit.sport==='running' || (laps.some(l=>l.avgSpeed) && !laps.some(l=>l.avgPower));
+          const lines=laps.map(l=>{
+            const fc=Math.round(l.avgHeartRate);
+            if(isRun && l.avgSpeed){ const pace=1000/l.avgSpeed, m=(pace/60)|0, s=Math.round(pace%60); return m+':'+String(s).padStart(2,'0')+','+fc+','; }
+            return Math.round(l.avgPower||0)+','+fc+',';
+          });
+          setField('dfa-text', lines.join('\n')); $('dfa-type').value=isRun?'pista':'bike';
+          lapMsg=' · <b>'+laps.length+' laps</b> → estágios de DFA preenchidos ('+(isRun?'pace':'watts')+'+FC). Falta só o <b>α1 de cada estágio</b> (do seu app de HRV: Kubios / Runalyze / AI Endurance).';
+        }
+      }catch(_){}
+    }
+    const km=(act.summary&&act.summary.distanceM)?(act.summary.distanceM/1000).toFixed(1)+' km':'';
+    stat('✓ Treino lido'+(km?' ('+km+')':'')+(p20?' · 20-min '+p20+' W → FTP ~'+Math.round(p20*0.95)+' W':'')+(dec!=null?' · decoupling '+dec+'%':'')+lapMsg+(lapMsg?'':'. Cruza com o LV2 do laudo na conciliação.')+' Depois clique em <b>Gerar parecer</b>.','var(--aero-bright)');
+    if($('l2-p').value && !lapMsg) generate();
+  }catch(err){ stat('⚠ Não consegui ler o treino: '+err.message,'var(--warn)'); }
+});
+
+// exemplo: laudo IEMEX real (03/12/2025)
+$('ex').addEventListener('click', ()=>{
+  const set=(id,val)=>{const e=$(id); if(e) e.value=val;};
+  set('a-init','L.M.');set('a-sex','M');set('a-age',52);set('a-weight',76.3);set('a-height',179.5);set('a-bf',6.2);set('a-bfm','bioimpedância');set('a-lean',71.5);set('a-mode','cicloergômetro');set('a-date','03/12/2025');
+  set('ae-vo2',44.2);set('ae-rer',1.32);set('ae-hrmax',159);set('ae-hrrest',58);
+  set('l1-p',175);set('l1-h',114);set('l1-v',27.7);set('l2-p',325);set('l2-h',151);set('l2-v',42.7);
+  set('ef-hrr',20);set('ef-pulse',21.2);set('ef-oues',4192);set('ef-vevco2',18.9);set('ef-br',25.4);set('ef-vo2wr',7.5);
+  set('co-phase',7.5);set('co-aec',0.40);set('co-tmb',1864);set('su-fat',0);set('su-cho',100);
+  set('st-jump',20);set('st-jumpres','Fraco');set('st-grip','56/55.3');set('st-thigh','56/54.5');set('fo-strike','neutra');set('fo-ant',57);set('fo-loadl',53.2);set('fo-loadr',46.8);
+  set('ec-result','Sem isquemia, sem arritmia');set('ec-ratio',78.3);set('ec-crm','CRM-PR 12255');set('ec-date','03/12/2025');
+  generate();
+});
+</script>
+</body>
+</html>

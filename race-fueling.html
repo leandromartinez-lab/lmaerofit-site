@@ -71,6 +71,7 @@
   <p class="sub">Tudo num lugar só: taxa de suor + gut training, plano de carb/sódio/líquido por segmento e kit de produtos. Faixas de carb/h por duração (Jeukendrup), travadas pelo seu treino de intestino.</p>
 </header>
 <main class="wrap">
+  <div id="physio-banner"></div>
   <div class="grid grid-2">
 
     <!-- ============ ENTRADA ============ -->
@@ -195,6 +196,26 @@ const prof = LMA.profile.load();
 LMA.profile.mountBadge($('prof-badge'));
 const MOD = LMA.modalidades;
 
+// ===== Handoff do Physio Lab (combustão real → alvo de carb) =====
+const PFKEY='lma.physio.fuel.v1';
+let physioFuel=null, usePhysio=false;
+try{ const raw=localStorage.getItem(PFKEY); if(raw){ const o=JSON.parse(raw); if(o && o.ts && (Date.now()-o.ts < 86400000) && o.intakePerH!=null) physioFuel=o; } }catch(e){}
+function renderPhysioBanner(){
+  const el=$('physio-banner'); if(!el) return;
+  if(!physioFuel){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  el.innerHTML = `<div style="background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--amber-soft);border-radius:var(--r-md);padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--ink-soft)">
+    <b style="color:var(--amber);font-family:var(--mono);font-size:11px;letter-spacing:.1em">◉ VINDO DO PHYSIO LAB</b><br>
+    Combustão estimada <b style="color:var(--ink)">~${physioFuel.choBurnH} g CHO/h</b> em ${physioFuel.zone} · glicogênio ~${physioFuel.glycogenG} g → ingestão sugerida <b style="color:var(--ink)">~${Math.round(physioFuel.intakePerH)} g/h</b>${physioFuel.capped?' (no teto de absorção — intensidade não sustentável por essa duração)':''}.
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="pf-use" class="tab${usePhysio?' active':''}" style="cursor:pointer">${usePhysio?'✓ Usando como alvo':'Usar como alvo de carb'}</button>
+      <button id="pf-clear" class="tab" style="cursor:pointer">Dispensar</button>
+    </div></div>`;
+  $('pf-use').addEventListener('click',()=>{ usePhysio=!usePhysio; renderPhysioBanner(); update(); });
+  $('pf-clear').addEventListener('click',()=>{ physioFuel=null; usePhysio=false; try{localStorage.removeItem(PFKEY);}catch(e){} renderPhysioBanner(); update(); });
+}
+renderPhysioBanner();
+
 // ===== selects categoria/modalidade =====
 const catSel = $('cat'), modSel = $('mod');
 catSel.innerHTML = Object.entries(MOD).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
@@ -270,7 +291,8 @@ function update(){
   const total = tsw+tt1+trn1+tbk+tt2+trn;
   const wk = +$('wk').value, gutCap = gutCapacity(wk);
   const tier = carbTierByDuration(total, gutCap);
-  const carbRateBike = Math.min(tier, gutCap);
+  let carbRateBike = Math.min(tier, gutCap), carbBasis='tier';
+  if(usePhysio && physioFuel && physioFuel.intakePerH){ carbRateBike = Math.min(Math.round(physioFuel.intakePerH), gutCap); carbBasis='physio'; }
   const carbRateRun  = Math.round(carbRateBike * 0.8);
 
   const SR = sweatRate();
@@ -281,9 +303,11 @@ function update(){
   $('r-sweat').textContent = SR.toFixed(2);
   $('r-na2').textContent = `${Math.round(SR*prof.sweatNa)} mg/h`;
   $('r-carb').textContent = `${carbRateBike} g/h`;
-  $('r-carbnote').textContent = (tier > gutCap)
-    ? `prova pediria ${tier} g/h — travado em ${carbRateBike} pelo gut (semana ${wk})`
-    : `dentro da capacidade treinada (${gutCap} g/h na semana ${wk})`;
+  $('r-carbnote').textContent = carbBasis==='physio'
+    ? `do Physio Lab: ingestão ~${Math.round(physioFuel.intakePerH)} g/h (combustão ${physioFuel.choBurnH} g/h em ${physioFuel.zone})${carbRateBike < Math.round(physioFuel.intakePerH) ? ', travado pelo gut em '+carbRateBike : ''}`
+    : (tier > gutCap
+      ? `prova pediria ${tier} g/h — travado em ${carbRateBike} pelo gut (semana ${wk})`
+      : `dentro da capacidade treinada (${gutCap} g/h na semana ${wk})`);
 
   // segmentos
   const segs = [];
