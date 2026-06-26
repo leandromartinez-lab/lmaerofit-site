@@ -95,7 +95,8 @@
         : `<span class="src-dot e"></span> <b>Base: duração + zona-alvo</b>, calculada a partir do seu VO₂máx e limiares. É confiável, mas é uma estimativa de população — não foi medida no seu metabolismo. Para virar <b>medida e individual</b>, traga a <b>curva de gases por estágio</b>: uma ergoespirometria (teste cardiopulmonar / CPET) com o analisador de gases calibrado e os dados exportados estágio a estágio (carga, VO₂, VCO₂, RER). Cole essa curva no campo acima e este bloco recalcula medido.`;
       h += `<div class="pl-parecer" style="margin-top:14px"><p>${body}</p>`
         + `<p class="pl-src" style="margin-top:8px;line-height:1.6">${basis}</p>`
-        + `<p style="margin-top:8px;font-size:13px"><a href="./race-fueling.html" style="color:var(--amber)">→ montar o kit completo na Nutrição</a> (sódio, líquido, cafeína e produtos por marca, já com este alvo de carbo).</p></div>`;
+        + `<a href="./race-fueling.html" class="pl-cta" style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:12px 20px;background:var(--amber);color:#0a0c0e;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.03em;text-decoration:none">→ Montar o kit completo na Nutrição</a>`
+        + `<div class="pl-src" style="margin-top:6px">Leva este alvo de carbo e monta sódio, líquido, cafeína e produtos por marca.</div></div>`;
     }
     if (!h) h = `<div class="pl-parecer" style="margin-top:0"><p><strong>Falta uma entrada para esta seção.</strong> Ela tem dois conteúdos, cada um com a sua fonte:</p>`
       + `<p style="margin-top:6px">• <strong>Plano de combustível da prova</strong> (g/h de carbo): preencha <b>duração</b> e <b>zona-alvo</b> da prova nos campos acima. A ferramenta calcula a partir do seu VO₂máx e dos limiares — <em>não precisa</em> da curva de gases.</p>`
