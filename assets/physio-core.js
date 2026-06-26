@@ -278,8 +278,16 @@
       if (choPerH != null) {
         const gut = !!fp.gutTrained; let gly = num(fp.glycogenG), glySrc = M;
         if (gly == null && w) { gly = Math.round(w * 6); glySrc = E; }
-        const burnTotal = Math.round(choPerH * dur), intakeTotal = Math.max(0, burnTotal - (gly || 0)), intakePerH = Math.round(intakeTotal / dur), ceiling = gut ? 120 : 90;
-        out.plan = { durationH: dur, zone: 'Z' + tzi, choBurnH: choPerH, choBurnTotal: burnTotal, glycogenG: gly, glySrc, intakePerH, intakeTotal, ceiling, capped: intakePerH > ceiling, gut, choSrc: src,
+        const ceiling = gut ? 120 : 90;
+        const burnTotal = Math.round(choPerH * dur);
+        // alvo de reposição = repor o que se queima, limitado pelo teto do intestino
+        const intakePerH = Math.min(choPerH, ceiling);
+        // lacuna por hora que o glicogênio precisa cobrir (queima além do que se repõe)
+        const gapPerH = Math.max(0, choPerH - intakePerH), glyNeed = Math.round(gapPerH * dur);
+        // "estoura" = mesmo repondo no teto, o glicogênio não cobre a lacuna até o fim
+        const capped = glyNeed > (gly || 0);
+        const intakeTotal = Math.round(intakePerH * dur);
+        out.plan = { durationH: dur, zone: 'Z' + tzi, choBurnH: choPerH, choBurnTotal: burnTotal, glycogenG: gly, glySrc, intakePerH, intakeTotal, glyNeed, gapPerH, ceiling, capped, gut, choSrc: src,
           tier: dur < 1.25 ? 'água / bochecho' : dur < 2.5 ? '30–60 g/h' : dur < 4 ? '60–90 g/h' : '90 g/h (100–120 só gut trained)',
           mix: intakePerH > 60 ? 'glicose:frutose ~2:1' : 'glicose simples ok' };
         out.available = true;

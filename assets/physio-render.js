@@ -77,19 +77,29 @@
       const pz = (e.perZone || []).find(z => z.z === p.zone);
       const kcalTot = (pz && pz.kcalH) ? Math.round(pz.kcalH * p.durationH) : null;
       const fatTot = (pz && pz.fatH != null) ? Math.round(pz.fatH * p.durationH) : null;
-      const covPct = p.choBurnTotal ? Math.round(Math.min(100, (p.glycogenG || 0) / p.choBurnTotal * 100)) : null;
       let body = `<strong>Prova de ${p.durationH} h em ${p.zone}.</strong>`;
-      if (kcalTot) body += ` Gasto energético total estimado: <span class="pmono">~${kcalTot} kcal</span>.`;
-      body += ` Você queima <span class="pmono">~${p.choBurnH} g de carbo por hora</span> — <span class="pmono">${p.choBurnTotal} g</span> na prova inteira`;
+      if (kcalTot) body += ` Gasto total estimado: <span class="pmono">~${kcalTot} kcal</span>.`;
+      body += ` Você queima <span class="pmono">~${p.choBurnH} g de carbo/h</span> — <span class="pmono">${p.choBurnTotal} g</span> na prova inteira`;
       body += fatTot ? `, mais ~<span class="pmono">${fatTot} g de gordura</span> (estoque, não preocupa).` : `.`;
-      body += ` Seu glicogênio (carbo guardado no músculo/fígado) é ~<span class="pmono">${p.glycogenG} g</span>${p.glySrc === 'estimado' ? ' (estimado pelo peso — ajustável no formulário)' : ''}`;
-      body += covPct != null ? `, que cobre sozinho ~<span class="pmono">${covPct}%</span> do que a prova pede.` : `.`;
-      body += ` Para não esgotar antes do fim, a reposição-alvo é <span class="pmono">${p.intakePerH} g/h</span>.`;
-      if (p.capped) body += ` <strong>Isso fica acima do teto de absorção (${p.ceiling} g/h)</strong>: nessa intensidade × duração, o carbo é o limitante. Três caminhos: (1) segurar numa zona mais baixa, que queima menos carbo; (2) treinar o intestino para subir o teto; (3) repor o máximo tolerável e aceitar que o fim será no limite. Reposição prática máxima: <span class="pmono">${p.tier}</span> — mistura ${p.mix}.`;
-      else body += ` Reposição prática: <span class="pmono">~${Math.min(p.intakePerH, p.ceiling)} g/h</span> (mistura ${p.mix}), confortável dentro do teto de ${p.ceiling} g/h. Diretriz por duração: ${p.tier}.`;
-      h += `<div class="pl-parecer" style="margin-top:14px"><p>${body}</p><p style="margin-top:8px;font-size:13px"><a href="./race-fueling.html" style="color:var(--amber)">→ montar o kit completo na Nutrição</a> (sódio, líquido, cafeína e produtos por marca, já com este alvo de carbo).</p></div>`;
+      body += ` <strong>Reposição-alvo: <span class="pmono">${p.intakePerH} g/h</span></strong> — a ideia é repor o que você queima, respeitando o teto de absorção do intestino (${p.ceiling} g/h).`;
+      if (p.intakePerH < p.choBurnH) {
+        body += ` Como você queima mais do que consegue absorver, o glicogênio (carbo guardado, ~<span class="pmono">${p.glycogenG} g</span>${p.glySrc === 'estimado' ? ', estimado pelo peso' : ''}) cobre a diferença: a prova exige ~<span class="pmono">${p.glyNeed} g</span> dessa reserva.`;
+        if (p.capped) body += ` <strong>E aqui está o limite:</strong> mesmo repondo no teto, a reserva não chega até o fim nessa intensidade × duração — risco de "bater no muro". Caminhos: segurar numa zona mais baixa (queima menos carbo), treinar o intestino para subir o teto, ou aceitar a queda no terço final. Mistura ${p.mix}.`;
+        else body += ` A reserva cobre com folga — plano <strong>sustentável</strong>. Mistura ${p.mix}.`;
+      } else {
+        body += ` Como a queima cabe dentro do teto, o plano é <strong>sustentável</strong>: o glicogênio (~<span class="pmono">${p.glycogenG} g</span>) sobra como reserva. Mistura ${p.mix}.`;
+      }
+      body += ` Diretriz por duração (referência): ${p.tier}.`;
+      const basis = (p.choSrc === 'medido')
+        ? `<span class="src-dot m"></span> <b>Base: gases medidos</b> no seu teste, por intensidade — estimativa individual, a mais precisa.`
+        : `<span class="src-dot e"></span> <b>Base: duração + zona-alvo</b>, calculada a partir do seu VO₂máx e limiares. É confiável, mas é uma estimativa de população — não foi medida no seu metabolismo. Para virar <b>medida e individual</b>, traga a <b>curva de gases por estágio</b>: uma ergoespirometria (teste cardiopulmonar / CPET) com o analisador de gases calibrado e os dados exportados estágio a estágio (carga, VO₂, VCO₂, RER). Cole essa curva no campo acima e este bloco recalcula medido.`;
+      h += `<div class="pl-parecer" style="margin-top:14px"><p>${body}</p>`
+        + `<p class="pl-src" style="margin-top:8px;line-height:1.6">${basis}</p>`
+        + `<p style="margin-top:8px;font-size:13px"><a href="./race-fueling.html" style="color:var(--amber)">→ montar o kit completo na Nutrição</a> (sódio, líquido, cafeína e produtos por marca, já com este alvo de carbo).</p></div>`;
     }
-    if (!h) h = '<p class="pl-src">Para calcular a queima por intensidade, cole a <b>curva estágio a estágio</b> do laudo (carga, VO₂, VCO₂, RER) no formulário. Sem ela, fica só a diretriz por duração acima.</p>';
+    if (!h) h = `<div class="pl-parecer" style="margin-top:0"><p><strong>Falta uma entrada para esta seção.</strong> Ela tem dois conteúdos, cada um com a sua fonte:</p>`
+      + `<p style="margin-top:6px">• <strong>Plano de combustível da prova</strong> (g/h de carbo): preencha <b>duração</b> e <b>zona-alvo</b> da prova nos campos acima. A ferramenta calcula a partir do seu VO₂máx e dos limiares — <em>não precisa</em> da curva de gases.</p>`
+      + `<p style="margin-top:4px">• <strong>Queima por intensidade</strong> (FatMax, CarbMax, tabela por zona): precisa da <b>curva estágio a estágio</b> com gases (carga, VO₂, VCO₂, RER). Muitos laudos não imprimem essa tabela, ou trazem os gases fora de faixa por calibração (RER de repouso acima de ~1,0 é sinal disso) — nesse caso, cole os estágios bons manualmente, ou fique só com o plano por duração, que é confiável.</p></div>`;
     return h + srcLine(e.source);
   }
   function flagBox(fl) {
@@ -111,7 +121,7 @@
     if (r.zones.available) out.push(sec('§ 03 · zonas', 'Zonas de <em>treino</em>', 'Trifásico nos limiares.', zonesBlock(r.zones)));
     out.push(sec('§ 04 · combustível', 'Combustível <em>por duração</em>', 'Diretriz publicada — ponte com a Nutrição.', fuelBlock(r.fuel)
       + (r.flags.filter(f => f.mod === 'fuel').map(flagBox).join(''))));
-    if (r.modules.energy && r.modules.energy.available) out.push(sec('§ 04b · energia', 'Energia &amp; <em>combustível por intensidade</em>', 'Quanto você gasta e de onde vem a energia — medido quando o laudo traz os gases por estágio.', energyFuelBlock(r.modules.energy)));
+    if (r.modules.energy) out.push(sec('§ 04b · energia', 'Energia &amp; <em>combustível por intensidade</em>', 'Quanto você gasta e de onde vem a energia.', energyFuelBlock(r.modules.energy)));
     if (m.composition.metrics.length) out.push(sec('§ 05 · composição', 'Composição &amp; <em>recuperação</em>', 'Bioimpedância — e o que acompanhar.', metricsBlock(m.composition.metrics)
       + (r.flags.filter(f => f.mod === 'composition').map(flagBox).join('')) + srcLine(m.composition.source)));
     if (m.strength.metrics.length) out.push(sec('§ 06 · força', 'Força &amp; <em>potência</em>', 'A peça que conversa com a corrida.', metricsBlock(m.strength.metrics) + srcLine(m.strength.source)));
