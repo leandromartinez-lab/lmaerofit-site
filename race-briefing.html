@@ -254,7 +254,7 @@ function renderReadiness(){
 
   const stale = r.stale
     ? `<div style="background:rgba(244,185,66,.1);border:1px solid var(--warn);border-radius:8px;padding:10px;margin-bottom:10px;font-size:11px;color:var(--warn)">
-        ⚠ Dados de forma ${r.daysSince>900?'não preenchidos':`atualizados há ${r.daysSince} dias`}. Cole CTL/ATL/TSB do TrainingPeaks/Intervals.icu/Strava.
+        ⚠ Dados de forma ${r.daysSince>900?'não preenchidos':`atualizados há ${r.daysSince} dias`}. Copie CTL/ATL/TSB do seu painel de treino.
         <button id="open-prof" style="margin-left:6px;background:var(--warn);color:var(--bg-0);border:0;border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer">Atualizar perfil</button>
        </div>` : '';
 
