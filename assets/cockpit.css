@@ -89,3 +89,75 @@ details summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spa
 details[open] summary{color:var(--amber)}
 
 footer{border-top:1px solid var(--line);padding:24px 20px;text-align:center;color:var(--ink-mute);font-size:12px}
+
+/* ============================================================
+   EVOLUÇÃO DO COCKPIT · camada aditiva (Physio Lab + reutilizável)
+   Classes novas (pl-*, conf-*) — não altera nada das ferramentas atuais.
+   ============================================================ */
+:root{ --viol:#b07ad6; --c-measured:var(--signal); --c-estimated:var(--amber); --c-pop:var(--viol);
+  --z1:#3a7a4a; --z2:#5a9c07; --z3:#c9a838; --z4:#d97a2a; --z5:#e15a4f; }
+
+/* chips de meta */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-family:var(--mono);font-size:12px;background:var(--bg-1);border:1px solid var(--line);border-radius:6px;padding:6px 11px;color:var(--ink-soft)}
+.chip b{color:var(--ink);font-weight:600}.chip.lvl{border-color:var(--amber-soft);color:var(--amber)}
+
+/* seção com marcador § (trazido da landing) */
+.pl-sec{max-width:1080px;margin:0 auto;padding:30px 0;border-top:1px solid var(--line)}
+.pl-sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.pl-mark{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-dim);text-transform:uppercase}
+.pl-h2{font-family:var(--serif);font-weight:400;font-size:25px;letter-spacing:-.01em}.pl-h2 em{font-style:italic;color:var(--amber)}
+.pl-note{font-size:12.5px;color:var(--ink-mute);max-width:300px;margin-left:auto}
+
+/* legenda + pontos de confiança */
+.conf-legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-bottom:16px}
+.conf-legend span{display:inline-flex;align-items:center;gap:7px}
+.conf-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.conf-dot.m{background:var(--c-measured)}.conf-dot.e{background:var(--c-estimated)}.conf-dot.p{background:var(--c-pop)}.conf-dot.w{background:var(--crit)}
+
+/* metric cards evoluídos (hover-lift + ponto de origem) */
+.pl-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.pl-metric{position:relative;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--line);border-radius:var(--r-md);padding:15px 16px;transition:transform .18s var(--ease),border-color .18s var(--ease)}
+.pl-metric:hover{transform:translateY(-2px);border-color:var(--line-strong)}
+.pl-metric .src-dot{position:absolute;top:13px;right:13px;width:9px;height:9px;border-radius:50%}
+.src-dot.m{background:var(--c-measured)}.src-dot.e{background:var(--c-estimated)}.src-dot.p{background:var(--c-pop)}
+.pl-metric .lab{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute)}
+.pl-metric .val{font-family:var(--mono);font-size:25px;font-weight:500;margin-top:7px;letter-spacing:-.02em}
+.pl-metric .val .u{font-size:12px;color:var(--ink-soft);font-weight:400;margin-left:3px}
+.pl-metric .ctx{font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.45}
+.pl-metric.warn .val{color:var(--warn)}.pl-metric.crit .val{color:var(--crit)}.pl-metric.ok .val{color:var(--aero-bright)}
+
+/* zonas */
+.pl-zones{display:flex;flex-direction:column;gap:9px}
+.pl-zone{display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:center;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;transition:border-color .18s var(--ease)}
+.pl-zone:hover{border-color:var(--line-strong)}
+.pl-zbar{align-self:stretch;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:15px;color:#0a0c0e}
+.pl-zone.z1 .pl-zbar{background:var(--z1)}.pl-zone.z2 .pl-zbar{background:var(--z2)}.pl-zone.z3 .pl-zbar{background:var(--z3)}.pl-zone.z4 .pl-zbar{background:var(--z4)}.pl-zone.z5 .pl-zbar{background:var(--z5)}
+.pl-zbody{padding:12px 0}.pl-zname{font-weight:600;font-size:15px}
+.pl-zpurpose{font-size:12.5px;color:var(--ink-soft);margin-top:2px;max-width:560px}
+.pl-zdata{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono);font-size:12.5px}
+.pl-zdata .d{color:var(--ink-soft)}.pl-zdata .d b{color:var(--ink)}
+.pl-zconf{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;margin:0 14px;border-radius:999px;white-space:nowrap}
+.pl-zconf.m{background:rgba(90,179,214,.14);color:var(--c-measured)}.pl-zconf.e{background:rgba(255,138,28,.14);color:var(--c-estimated)}
+
+/* combustível */
+.pl-fuel{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.pl-fcard{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--line);border-radius:var(--r-md);padding:15px 16px}
+.pl-fcard .dur{font-family:var(--mono);font-size:11.5px;color:var(--amber);letter-spacing:.04em}
+.pl-fcard .gph{font-family:var(--mono);font-size:23px;font-weight:500;margin-top:6px}.pl-fcard .gph .u{font-size:12px;color:var(--ink-soft);font-weight:400}
+.pl-fcard .desc{font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.45}
+
+/* parecer (relatório clínico dentro do cockpit) */
+.pl-parecer{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:var(--r-md);padding:20px 22px;font-family:var(--serif);font-size:16px;line-height:1.6}
+.pl-parecer.blue{border-left-color:var(--c-measured)}
+.pl-parecer p{margin-bottom:12px;color:var(--ink)}.pl-parecer p:last-child{margin-bottom:0}
+.pl-parecer .pmono{font-family:var(--mono);font-size:.9em;color:var(--amber);font-style:normal}
+.pl-parecer strong{color:var(--amber);font-weight:500;font-style:italic}
+
+/* flag / safety */
+.pl-flag{border-radius:var(--r-md);padding:15px 18px;margin-top:14px;border:1px solid rgba(255,138,28,.3);background:rgba(255,138,28,.06)}
+.pl-flag .ft{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.pl-flag p{font-size:13.5px;color:var(--ink-soft);margin:0;line-height:1.55}.pl-flag strong{color:var(--ink)}
+.pl-flag.safe{border-color:rgba(122,184,20,.3);background:rgba(122,184,20,.05)}.pl-flag.safe .ft{color:var(--aero-bright)}
+.pl-flag.crit{border-color:rgba(225,90,79,.35);background:rgba(225,90,79,.06)}.pl-flag.crit .ft{color:var(--crit)}
+.pl-src{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-top:14px;line-height:1.7}
