@@ -323,6 +323,34 @@ function windSection(plan, o, ov, wind){
   }
   return html;
 }
+function zonePowerColor(p, ftp){ var r=ftp?p/ftp:0; return r<0.55?'#4aa3e0':r<0.75?'#46c08a':r<0.90?'#ecc33f':r<1.05?'#ef8a3a':r<1.20?'#e8503f':'#c0392b'; }
+function profileChart(plan, o){
+  var segs=plan.segments, ftp=o.ftp||250;
+  var pts=[], cumD=0, elev=0, minE=1e9, maxE=-1e9;
+  for(var i=0;i<segs.length;i++){ var s=segs[i]; elev+=s.grade*s.dist; cumD+=s.dist; pts.push({d:cumD,e:elev,p:s.power}); if(elev<minE)minE=elev; if(elev>maxE)maxE=elev; }
+  if(pts.length<2) return '';
+  var totalD=cumD||1, W=700,H=210, padT=12,padB=26,padL=8,padR=8;
+  var ew=W-padL-padR, eh=H-padT-padB, eRange=(maxE-minE)||1;
+  function X(d){ return padL+(d/totalD)*ew; }
+  function Y(e){ return padT+eh-((e-minE)/eRange)*eh; }
+  var step=Math.max(1, Math.ceil(pts.length/400));
+  var area='M '+X(0).toFixed(1)+' '+Y(minE).toFixed(1);
+  for(var k=0;k<pts.length;k+=step) area+=' L '+X(pts[k].d).toFixed(1)+' '+Y(pts[k].e).toFixed(1);
+  area+=' L '+X(pts[pts.length-1].d).toFixed(1)+' '+Y(pts[pts.length-1].e).toFixed(1)+' L '+X(totalD).toFixed(1)+' '+Y(minE).toFixed(1)+' Z';
+  var lines='';
+  for(var k=0;k+step<pts.length;k+=step){ var a=pts[k], b=pts[Math.min(pts.length-1,k+step)];
+    lines+='<line x1="'+X(a.d).toFixed(1)+'" y1="'+Y(a.e).toFixed(1)+'" x2="'+X(b.d).toFixed(1)+'" y2="'+Y(b.e).toFixed(1)+'" stroke="'+zonePowerColor(a.p,ftp)+'" stroke-width="3" stroke-linecap="round"/>'; }
+  var totalKm=totalD/1000, tickEvery=totalKm<=20?5:totalKm<=60?10:totalKm<=120?20:30, ticks='';
+  for(var km=tickEvery; km<totalKm; km+=tickEvery){ var x=X(km*1000); ticks+='<line x1="'+x.toFixed(1)+'" y1="'+padT+'" x2="'+x.toFixed(1)+'" y2="'+(padT+eh)+'" stroke="rgba(255,255,255,.06)"/><text x="'+x.toFixed(1)+'" y="'+(H-8)+'" fill="#7a8088" font-size="9" font-family="monospace" text-anchor="middle">'+km+'</text>'; }
+  var elLab='<text x="'+padL+'" y="'+(padT+9)+'" fill="#7a8088" font-size="9" font-family="monospace">&Delta; '+Math.round(maxE-minE)+' m</text>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:6px" xmlns="http://www.w3.org/2000/svg">'+
+    '<path d="'+area+'" fill="rgba(255,255,255,.05)" stroke="none"/>'+lines+ticks+elLab+'</svg>';
+}
+function powerLegend(){
+  var Z=[['Z1','#4aa3e0'],['Z2','#46c08a'],['Z3','#ecc33f'],['Z4','#ef8a3a'],['Z5','#e8503f'],['Z6','#c0392b']];
+  return '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-family:var(--mono);font-size:9.5px;color:var(--ink-mute);align-items:center">'+
+    Z.map(function(z){return '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:3px;background:'+z[1]+';border-radius:2px;display:inline-block"></span>'+z[0]+'</span>';}).join('')+'<span style="color:var(--ink-dim)">&middot; linha = watts por trecho &middot; &aacute;rea = eleva&ccedil;&atilde;o</span></div>';
+}
 function render(plan, o, wind){
   var ov=plan.overview;
   var raceMs=null; try{ var RC2=LMA.race.load(); if(RC2&&RC2.dateISO) raceMs=new Date(RC2.dateISO+'T12:00:00').getTime(); }catch(e){}
@@ -358,7 +386,8 @@ function render(plan, o, wind){
     ov_c('Subida', '+'+Math.round(egain)+' m')+'</div>';
   if(plan.note) html+='<div style="font-size:12px;color:var(--warn);margin:4px 0 8px">⚠ '+plan.note+'</div>';
 
-  html+='<div class="card-title" style="margin-top:14px">Plano de potência por trecho</div>'+tbl;
+  html+='<div class="card-title" style="margin-top:14px">Plano de potência · perfil da prova</div>'+profileChart(plan,o)+powerLegend();
+  html+='<details style="margin-top:12px"><summary style="cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--amber)">Ver tabela completa de potências por trecho</summary>'+tbl+'</details>';
   if(climbs.length){ html+='<div class="card-title" style="margin-top:18px">Subidas categorizadas</div><table class="rp-tbl"><thead><tr><th>Cat</th><th>Km</th><th>Extensão</th><th>Grade</th><th>Ganho</th><th>Watts</th><th>Tempo</th></tr></thead><tbody>'+climbs.map(function(c){return '<tr><td style="color:var(--amber)">'+c.cat+'</td><td>'+c.startKm.toFixed(1)+'</td><td>'+(c.distM/1000).toFixed(1)+' km</td><td class="gr">'+c.avgGrade.toFixed(1)+'%</td><td>+'+c.gainM+' m</td><td class="pw">'+c.avgPower+'</td><td>'+hms(c.durSec)+'</td></tr>';}).join('')+'</tbody></table>'; }
 
   html+='<div class="card-title" style="margin-top:18px">What-if · onde investir</div>'+
