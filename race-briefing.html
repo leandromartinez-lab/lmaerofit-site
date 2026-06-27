@@ -340,7 +340,7 @@ function wireProfileHover(){
   var S=window.__prof.samples, W=window.__prof.W;
   function nearest(vbX){ var lo=0,hi=S.length-1; while(lo<hi){ var mid=(lo+hi)>>1; if(S[mid].x<vbX) lo=mid+1; else hi=mid; } if(lo>0 && Math.abs(S[lo-1].x-vbX)<Math.abs(S[lo].x-vbX)) lo--; return S[lo]; }
   function move(ev){
-    var r=svg.getBoundingClientRect(); if(!r.width) return;
+    var r=wrap.getBoundingClientRect(); if(!r.width) return;
     var px=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX;
     var s=nearest((px-r.left)/r.width*W);
     cursor.setAttribute('x1',s.x); cursor.setAttribute('x2',s.x); cursor.style.display='';
@@ -351,8 +351,8 @@ function wireProfileHover(){
     tip.style.left=Math.min(Math.max(leftPx-tw/2,2), r.width-tw-2)+'px';
   }
   function leave(){ cursor.style.display='none'; dot.style.display='none'; tip.style.display='none'; }
-  svg.addEventListener('mousemove',move); svg.addEventListener('mouseleave',leave);
-  svg.addEventListener('touchstart',move,{passive:true}); svg.addEventListener('touchmove',move,{passive:true}); svg.addEventListener('touchend',leave);
+  wrap.addEventListener('mousemove',move); wrap.addEventListener('mouseleave',leave);
+  wrap.addEventListener('touchstart',move,{passive:true}); wrap.addEventListener('touchmove',move,{passive:true}); wrap.addEventListener('touchend',leave);
 }
 function zonePowerColor(p, ftp){ var r=ftp?p/ftp:0; return r<0.55?'#4aa3e0':r<0.75?'#46c08a':r<0.90?'#ecc33f':r<1.05?'#ef8a3a':r<1.20?'#e8503f':'#c0392b'; }
 function profileChart(plan, o){
@@ -377,8 +377,8 @@ function profileChart(plan, o){
   window.__prof={ W:W, samples:samples };
   var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:6px" xmlns="http://www.w3.org/2000/svg">'+
     '<path d="'+area+'" fill="rgba(255,255,255,.05)" stroke="none"/>'+lines+ticks+elLab+
-    '<line id="prof-cursor" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+eh)+'" stroke="var(--amber)" stroke-width="1" opacity="0.7" style="display:none"/>'+
-    '<circle id="prof-dot" r="4" fill="var(--amber)" stroke="#0a0c0e" stroke-width="1.5" style="display:none"/>'+
+    '<line id="prof-cursor" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+eh)+'" stroke="#ff8a1c" stroke-width="1" opacity="0.7" style="display:none"/>'+
+    '<circle id="prof-dot" r="4" fill="#ff8a1c" stroke="#0a0c0e" stroke-width="1.5" style="display:none"/>'+
     '<rect id="prof-hit" x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent" style="cursor:crosshair"/></svg>';
   return '<div id="prof-wrap" style="position:relative">'+svg+'<div id="prof-tip" style="position:absolute;top:2px;pointer-events:none;display:none;background:#11151a;border:1px solid var(--line-strong);border-radius:6px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);line-height:1.5;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5"></div></div>';
 }
