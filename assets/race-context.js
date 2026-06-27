@@ -9,6 +9,7 @@
   const DEFAULTS = {
     name: '',            // nome/apelido da prova
     dateISO: '',         // 'YYYY-MM-DD'
+    startTime: '07:00',  // 'HH:MM' horário de largada (p/ vento time-aware)
     cat: 'triatlo',      // categoria (LMA.modalidades)
     mod: 'oly',          // modalidade
     temp: 25,            // °C
@@ -108,6 +109,21 @@
     };
   }
 
+  // ---------- Vento hora a hora (p/ análise time-aware ao longo do percurso) ----------
+  // Retorna [{hour:0-23, windKmh, windFromDeg}] para a data; usa a previsão ECMWF
+  // (janela ~16 dias). Para datas fora da janela, lança erro e o chamador usa o vento único.
+  async function fetchHourlyWind(lat, lng, dateISO){
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}`+
+      `&hourly=wind_speed_10m,wind_direction_10m&start_date=${dateISO}&end_date=${dateISO}&timezone=auto&wind_speed_unit=kmh`;
+    const j = await (await fetch(u)).json();
+    if(!j.hourly || !j.hourly.time || !j.hourly.time.length) throw new Error('Sem vento horário para essa data (fora da janela de previsão).');
+    return j.hourly.time.map((t,i)=>({
+      hour: +String(t).slice(11,13),
+      windKmh: j.hourly.wind_speed_10m[i],
+      windFromDeg: j.hourly.wind_direction_10m[i] || 0
+    }));
+  }
+
   // ---------- Badge no nav (abre o modal) ----------
   function mountBadge(targetEl){
     if(!targetEl) return;
@@ -163,6 +179,10 @@
         <div class="row">
           <div><label>Nome da prova</label><input id="r-name" type="text" value="${r.name}" placeholder="Ex.: 70.3 Floripa"></div>
           <div><label>Data</label><input id="r-date" type="date" value="${r.dateISO}"></div>
+        </div>
+        <div class="row">
+          <div><label>Horário de largada</label><input id="r-start" type="time" value="${r.startTime||'07:00'}"></div>
+          <div></div>
         </div>
         <label>Local (cidade, país)</label>
         <input id="r-loc" type="text" value="${r.locName||''}" placeholder="Ex.: Florianópolis, Brasil">
@@ -241,6 +261,7 @@
       const next = {
         name: Q('#r-name').value.trim(),
         dateISO: Q('#r-date').value,
+        startTime: Q('#r-start').value || '07:00',
         cat: Q('#r-cat').value,
         mod: Q('#r-mod').value,
         temp: +Q('#r-temp').value || DEFAULTS.temp,
@@ -269,5 +290,5 @@
   else autoInit();
 
   window.LMA = window.LMA || {};
-  window.LMA.race = { load, save, patch, isSet, openModal, mountBadge, modLabel, geocode, fetchWeather };
+  window.LMA.race = { load, save, patch, isSet, openModal, mountBadge, modLabel, geocode, fetchWeather, fetchHourlyWind };
 })();
