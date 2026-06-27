@@ -64,13 +64,13 @@
         <input type="range" id="vol" min="10" max="160" step="5" value="50"></div>
 
       <div class="card-title" style="margin-top:18px">Suas preferências</div>
-      <div class="field"><label>Importância · energy return <span class="val" id="lbl-w1">7</span></label>
+      <div class="field"><label data-help="energyreturn">Importância · energy return <span class="val" id="lbl-w1">7</span></label>
         <input type="range" id="w1" min="1" max="10" step="1" value="7"></div>
       <div class="field"><label>Importância · peso leve <span class="val" id="lbl-w2">6</span></label>
         <input type="range" id="w2" min="1" max="10" step="1" value="6"></div>
-      <div class="field"><label>Conforto / stack alto <span class="val" id="lbl-w3">5</span></label>
+      <div class="field"><label data-help="stack">Conforto / stack alto <span class="val" id="lbl-w3">5</span></label>
         <input type="range" id="w3" min="1" max="10" step="1" value="5"></div>
-      <div class="field"><label>Drop alto (heel-strike) <span class="val" id="lbl-w4">4</span></label>
+      <div class="field"><label data-help="drop">Drop alto (heel-strike) <span class="val" id="lbl-w4">4</span></label>
         <input type="range" id="w4" min="1" max="10" step="1" value="4"></div>
     </div>
 
@@ -185,5 +185,6 @@ document.querySelectorAll('#use-tabs .tab').forEach(b=>{
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
 update();
 </script>
+<script src="./assets/help.js?v=1"></script>
 </body>
 </html>

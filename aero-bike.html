@@ -364,11 +364,11 @@
         <input type="range" id="temp" min="0" max="42" step="1" value="25">
       </div>
       <div class="field" style="margin:0">
-        <label>Vento de frente <span class="val" id="lbl-wind">2 m/s</span></label>
+        <label data-help="wind">Vento de frente <span class="val" id="lbl-wind">2 m/s</span></label>
         <input type="range" id="wind" min="-8" max="12" step="0.5" value="2">
       </div>
       <div class="field" style="margin:0">
-        <label>Yaw lateral <span class="val" id="lbl-yaw">3 m/s</span></label>
+        <label data-help="yaw">Yaw lateral <span class="val" id="lbl-yaw">3 m/s</span></label>
         <input type="range" id="yaw" min="0" max="10" step="0.5" value="3">
       </div>
     </div>
@@ -471,7 +471,7 @@
         <input type="range" id="bmass" min="6" max="14" step="0.1" value="9.5">
       </div>
       <div class="field">
-        <label>FTP <span class="val" id="lbl-ftp">280 W</span></label>
+        <label data-help="ftp">FTP <span class="val" id="lbl-ftp">280 W</span></label>
         <input type="range" id="ftp" min="120" max="450" step="5" value="280">
       </div>
       <div class="field">
@@ -482,7 +482,7 @@
       <div class="card-title" style="margin-top:24px">CdA · Atual vs Alvo</div>
 
       <div class="field">
-        <label>CdA atual <span class="val" id="lbl-cda1">0.280 m²</span></label>
+        <label data-help="cda">CdA atual <span class="val" id="lbl-cda1">0.280 m²</span></label>
         <input type="range" id="cda1" min="0.18" max="0.45" step="0.005" value="0.280">
       </div>
       <div class="field">
@@ -490,7 +490,7 @@
         <input type="range" id="cda2" min="0.18" max="0.45" step="0.005" value="0.245">
       </div>
       <div class="field">
-        <label>Crr · pneu atual <span class="val" id="lbl-crr1">0.0045</span></label>
+        <label data-help="crr">Crr · pneu atual <span class="val" id="lbl-crr1">0.0045</span></label>
         <input type="range" id="crr1" min="0.0025" max="0.008" step="0.0001" value="0.0045">
       </div>
       <div class="field">
@@ -1027,6 +1027,8 @@ document.querySelectorAll('#dt-front-type,#dt-front-teeth,#dt-front-teeth2,#dt-s
 dtUpdate();
 
 </script>
+
+<script src="./assets/help.js?v=1"></script>
 
 </body>
 </html>

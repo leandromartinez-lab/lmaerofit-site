@@ -71,7 +71,7 @@
   <!-- ====== READINESS / FORMA DO ATLETA ====== -->
   <div class="card" id="readiness-card" style="margin-bottom:18px">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
-      <div class="card-title" style="margin:0">Forma na data da prova</div>
+      <div class="card-title" style="margin:0" data-help="tsb">Forma na data da prova</div>
       <div style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px">
         <label for="race-date" style="color:var(--ink-mute);font-size:10px;letter-spacing:.12em;text-transform:uppercase">Data prova</label>
         <input type="date" id="race-date" style="background:var(--bg-0);border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;color:var(--ink);font-family:inherit;font-size:11px">
@@ -112,7 +112,7 @@
       <div class="card-title" style="margin-top:24px">Condições · meteorologia</div>
       <p style="font-size:11px;color:var(--ink-mute);margin-bottom:10px">Preencha com a previsão pro dia da prova. Ajuste pra simular cenários alternativos.</p>
 
-      <div class="field"><label>Vento médio <span class="val" id="lbl-wind">22 km/h</span></label>
+      <div class="field"><label data-help="wind">Vento médio <span class="val" id="lbl-wind">22 km/h</span></label>
         <input type="range" id="wind" min="0" max="60" step="1" value="22"></div>
       <div class="field"><label>Direção do vento <span class="val" id="lbl-wdir">240°</span></label>
         <input type="range" id="wdir" min="0" max="359" step="5" value="240"></div>
@@ -152,15 +152,15 @@
       </div>
 
       <div class="metrics">
-        <div class="metric"><div class="k">Yaw efetivo</div><div class="v mono" id="m-yaw">12°</div></div>
+        <div class="metric"><div class="k" data-help="yaw">Yaw efetivo</div><div class="v mono" id="m-yaw">12°</div></div>
         <div class="metric"><div class="k">Headwind</div><div class="v mono" id="m-head">+4.1<span class="u">m/s</span></div></div>
         <div class="metric"><div class="k">Crosswind</div><div class="v mono" id="m-cross">3.2<span class="u">m/s</span></div></div>
-        <div class="metric"><div class="k">CdA cost</div><div class="v mono" id="m-cost">+8<span class="u">W</span></div></div>
+        <div class="metric"><div class="k" data-help="cda">CdA cost</div><div class="v mono" id="m-cost">+8<span class="u">W</span></div></div>
       </div>
 
       <div id="risk-box"></div>
 
-      <div class="card-title" style="margin-top:24px">Pacing sugerido por segmento (bike)</div>
+      <div class="card-title" style="margin-top:24px" data-help="pacing">Pacing sugerido por segmento (bike)</div>
       <div class="seg-list" id="seg-list"></div>
 
       <div class="note">
@@ -264,8 +264,8 @@ function renderReadiness(){
   if(r.hasData){
     projection = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
       <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase">Dias p/ prova</div><div style="font-family:var(--mono);font-size:16px;color:var(--ink)">${r.daysToRace}</div></div>
-      <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase">CTL proj</div><div style="font-family:var(--mono);font-size:16px;color:var(--ink)">${r.ctlProj.toFixed(0)}</div></div>
-      <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase">ATL proj</div><div style="font-family:var(--mono);font-size:16px;color:var(--ink)">${r.atlProj.toFixed(0)}</div></div>
+      <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase" data-help="ctl">CTL proj</div><div style="font-family:var(--mono);font-size:16px;color:var(--ink)">${r.ctlProj.toFixed(0)}</div></div>
+      <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase" data-help="atl">ATL proj</div><div style="font-family:var(--mono);font-size:16px;color:var(--ink)">${r.atlProj.toFixed(0)}</div></div>
       <div style="background:var(--bg-0);padding:8px;border-radius:6px"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-mute);text-transform:uppercase">TSB proj</div><div style="font-family:var(--mono);font-size:16px;color:${r.color}">${r.tsbProj>=0?'+':''}${r.tsbProj.toFixed(0)}</div></div>
     </div>`;
   }
@@ -278,7 +278,7 @@ function renderReadiness(){
     perf = `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)">
       <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase;margin-bottom:6px">Capacidade ajustada p/ dia da prova</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-family:var(--mono);font-size:11px">
-        <div><span style="color:var(--ink-mute);font-size:9px;display:block">FTP efetivo</span><span style="color:var(--ink);font-size:14px">${ftpAdj}<span style="color:var(--ink-mute);font-size:10px">W · ${(ftpAdj/p.massKg).toFixed(2)} W/kg</span></span></div>
+        <div><span style="color:var(--ink-mute);font-size:9px;display:block" data-help="ftp">FTP efetivo</span><span style="color:var(--ink);font-size:14px">${ftpAdj}<span style="color:var(--ink-mute);font-size:10px">W · ${(ftpAdj/p.massKg).toFixed(2)} W/kg</span></span></div>
         <div><span style="color:var(--ink-mute);font-size:9px;display:block">Pace limiar</span><span style="color:var(--ink);font-size:14px">${fmtPace(paceAdj)}</span></div>
         <div><span style="color:var(--ink-mute);font-size:9px;display:block">Δ vs base</span><span style="color:${tsbFactor>=0?'var(--aero-bright)':'var(--crit)'};font-size:14px">${tsbFactor>=0?'+':''}${(tsbFactor*100).toFixed(1)}%</span></div>
       </div>
@@ -344,7 +344,7 @@ function estimatePerformance(r){
       lbl:'Bike', dist:`${km.toFixed(1)} km · +${gain}m`, sec,
       inputs:[
         ['FTP perfil', `${p.ftpW} W (${(p.ftpW/p.massKg).toFixed(2)} W/kg)`],
-        ['IF alvo', `${ifTarget} → ${Math.round(wTargetBase)} W`],
+        ['<span data-help="intensityfactor">IF alvo</span>', `${ifTarget} → ${Math.round(wTargetBase)} W`],
         ['Forma (TSB)', `${pct(tsbFactor)} → ${Math.round(wTarget)} W`],
         ['Calor (>28°C)', heatPenalty?`−${(heatPenalty*100).toFixed(1)}% vel.`:'sem penalidade'],
         ['Vento (>15 km/h)', windPenalty?`−${(windPenalty*100).toFixed(1)}% vel.`:'sem penalidade'],
@@ -631,5 +631,6 @@ function renderRoadTT(){
 }
 $('rt-deep').addEventListener('change', renderRoadTT);
 </script>
+<script src="./assets/help.js?v=1"></script>
 </body>
 </html>
