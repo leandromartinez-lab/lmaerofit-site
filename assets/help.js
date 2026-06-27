@@ -53,6 +53,31 @@
     cda: { t: 'CdA · arrasto aerodinâmico', w: 'O quanto você "corta" o ar — junta o tamanho da sua área frontal e o quão lisa ela é. Na bike, acima de ~40 km/h é o que mais custa watts. Menor CdA = mais rápido com a mesma potência.', f: 'Força de arrasto = ½·ρ·CdA·v². Unidade m².', s: 'Martin et al. 1998 (modelo de potência no ciclismo).' },
     ftp: { t: 'FTP · potência de limiar', w: 'A maior potência que você sustenta por cerca de uma hora — a âncora das zonas de bike e do pacing de prova.', f: 'FTP ≈ 95% da potência média de um teste de 20 min.', s: 'Allen & Coggan (Training and Racing with a Power Meter).' },
 
+    // ---------- potência / carga / análise ----------
+    np: { t: 'Potência normalizada (NP)', w: 'A potência que reflete o custo fisiológico real de um pedal com variações — pesa mais os picos do que a média simples. Em terreno ondulado, fica acima da potência média.', f: 'Média móvel de 30 s elevada à 4ª potência.', s: 'Allen & Coggan.' },
+    intensityfactor: { t: 'IF · fator de intensidade', w: 'O quão forte foi a sessão em relação ao seu limiar de uma hora (FTP). 1,0 = na cara do FTP; prova longa fica bem abaixo.', f: 'IF = potência normalizada ÷ FTP.', s: 'Allen & Coggan.' },
+    vi: { t: 'VI · índice de variabilidade', w: 'Mede o quão constante foi o seu ritmo. Perto de 1,0 = pedalada lisa e econômica; alto = muito acelera-e-freia, que custa caro numa prova.', f: 'VI = potência normalizada ÷ potência média.', s: 'Allen & Coggan.' },
+    tss: { t: 'TSS · carga da sessão', w: 'Um número que junta intensidade e duração para dizer o "tamanho" do treino. Serve para dosar fadiga e montar a semana.', f: 'TSS = 100 equivale a 1 h no FTP (duração × IF²).', s: 'Allen & Coggan.' },
+    ef: { t: 'EF · fator de eficiência', w: 'Quanto de potência (ou ritmo) você entrega por batimento do coração. Subir ao longo das semanas é sinal de motor aeróbio melhorando.', f: 'EF = potência normalizada (ou pace) ÷ FC média.', s: 'Friel (Training Bible).' },
+    drift: { t: 'Drift cardíaco', w: 'A tendência de a frequência cardíaca subir mantendo o mesmo esforço, por calor, desidratação ou fadiga. Pouco drift = boa durabilidade aeróbica.', f: 'Variação % da relação esforço×FC entre as metades.', s: 'Coggan; Friel (aerobic decoupling).' },
+    atl: { t: 'ATL · fadiga aguda', w: 'A média de curto prazo da sua carga de treino — o cansaço recente acumulado. Sobe rápido com treinos pesados e cai rápido no descanso.', f: 'Média exponencial da carga diária (~7 dias).', s: 'Modelo de Performance (PMC).' },
+
+    // ---------- aero / bike ----------
+    yaw: { t: 'Ângulo de guinada (yaw)', w: 'O ângulo real com que o ar bate em você — soma o vento da natureza com o vento que você cria ao se mover. É ele, não a direção do vento no mapa, que decide o arrasto.', f: 'Combina sua velocidade e o vetor do vento.', s: 'Aerodinâmica de ciclismo (túnel de vento).' },
+    wind: { t: 'Vento de frente / través', w: 'O vento é separado em duas partes: a de frente (headwind), que te freia direto, e a de través (crosswind), que vira arrasto conforme a sua posição e rodas.', s: 'Modelo aerodinâmico (Martin et al. 1998).' },
+    crr: { t: 'Crr · resistência ao rolamento', w: 'O atrito entre o pneu e o chão. Pneu, pressão e piso mudam esse número; em baixa velocidade ele pesa mais que a aerodinâmica.', f: 'Força de rolamento = Crr × peso × g.', s: 'Martin et al. 1998.' },
+
+    // ---------- nutrição / hidratação ----------
+    sweatrate: { t: 'Taxa de suor', w: 'Quantos litros por hora você perde de líquido — a base do plano de hidratação. Varia muito com calor e intensidade. O ideal é medir pesando antes e depois de um treino.', f: 'Litros/h = (peso perdido + líquido ingerido) ÷ tempo.', s: 'ACSM — Sawka et al. 2007.' },
+    sodium: { t: 'Sódio do suor', w: 'A concentração de sal que você perde no suor (mg por litro). Muito individual: há quem seja "salgado". Em prova longa ou calor, repor sódio evita cãibra e queda de rendimento.', f: 'mg de sódio por litro de suor.', s: 'Baker et al. 2017.' },
+    hydration: { t: 'Hidratação (líquido por hora)', w: 'Quanto líquido repor por hora — em geral parte da taxa de suor, não tudo. Beber demais sem sódio traz risco de hiponatremia, tão ruim quanto desidratar.', f: 'Repor ~70–90% da taxa de suor, com sódio junto.', s: 'ACSM; consenso de hiponatremia 2015.' },
+    caffeine: { t: 'Cafeína', w: 'Um dos poucos suplementos com efeito comprovado em endurance: reduz a percepção de esforço. Dose e momento importam — e tolerância/intestino são individuais.', f: '~3–6 mg por kg, 45–60 min antes (ou fracionada).', s: 'ISSN — Guest et al. 2021.' },
+
+    // ---------- tênis ----------
+    drop: { t: 'Drop do tênis', w: 'A diferença de altura entre o calcanhar e a ponta do pé (mm). Drop baixo exige mais da panturrilha/aquiles; alto alivia. É preferência e adaptação, não "melhor ou pior".', f: 'Altura do calcanhar − altura do antepé (mm).', s: 'Biomecânica do calçado.' },
+    stack: { t: 'Stack do tênis', w: 'A altura total de espuma entre o pé e o chão (mm). Mais stack = mais amortecimento em prova longa; menos = mais contato e estabilidade.', f: 'Espessura da entressola sob o calcanhar (mm).', s: 'Geometria do calçado.' },
+    pacing: { t: 'Pacing (estratégia de ritmo)', w: 'Como distribuir o esforço ao longo da prova. Largar forte demais custa caro no fim; um ritmo parelho (ou levemente negativo) costuma render mais.', s: 'Fisiologia de prova (pacing negativo).' },
+
     // ---------- forma / carga ----------
     tsb: { t: 'TSB · forma (saldo de treino)', w: 'O equilíbrio entre o cansaço acumulado e a base de condicionamento. Positivo = descansado/afiado; muito negativo = fundo de bloco, cansado. Indica o quão "pronto" você chega na prova.', f: 'TSB = CTL − ATL (forma = base crônica − fadiga aguda).', s: 'Banister; modelo PMC (Coggan).' },
     ctl: { t: 'CTL · condicionamento (base)', w: 'A média de longo prazo da sua carga de treino — quanto "motor de resistência" você construiu. Sobe devagar, com consistência.', f: 'Média exponencial da carga diária (~42 dias).', s: 'Modelo de Performance (PMC).' },
@@ -132,7 +157,11 @@
   window.addEventListener('keydown', e => { if (e.key === 'Escape') closePop(); });
   window.addEventListener('scroll', closePop, true);
 
-  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', refresh); else refresh();
+  // auto-religa quando a página injeta novos resultados (sem hook por ferramenta)
+  let obs = null, t = null;
+  function schedule() { clearTimeout(t); t = setTimeout(() => { if (obs) obs.disconnect(); refresh(); if (obs && D.body) obs.observe(D.body, { childList: true, subtree: true }); }, 150); }
+  function start() { refresh(); if (window.MutationObserver && D.body) { obs = new MutationObserver(schedule); obs.observe(D.body, { childList: true, subtree: true }); } }
+  if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', start); else start();
 
   root.LMA = root.LMA || {}; root.LMA.help = { refresh, register, REG };
 })(window);

@@ -26,20 +26,25 @@
   const SC = { green: 'var(--aero-bright)', yellow: 'var(--warn)', red: 'var(--crit)' };
   const scoreColor = v => v >= 75 ? 'var(--aero-bright)' : v >= 55 ? 'var(--warn)' : 'var(--crit)';
   // cores em hex (Leaflet/SVG não resolvem var() em stroke)
-  const HEX = { aero: '#7ab814', amber: '#ff8a1c', warn: '#f4b942', crit: '#e15a4f' };
+  // rampa de zonas estilo TrainingPeaks (monotônica), tons claros p/ fundo escuro
+  const HEX = {
+    z1: '#4aa3e0', z2: '#46c08a', z3: '#ecc33f', z4: '#ef8a3a', z5: '#e8503f', z6: '#d6433a', z7: '#b23a6f',
+    spd: '#4aa3e0', hr: '#e8506f', pw: '#f0a02a', elev: '#7e8aa8',
+    aero: '#46c08a', amber: '#f0a02a', warn: '#ecc33f', crit: '#e8503f'
+  };
 
   // cor por intensidade: potência (se houver) senão FC
   function intensityColor(r, i) {
     const s = r.series, g = r.general;
     if (g.hasPower && s.pw[i] != null) {
       const z = s.pw[i] / g.ftp;
-      return z > 1.05 ? HEX.crit : z > 0.90 ? HEX.warn : z > 0.75 ? HEX.amber : HEX.aero;
+      return z > 1.05 ? HEX.z5 : z > 0.95 ? HEX.z4 : z > 0.83 ? HEX.z3 : z > 0.68 ? HEX.z2 : HEX.z1;
     }
     if (s.hr[i] != null && g.lthr) {
       const z = s.hr[i] / g.lthr;
-      return z > 1.0 ? HEX.crit : z > 0.95 ? HEX.warn : z > 0.90 ? HEX.amber : HEX.aero;
+      return z > 1.0 ? HEX.z5 : z > 0.95 ? HEX.z4 : z > 0.90 ? HEX.z3 : z > 0.83 ? HEX.z2 : HEX.z1;
     }
-    return HEX.amber;
+    return HEX.z2;
   }
 
   function bucket(idxArr, valFn, n) {
@@ -81,8 +86,8 @@
     d += 'L' + lastX.toFixed(1) + ' ' + (H - pad) + ' Z';
     return d;
   }
-  function wrapChart(title, body, sub) {
-    return `<div class="dbf-chart"><div class="dbf-chart-h">${esc(title)}</div>${body}${sub ? `<div class="dbf-chart-sub">${sub}</div>` : ''}</div>`;
+  function wrapChart(title, body, sub, help) {
+    return `<div class="dbf-chart"><div class="dbf-chart-h"${help ? ` data-help="${help}"` : ''}>${esc(title)}</div>${body}${sub ? `<div class="dbf-chart-sub">${sub}</div>` : ''}</div>`;
   }
 
   function chartElevPowerHR(r) {
@@ -94,12 +99,12 @@
     let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:200px;display:block">`;
     if (elev) svg += `<path d="${areaFrom(elev, W, H, pad)}" fill="rgba(120,140,180,.16)" stroke="none"/>`;
     if (pw) svg += `<path d="${pathFrom(pw, W, H, pad)}" fill="none" stroke="${HEX.amber}" stroke-width="1.4"/>`;
-    if (hr) svg += `<path d="${pathFrom(hr, W, H, pad)}" fill="none" stroke="${HEX.crit}" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+    if (hr) svg += `<path d="${pathFrom(hr, W, H, pad)}" fill="none" stroke="${HEX.hr}" stroke-width="1.2" stroke-dasharray="3 2"/>`;
     svg += `</svg>`;
     const leg = [];
     if (elev) leg.push('<span style="color:#8aa">▮ elevação</span>');
     if (pw) leg.push(`<span style="color:${HEX.amber}">▬ potência</span>`);
-    if (hr) leg.push(`<span style="color:${HEX.crit}">▬ FC</span>`);
+    if (hr) leg.push(`<span style="color:${HEX.hr}">▬ FC</span>`);
     return wrapChart('Elevação × Potência × FC', svg, leg.join(' &nbsp; ') + ' &nbsp;·&nbsp; eixo = distância');
   }
   function chartSpeedHR(r) {
@@ -108,17 +113,17 @@
     const idx = s.t.map((_, i) => i);
     const spd = bucket(idx, i => s.spd[i], n), hr = bucket(idx, i => s.hr[i], n);
     let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:140px;display:block">`;
-    svg += `<path d="${pathFrom(spd, W, H, pad)}" fill="none" stroke="${HEX.aero}" stroke-width="1.4"/>`;
-    svg += `<path d="${pathFrom(hr, W, H, pad)}" fill="none" stroke="${HEX.crit}" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+    svg += `<path d="${pathFrom(spd, W, H, pad)}" fill="none" stroke="${HEX.spd}" stroke-width="1.4"/>`;
+    svg += `<path d="${pathFrom(hr, W, H, pad)}" fill="none" stroke="${HEX.hr}" stroke-width="1.2" stroke-dasharray="3 2"/>`;
     svg += `</svg>`;
     return wrapChart(r.general.sport === 'running' ? 'Pace × FC' : 'Velocidade × FC', svg,
-      `<span style="color:${HEX.aero}">▬ velocidade</span> &nbsp; <span style="color:${HEX.crit}">▬ FC</span>`);
+      `<span style="color:${HEX.spd}">▬ velocidade</span> &nbsp; <span style="color:${HEX.hr}">▬ FC</span>`);
   }
 
   // Bloco do mapa: container p/ Leaflet. O traço entra em initRouteMap (pós-DOM).
   function routeMapBlock(r) {
     if (!r.series.has.gps) return '';
-    const leg = `<span style="color:${HEX.aero}">▬ Z1-2</span> <span style="color:${HEX.amber}">▬ Z3</span> <span style="color:${HEX.warn}">▬ limiar</span> <span style="color:${HEX.crit}">▬ acima</span> &nbsp;·&nbsp; base topográfica © OpenTopoMap`;
+    const leg = `<span style="color:${HEX.z1}">▬ Z1</span> <span style="color:${HEX.z2}">▬ Z2</span> <span style="color:${HEX.z3}">▬ Z3</span> <span style="color:${HEX.z4}">▬ limiar</span> <span style="color:${HEX.z5}">▬ acima</span> &nbsp;·&nbsp; base topográfica © OpenTopoMap`;
     return wrapChart('Percurso · cor = intensidade', `<div id="dbf-map" class="dbf-map"></div>`, leg);
   }
 
@@ -141,14 +146,24 @@
     el.innerHTML = '';
     const map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
     el._leafletMap = map;
+    // base topográfica apagada (dessaturada e mais clara) para o traçado saltar
+    if (typeof document !== 'undefined' && !document.getElementById('lma-basemap-css')) {
+      const st = document.createElement('style'); st.id = 'lma-basemap-css';
+      st.textContent = '.lma-basemap{filter:saturate(.38) brightness(1.13) contrast(.92)}';
+      document.head.appendChild(st);
+    }
     L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-      maxZoom: 17, subdomains: 'abc',
+      maxZoom: 17, subdomains: 'abc', className: 'lma-basemap',
       attribution: '© OpenTopoMap (CC-BY-SA) · © OpenStreetMap',
     }).addTo(map);
     const stepN = Math.max(1, Math.floor(pts.length / 600));
+    const routeLL = pts.map(p => [p[0], p[1]]);
+    // contorno branco sob todo o traçado — separa a linha do mapa
+    L.polyline(routeLL, { color: '#ffffff', weight: 8, opacity: .95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    // segmentos coloridos por intensidade, mais grossos e opacos, por cima
     for (let k = stepN; k < pts.length; k += stepN) {
       const a = pts[k - stepN], b = pts[k];
-      L.polyline([[a[0], a[1]], [b[0], b[1]]], { color: intensityColor(r, b[2]), weight: 4, opacity: .9, lineCap: 'round' }).addTo(map);
+      L.polyline([[a[0], a[1]], [b[0], b[1]]], { color: intensityColor(r, b[2]), weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     }
     const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1]);
     map.fitBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]], { padding: [18, 18] });
@@ -163,9 +178,15 @@
     const px = lo => pad + (lo - mnLo) * sc, py = la => H - pad - (la - mnLa) * sc;
     const step = Math.max(1, Math.floor(pts.length / 400));
     let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block">`;
+    // contorno branco (casing) sob todo o traçado
     for (let k = step; k < pts.length; k += step) {
       const a = pts[k - step], b = pts[k];
-      svg += `<line x1="${px(a[1]).toFixed(1)}" y1="${py(a[0]).toFixed(1)}" x2="${px(b[1]).toFixed(1)}" y2="${py(b[0]).toFixed(1)}" stroke="${intensityColor(r, b[2])}" stroke-width="2.4" stroke-linecap="round"/>`;
+      svg += `<line x1="${px(a[1]).toFixed(1)}" y1="${py(a[0]).toFixed(1)}" x2="${px(b[1]).toFixed(1)}" y2="${py(b[0]).toFixed(1)}" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`;
+    }
+    // linha colorida por intensidade, por cima
+    for (let k = step; k < pts.length; k += step) {
+      const a = pts[k - step], b = pts[k];
+      svg += `<line x1="${px(a[1]).toFixed(1)}" y1="${py(a[0]).toFixed(1)}" x2="${px(b[1]).toFixed(1)}" y2="${py(b[0]).toFixed(1)}" stroke="${intensityColor(r, b[2])}" stroke-width="3.2" stroke-linecap="round"/>`;
     }
     svg += `</svg>`;
     el.innerHTML = svg;
@@ -176,7 +197,7 @@
     if (!r.zones) return '';
     const z = r.zones.zones.filter(x => x.pct > 0);
     const maxPct = Math.max(...z.map(x => x.pct), 1);
-    const colors = { Z1: HEX.aero, Z2: HEX.aero, Z3: HEX.amber, Z4: HEX.warn, Z5: HEX.crit, Z6: HEX.crit, Z7: HEX.crit };
+    const colors = { Z1: HEX.z1, Z2: HEX.z2, Z3: HEX.z3, Z4: HEX.z4, Z5: HEX.z5, Z6: HEX.z6, Z7: HEX.z7 };
     let h = '<div style="display:grid;gap:5px;margin-top:6px">';
     z.forEach(x => {
       h += `<div style="display:grid;grid-template-columns:104px 1fr 78px;gap:8px;align-items:center;font-family:var(--mono);font-size:11px">
@@ -187,11 +208,11 @@
     });
     h += '</div>';
     const sub = r.zones.type === 'power' ? 'distribuição por % do FTP' : `distribuição por % do limiar de FC (LTHR ${r.zones.lthr})`;
-    return wrapChart('Tempo em zonas', h, sub);
+    return wrapChart('Tempo em zonas', h, sub, 'zones');
   }
 
   const scoreCard = (label, v) => `<div class="dbf-score"><div class="dbf-score-v" style="color:${scoreColor(v)}">${v}</div><div class="dbf-score-l">${esc(label)}</div></div>`;
-  const kpi = (label, val, unit, note) => `<div class="dbf-kpi"><div class="dbf-kpi-l">${esc(label)}</div><div class="dbf-kpi-v">${esc(val)}${unit ? `<span class="dbf-kpi-u">${esc(unit)}</span>` : ''}</div>${note ? `<div class="dbf-kpi-n">${esc(note)}</div>` : ''}</div>`;
+  const kpi = (label, val, unit, note, help) => `<div class="dbf-kpi"><div class="dbf-kpi-l"${help ? ` data-help="${help}"` : ''}>${esc(label)}</div><div class="dbf-kpi-v">${esc(val)}${unit ? `<span class="dbf-kpi-u">${esc(unit)}</span>` : ''}</div>${note ? `<div class="dbf-kpi-n">${esc(note)}</div>` : ''}</div>`;
 
   function renderToHTML(r) {
     if (!r || r.error) return `<div class="dbf-report"><p style="color:var(--warn)">${esc(r ? r.error : 'Sem dados.')}</p></div>`;
@@ -208,9 +229,9 @@
     h += kpi('Tempo móvel', fmtMin(g.movingSec), '', g.stoppedSec > 60 ? '+' + fmtMin(g.stoppedSec) + ' parado' : '');
     h += isRun ? kpi('Pace médio', paceStr(g.avgPaceSecKm), '/km') : kpi('Velocidade', g.avgSpeedKmh.toFixed(1), 'km/h');
     if (g.gainM) h += kpi('Ganho elev.', g.gainM, 'm');
-    if (g.hasPower) { h += kpi('NP', g.NP, 'W', 'média ' + g.avgPower + ' W'); h += kpi('IF', g.IF, '', (g.IF * 100).toFixed(0) + '% FTP'); h += kpi('VI', g.VI, '', 'NP/AP'); h += kpi('W/kg', g.wkg, '', 'na NP'); }
-    h += kpi('TSS', g.TSS, '');
-    if (g.hasHr) { h += kpi('FC média', g.avgHR, 'bpm', 'máx ' + g.maxHR); h += kpi('EF', g.EF, '', isRun ? 'vel/FC' : 'NP/FC'); }
+    if (g.hasPower) { h += kpi('NP', g.NP, 'W', 'média ' + g.avgPower + ' W', 'np'); h += kpi('IF', g.IF, '', (g.IF * 100).toFixed(0) + '% FTP', 'intensityfactor'); h += kpi('VI', g.VI, '', 'NP/AP', 'vi'); h += kpi('W/kg', g.wkg, '', 'na NP'); }
+    h += kpi('TSS', g.TSS, '', '', 'tss');
+    if (g.hasHr) { h += kpi('FC média', g.avgHR, 'bpm', 'máx ' + g.maxHR); h += kpi('EF', g.EF, '', isRun ? 'vel/FC' : 'NP/FC', 'ef'); }
     if (g.avgCad) h += kpi('Cadência', g.avgCad, isRun ? 'spm' : 'rpm');
     if (g.tempAvg != null) h += kpi('Temp.', g.tempAvg, '°C', g.tempMax ? 'máx ' + g.tempMax + '°C' : '');
     h += `</div>`;
@@ -220,7 +241,9 @@
     }
     h += `</div>`;
 
-    h += `<div class="dbf-sec"><div class="dbf-sec-k">03 · Gráficos</div>${chartElevPowerHR(r)}${chartSpeedHR(r)}${routeMapBlock(r)}</div>`;
+    const stk = (root.LMA && root.LMA.debrief && root.LMA.debrief.charts && root.LMA.debrief.charts.stackedChannels)
+      ? root.LMA.debrief.charts.stackedChannels(r) : (chartElevPowerHR(r) + chartSpeedHR(r));
+    h += `<div class="dbf-sec"><div class="dbf-sec-k">03 · Gráficos</div>${stk}${routeMapBlock(r)}</div>`;
 
     h += `<div class="dbf-sec"><div class="dbf-sec-k">04 · Pacing & distribuição</div>${chartZones(r)}`;
     h += `<p class="dbf-p">Tempo <b>no limiar</b> (controlado): ${fmtMin(g.atThrSec)} · <b>acima do limiar</b> (gray zone): ${fmtMin(g.aboveThrSec)}${g.movingSec ? ' (' + round(g.aboveThrSec / g.movingSec * 100, 0) + '% da prova)' : ''}. <span class="dbf-mut">A lente norueguesa premia tempo no limiar; tempo acima dele acumula lactato e cobra na durabilidade.</span></p></div>`;
@@ -229,7 +252,7 @@
     if (r.decoup) {
       const bandTxt = { 'excelente': 'Excelente', 'muito-bom': 'Muito bom', 'aceitavel': 'Aceitável', 'atencao': 'Atenção', 'critico': 'Forte sinal de fadiga/calor/nutrição' }[r.decoup.band];
       const bandCls = r.decoup.band === 'excelente' || r.decoup.band === 'muito-bom' ? 'good' : r.decoup.band === 'aceitavel' ? 'warn' : 'bad';
-      h += `<p class="dbf-p">Desacoplamento cardíaco (Pa:Hr): <b class="dbf-${bandCls}">${round(r.decoup.pct, 1)}%</b> — ${bandTxt}. <span class="dbf-mut">Eficiência 1ª metade ${round(r.decoup.e1, 3)} → 2ª metade ${round(r.decoup.e2, 3)}.</span></p>`;
+      h += `<p class="dbf-p"><span data-help="decoupling">Desacoplamento cardíaco (Pa:Hr)</span>: <b class="dbf-${bandCls}">${round(r.decoup.pct, 1)}%</b> — ${bandTxt}. <span class="dbf-mut">Eficiência 1ª metade ${round(r.decoup.e1, 3)} → 2ª metade ${round(r.decoup.e2, 3)}.</span></p>`;
     }
     h += `<div class="dbf-tbl-w"><table class="dbf-tbl"><thead><tr><th>Quarto</th>${g.hasPower ? '<th>Potência</th>' : ''}<th>FC</th><th>${isRun ? 'Pace' : 'Vel'}</th>${g.avgCad ? '<th>Cad</th>' : ''}<th>EF</th>${g.gainM ? '<th>Subida</th>' : ''}${g.tempAvg != null ? '<th>Temp</th>' : ''}</tr></thead><tbody>`;
     r.quarters.forEach(q => { if (!q) return;
@@ -296,6 +319,7 @@
     if (!el) return;
     el.innerHTML = renderToHTML(r);
     try { initRouteMap(r); } catch (e) {}
+    try { if (root.LMA && root.LMA.debrief && root.LMA.debrief.charts) root.LMA.debrief.charts.initStackedChart(r); } catch (e) {}
   }
 
   root.LMA = root.LMA || {};
