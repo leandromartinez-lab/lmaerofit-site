@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Physio Lab · LMAeroFit</title>
+<title>FisioLab · LMAeroFit</title>
 <meta name="description" content="Traduz o laudo fisiológico (ergoespirometria, bioimpedância, força, pisada) em zonas de treino, combustível e parecer integrado — com fonte e grau de confiança em cada número.">
 <meta name="theme-color" content="#0a0c0e">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
@@ -65,17 +65,26 @@
 </head>
 <body data-lma="physio">
 <nav class="nav"><div class="nav-inner">
-  <a href="./index.html" class="nav-brand"><img src="./assets/lmaerofit-logo-transparent.png" alt="LMAeroFit"><span class="tag">Physio Lab</span></a>
+  <a href="./index.html" class="nav-brand"><img src="./assets/lmaerofit-logo-transparent.png" alt="LMAeroFit"><span class="tag">Pré-Temporada</span></a>
   <div class="nav-right"><span id="prof-badge"></span><a href="./index.html" class="nav-back">← Voltar</a></div>
 </div></nav>
 
 <header class="head">
-  <div class="eyebrow">Instrumento · laudo → decisão de treino</div>
-  <h1>Physio <em>Lab</em></h1>
+  <div class="eyebrow">Pré-Temporada · perfil fisiológico</div>
+  <h1>Fisio<em>Lab</em></h1>
   <p class="sub">Cole os números do seu laudo (ergoespirometria, bioimpedância, força, pisada). A ferramenta devolve zonas, combustível e um retrato integrado dos 7 módulos — <strong>com fonte e grau de confiança em cada número</strong>. Roda no navegador; o PDF não é guardado.</p>
 </header>
 
 <main class="wrap">
+  <div class="howto" style="background:rgba(255,138,28,.05);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 16px;margin-bottom:18px">
+  <div style="font-family:var(--mono,'JetBrains Mono',monospace);font-size:10px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;margin-bottom:8px">◉ Como usar</div>
+  <div style="font-size:13.5px;line-height:1.6;color:var(--ink-soft)">
+    <div style="margin-bottom:4px"><b style="color:var(--ink)">Para que serve:</b> traduz seu exame fisiológico (ou teste de campo) em zonas de treino e plano de combustível — é a base que as outras ferramentas reaproveitam.</div>
+    <div style="margin-bottom:4px"><b style="color:var(--ink)">Como começar:</b> suba o PDF do laudo (ele preenche os campos sozinho). Sem laudo? Use um teste de campo (DFA-α1) ou preencha o mínimo à mão.</div>
+    <div><b style="color:var(--ink)">O que você recebe:</b> suas zonas, energia e combustível por intensidade, e um parecer com a fonte e a confiança de cada número.</div>
+  </div>
+</div>
+
   <div class="pl-toolbar">
     <button class="pl-btn primary" id="gen">⚙ Gerar parecer</button>
     <button class="pl-btn" id="ex">Carregar exemplo (laudo IEMEX)</button>
