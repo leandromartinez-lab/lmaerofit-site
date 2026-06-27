@@ -61,8 +61,8 @@
     }
     if (e.fatmax || e.carbmax) {
       h += '<div class="pl-metrics" style="margin-top:12px">';
-      if (e.fatmax) h += `<div class="pl-metric"><span class="src-dot m"></span><div class="lab">FatMax · pico de gordura</div><div class="val">${e.fatmax.fatGmin}<span class="u">g gord/min</span></div><div class="ctx">a intensidade onde você mais queima gordura — base do treino longo e da economia de glicogênio · ${e.fatmax.load} W · FC ${e.fatmax.hr}</div></div>`;
-      if (e.carbmax) h += `<div class="pl-metric"><span class="src-dot m"></span><div class="lab">CarbMax · pico de carbo</div><div class="val">${e.carbmax.choGh}<span class="u">g CHO/h</span></div><div class="ctx">a maior taxa de queima de carboidrato registrada no teste — o "motor de cima", quando você força · ${e.carbmax.load} W</div></div>`;
+      if (e.fatmax) h += `<div class="pl-metric"><span class="src-dot m"></span><div class="lab" data-help="fatmax">FatMax · pico de gordura</div><div class="val">${e.fatmax.fatGmin}<span class="u">g gord/min</span></div><div class="ctx">a intensidade onde você mais queima gordura — base do treino longo e da economia de glicogênio · ${e.fatmax.load} W · FC ${e.fatmax.hr}</div></div>`;
+      if (e.carbmax) h += `<div class="pl-metric"><span class="src-dot m"></span><div class="lab" data-help="carbmax">CarbMax · pico de carbo</div><div class="val">${e.carbmax.choGh}<span class="u">g CHO/h</span></div><div class="ctx">a maior taxa de queima de carboidrato registrada no teste — o "motor de cima", quando você força · ${e.carbmax.load} W</div></div>`;
       h += '</div>';
     }
     if (e.perZone && e.perZone.length) {
@@ -81,7 +81,7 @@
       if (kcalTot) body += ` Gasto total estimado: <span class="pmono">~${kcalTot} kcal</span>.`;
       body += ` Você queima <span class="pmono">~${p.choBurnH} g de carbo/h</span> — <span class="pmono">${p.choBurnTotal} g</span> na prova inteira`;
       body += fatTot ? `, mais ~<span class="pmono">${fatTot} g de gordura</span> (estoque, não preocupa).` : `.`;
-      body += ` <strong>Reposição-alvo: <span class="pmono">${p.intakePerH} g/h</span></strong> — a ideia é repor o que você queima, respeitando o teto de absorção do intestino (${p.ceiling} g/h).`;
+      body += ` <strong data-help="fuelplan">Reposição-alvo: <span class="pmono">${p.intakePerH} g/h</span></strong> — a ideia é repor o que você queima, respeitando o <span data-help="gutceiling">teto de absorção do intestino</span> (${p.ceiling} g/h).`;
       if (p.intakePerH < p.choBurnH) {
         body += ` Como você queima mais do que consegue absorver, o glicogênio (carbo guardado, ~<span class="pmono">${p.glycogenG} g</span>${p.glySrc === 'estimado' ? ', estimado pelo peso' : ''}) cobre a diferença: a prova exige ~<span class="pmono">${p.glyNeed} g</span> dessa reserva.`;
         if (p.capped) body += ` <strong>E aqui está o limite:</strong> mesmo repondo no teto, a reserva não chega até o fim nessa intensidade × duração — risco de "bater no muro". Caminhos: segurar numa zona mais baixa (queima menos carbo), treinar o intestino para subir o teto, ou aceitar a queda no terço final. Mistura ${p.mix}.`;
@@ -117,12 +117,12 @@
       + `<span><span class="conf-dot p"></span>populacional</span>`
       + `<span><span class="conf-dot w"></span>atenção</span></div>`);
 
-    if (m.aerobic.metrics.length) out.push(sec('§ 01 · motor aeróbio', 'Perfil <em>máximo</em>', 'Ergoespirometria — o tamanho do motor.', metricsBlock(m.aerobic.metrics) + srcLine(m.aerobic.source)));
+    if (m.aerobic.metrics.length) out.push(sec('§ 01 · motor aeróbio', 'Perfil <em>máximo</em> <span data-help="vo2max"></span>', 'Ergoespirometria — o tamanho do motor.', metricsBlock(m.aerobic.metrics) + srcLine(m.aerobic.source)));
     if (m.efficiency.metrics.length) out.push(sec('§ 02 · eficiência', 'Eficiência do <em>motor</em>', 'Onde está o limitante.', metricsBlock(m.efficiency.metrics) + srcLine(m.efficiency.source)));
-    if (r.zones.available) out.push(sec('§ 03 · zonas', 'Zonas de <em>treino</em>', 'Trifásico nos limiares.', zonesBlock(r.zones)));
+    if (r.zones.available) out.push(sec('§ 03 · zonas', 'Zonas de <em>treino</em> <span data-help="zones"></span>', 'Trifásico nos limiares.', zonesBlock(r.zones)));
     out.push(sec('§ 04 · combustível', 'Combustível <em>por duração</em>', 'Diretriz publicada — ponte com a Nutrição.', fuelBlock(r.fuel)
       + (r.flags.filter(f => f.mod === 'fuel').map(flagBox).join(''))));
-    if (r.modules.energy) out.push(sec('§ 04b · energia', 'Energia &amp; <em>combustível por intensidade</em>', 'Quanto você gasta e de onde vem a energia.', energyFuelBlock(r.modules.energy)));
+    if (r.modules.energy) out.push(sec('§ 04b · energia', 'Energia &amp; <em>combustível por intensidade</em> <span data-help="energy"></span>', 'Quanto você gasta e de onde vem a energia.', energyFuelBlock(r.modules.energy)));
     if (m.composition.metrics.length) out.push(sec('§ 05 · composição', 'Composição &amp; <em>recuperação</em>', 'Bioimpedância — e o que acompanhar.', metricsBlock(m.composition.metrics)
       + (r.flags.filter(f => f.mod === 'composition').map(flagBox).join('')) + srcLine(m.composition.source)));
     if (m.strength.metrics.length) out.push(sec('§ 06 · força', 'Força &amp; <em>potência</em>', 'A peça que conversa com a corrida.', metricsBlock(m.strength.metrics) + srcLine(m.strength.source)));
@@ -137,7 +137,7 @@
     }
     if (m.dfa && (m.dfa.lt1 || m.dfa.lt2)) {
       const d = m.dfa, txt = `LT1 (aeróbio, α1=0,75): <strong>${d.lt1 ? (d.lt1.load || d.lt1.hr) + (d.lt1.load ? ' W' : ' bpm') : '—'}</strong> · LT2 (anaeróbio, α1=0,50): <strong>${d.lt2 ? (d.lt2.load || d.lt2.hr) + (d.lt2.load ? ' W' : ' bpm') : '—'}</strong>.`;
-      out.push(sec('§ 09b · DFA-α1', 'Limiares por <em>HRV</em>', 'Estimativa de campo, sem lactato.', `<div class="pl-parecer"><p>${txt}</p></div>` + srcLine(d.source)));
+      out.push(sec('§ 09b · DFA-α1', 'Limiares por <em>HRV</em> <span data-help="dfa"></span>', 'Estimativa de campo, sem lactato.', `<div class="pl-parecer"><p>${txt}</p></div>` + srcLine(d.source)));
     }
     if (r.portrait) out.push(sec('§ 10 · síntese', 'Retrato <em>integrado</em>', 'Os 7 módulos cruzados.', `<div class="pl-parecer"><p>${esc(r.portrait)}</p></div>`
       + `<div class="pl-src">A ferramenta não diagnostica, não prescreve, não libera — registra com fonte e confiança.</div>`));
