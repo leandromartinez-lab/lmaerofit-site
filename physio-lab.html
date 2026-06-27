@@ -99,22 +99,22 @@
     </div>
 
     <div class="fcard"><h3>Aeróbio máximo</h3>
-      <div class="frow"><div class="ff"><label>VO₂máx (ml/kg/min)</label><input id="ae-vo2" type="number" step="0.1"></div><div class="ff"><label>RER de pico</label><input id="ae-rer" type="number" step="0.01"></div></div>
+      <div class="frow"><div class="ff"><label data-help="vo2max">VO₂máx (ml/kg/min)</label><input id="ae-vo2" type="number" step="0.1"></div><div class="ff"><label data-help="rer">RER de pico</label><input id="ae-rer" type="number" step="0.01"></div></div>
       <div class="frow f3"><div class="ff"><label>FC máx</label><input id="ae-hrmax" type="number"></div><div class="ff"><label>FC repouso</label><input id="ae-hrrest" type="number"></div><div class="ff"><label>Wmax/Vmax</label><input id="ae-wmax" type="number"></div></div>
     </div>
 
     <div class="fcard"><h3>Limiares (medidos no laudo)</h3>
-      <div class="frow f3"><div class="ff"><label>LV1 · potência (W)</label><input id="l1-p" type="number"></div><div class="ff"><label>LV1 · FC</label><input id="l1-h" type="number"></div><div class="ff"><label>LV1 · VO₂</label><input id="l1-v" type="number" step="0.1"></div></div>
-      <div class="frow f3"><div class="ff"><label>LV2 · potência (W)</label><input id="l2-p" type="number"></div><div class="ff"><label>LV2 · FC</label><input id="l2-h" type="number"></div><div class="ff"><label>LV2 · VO₂</label><input id="l2-v" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label data-help="lt1">LV1 · potência (W)</label><input id="l1-p" type="number"></div><div class="ff"><label>LV1 · FC</label><input id="l1-h" type="number"></div><div class="ff"><label>LV1 · VO₂</label><input id="l1-v" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label data-help="lt2">LV2 · potência (W)</label><input id="l2-p" type="number"></div><div class="ff"><label>LV2 · FC</label><input id="l2-h" type="number"></div><div class="ff"><label>LV2 · VO₂</label><input id="l2-v" type="number" step="0.1"></div></div>
     </div>
 
     <div class="fcard"><h3>Eficiência do motor</h3>
-      <div class="frow f3"><div class="ff"><label>Rec. FC 1′ (bpm)</label><input id="ef-hrr" type="number"></div><div class="ff"><label>Pulso O₂</label><input id="ef-pulse" type="number" step="0.1"></div><div class="ff"><label>OUES</label><input id="ef-oues" type="number"></div></div>
-      <div class="frow f3"><div class="ff"><label>VE/VCO₂ slope</label><input id="ef-vevco2" type="number" step="0.1"></div><div class="ff"><label>Reserva vent. (%)</label><input id="ef-br" type="number" step="0.1"></div><div class="ff"><label>VO₂/W</label><input id="ef-vo2wr" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label>Rec. FC 1′ (bpm)</label><input id="ef-hrr" type="number"></div><div class="ff"><label data-help="pulseo2">Pulso O₂</label><input id="ef-pulse" type="number" step="0.1"></div><div class="ff"><label>OUES</label><input id="ef-oues" type="number"></div></div>
+      <div class="frow f3"><div class="ff"><label data-help="vevco2">VE/VCO₂ slope</label><input id="ef-vevco2" type="number" step="0.1"></div><div class="ff"><label>Reserva vent. (%)</label><input id="ef-br" type="number" step="0.1"></div><div class="ff"><label>VO₂/W</label><input id="ef-vo2wr" type="number" step="0.1"></div></div>
     </div>
 
     <div class="fcard"><h3>Composição (bioimpedância)</h3>
-      <div class="frow f3"><div class="ff"><label>Ângulo de fase (°)</label><input id="co-phase" type="number" step="0.1"></div><div class="ff"><label>AEC</label><input id="co-aec" type="number" step="0.01"></div><div class="ff"><label>TMB (kcal)</label><input id="co-tmb" type="number"></div></div>
+      <div class="frow f3"><div class="ff"><label data-help="phaseangle">Ângulo de fase (°)</label><input id="co-phase" type="number" step="0.1"></div><div class="ff"><label>AEC</label><input id="co-aec" type="number" step="0.01"></div><div class="ff"><label data-help="bmr">TMB (kcal)</label><input id="co-tmb" type="number"></div></div>
       <div class="frow"><div class="ff"><label>Substrato FAT %</label><input id="su-fat" type="number"></div><div class="ff"><label>Substrato CHO %</label><input id="su-cho" type="number"></div></div>
     </div>
 
@@ -130,15 +130,15 @@
     </div>
 
     <div class="fcard"><h3>Campo · teste de pista / bike (DFA-α1)</h3>
-      <div class="frow f3"><div class="ff"><label>FTP de campo (W)</label><input id="fi-ftp" type="number"></div><div class="ff"><label>ou pot. 20 min (W)</label><input id="fi-p20" type="number"></div><div class="ff"><label>Decoupling Pw:Hr (%)</label><input id="fi-dec" type="number" step="0.1"></div></div>
+      <div class="frow f3"><div class="ff"><label data-help="ftp">FTP de campo (W)</label><input id="fi-ftp" type="number"></div><div class="ff"><label>ou pot. 20 min (W)</label><input id="fi-p20" type="number"></div><div class="ff"><label data-help="decoupling">Decoupling Pw:Hr (%)</label><input id="fi-dec" type="number" step="0.1"></div></div>
       <div class="frow"><div class="ff"><label>Tipo do teste de campo</label><select id="dfa-type"><option value="bike">Bike — carga em watts</option><option value="pista">Pista / corrida — pace mm:ss</option></select></div><div class="ff"><label>&nbsp;</label><div style="font-size:11px;color:var(--ink-mute);font-family:var(--mono);padding-top:8px">DFA-α1 cruza 0,75 (LV1) e 0,50 (LV2)</div></div></div>
-      <div class="ff"><label>Estágios DFA-α1 · uma linha: <b>carga(W) ou pace(mm:ss)</b>, FC, α1</label><textarea id="dfa-text" placeholder="bike → 200,135,0.80&#10;pista → 4:30,150,0.78"></textarea></div>
+      <div class="ff"><label data-help="dfa">Estágios DFA-α1 · uma linha: <b>carga(W) ou pace(mm:ss)</b>, FC, α1</label><textarea id="dfa-text" placeholder="bike → 200,135,0.80&#10;pista → 4:30,150,0.78"></textarea></div>
     </div>
 
     <div class="fcard"><h3>Energia &amp; combustível</h3>
-      <div class="ff"><label>Curva estágio a estágio · uma linha: <b>carga(W), VO₂(ml/min), VCO₂(ml/min), RER, FC</b></label><textarea id="stage-text" placeholder="150,2400,2000,0.83,120&#10;200,3000,2700,0.90,135&#10;250,3500,3400,0.97,148"></textarea></div>
-      <div class="frow f3"><div class="ff"><label>Prova: duração (h)</label><input id="fp-dur" type="number" step="0.25" placeholder="3"></div><div class="ff"><label>Zona-alvo</label><select id="fp-zone"><option value="2">Z2</option><option value="1">Z1</option><option value="3">Z3</option><option value="4">Z4</option><option value="5">Z5</option></select></div><div class="ff"><label>Glicogênio (g)</label><input id="fp-gly" type="number" placeholder="estimado"></div></div>
-      <div class="ff"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="fp-gut" style="width:auto"> intestino treinado (teto 120 g/h)</label></div>
+      <div class="ff"><label data-help="substrate">Curva estágio a estágio · uma linha: <b>carga(W), VO₂(ml/min), VCO₂(ml/min), RER, FC</b></label><textarea id="stage-text" placeholder="150,2400,2000,0.83,120&#10;200,3000,2700,0.90,135&#10;250,3500,3400,0.97,148"></textarea></div>
+      <div class="frow f3"><div class="ff"><label>Prova: duração (h)</label><input id="fp-dur" type="number" step="0.25" placeholder="3"></div><div class="ff"><label>Zona-alvo</label><select id="fp-zone"><option value="2">Z2</option><option value="1">Z1</option><option value="3">Z3</option><option value="4">Z4</option><option value="5">Z5</option></select></div><div class="ff"><label data-help="glycogen">Glicogênio (g)</label><input id="fp-gly" type="number" placeholder="estimado"></div></div>
+      <div class="ff"><label data-help="gutceiling" style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0"><input type="checkbox" id="fp-gut" style="width:auto"> intestino treinado (teto 120 g/h)</label></div>
     </div>
   </div>
   </div>
@@ -165,6 +165,7 @@
 <script src="./assets/physio-pdf.js?v=1"></script>
 <script src="./assets/physio-core.js?v=1"></script>
 <script src="./assets/physio-render.js?v=1"></script>
+<script src="./assets/help.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 if(window.LMA && LMA.profile){ LMA.profile.mountBadge($('prof-badge')); }
@@ -199,6 +200,7 @@ let lastInput=null, lastReport=null;
 function generate(){
   lastInput=buildInput(); lastReport=LMA.physio.analyze(lastInput);
   LMA.physio.renderReport(lastReport, $('report'));
+  if(window.LMA&&LMA.help) LMA.help.refresh();
   $('pdf').style.display=''; $('csv').style.display='';
   // cabeçalho do relatório (impressão / PDF)
   const a=lastInput.athlete||{};
