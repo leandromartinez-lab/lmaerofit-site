@@ -19,18 +19,27 @@
   function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
   var RAD = Math.PI / 180;
 
-  function segCtx(s, p) {
+  // vento efetivo do segmento i: por-segmento (time-aware) se houver, senão o global
+  function segWind(p, i) {
+    if (p.windBySeg && p.windBySeg[i]) {
+      var w = p.windBySeg[i];
+      return { ms: w.ms || 0, from: w.fromDeg == null ? 0 : w.fromDeg };
+    }
+    return { ms: (p.wind || 0) / 3.6, from: p.windFromDeg == null ? 0 : p.windFromDeg };
+  }
+  function segCtx(s, p, i) {
+    var w = segWind(p, i);
     return {
       rho: M().airDensity(s.alt != null ? s.alt : (p.baseAltitude || 0), p.temp == null ? 25 : p.temp),
       cda: p.cda, crr: p.crr, mass: p.mass, eta: p.eta, grade: s.grade,
-      wind: (p.wind || 0) / 3.6, windFrom: p.windFromDeg == null ? 0 : p.windFromDeg, bearing: s.bearing
+      wind: w.ms, windFrom: w.from, bearing: s.bearing
     };
   }
   // forma relativa da potência por segmento (demanda)
   function shapes(segs, p, lo, hi) {
-    var windMs = (p.wind || 0) / 3.6, wFrom = p.windFromDeg == null ? 0 : p.windFromDeg;
-    return segs.map(function (s) {
-      var Hw = windMs * Math.cos((wFrom - s.bearing) * RAD);  // headwind > 0
+    return segs.map(function (s, i) {
+      var w = segWind(p, i);
+      var Hw = w.ms * Math.cos((w.from - s.bearing) * RAD);  // headwind > 0
       return clamp(1 + 6.0 * s.grade + 0.03 * Hw, lo, hi);
     });
   }
@@ -38,7 +47,7 @@
     var out = [], t = 0;
     for (var i = 0; i < segs.length; i++) {
       var pw = scale * shp[i];
-      var v = M().solveV(pw, segCtx(segs[i], p));
+      var v = M().solveV(pw, segCtx(segs[i], p, i));
       var dt = segs[i].dist / v; t += dt;
       out.push({ dist: segs[i].dist, grade: segs[i].grade, bearing: segs[i].bearing, power: pw, speed: v, dt: dt, tCum: t });
     }
@@ -69,7 +78,7 @@
     var p = {
       mass: opts.massRider + opts.massBike, massRider: opts.massRider, cda: opts.cda, crr: opts.crr,
       eta: opts.eta == null ? 0.977 : opts.eta, temp: opts.temp, baseAltitude: opts.baseAltitude || 0,
-      wind: opts.wind, windFromDeg: opts.windFromDeg, ftp: opts.ftp
+      wind: opts.wind, windFromDeg: opts.windFromDeg, windBySeg: opts.windBySeg, ftp: opts.ftp
     };
     var lo = (opts.limits && opts.limits.lo) || 0.70, hi = (opts.limits && opts.limits.hi) || 1.20;
     var out, usedNP, note = null;
