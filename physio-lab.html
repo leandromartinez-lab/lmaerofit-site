@@ -92,15 +92,24 @@
       <div class="ff"><label>Idade</label><input id="n1-age" type="number" placeholder="anos"></div>
       <div class="ff"><label>Sexo</label><select id="n1-sex"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
     </div>
-    <div class="frow"><div class="ff"><label>Peso (kg)</label><input id="n1-weight" type="number" step="0.1"></div><div class="ff"><label>FC máx (vazio = estima pela idade)</label><input id="n1-fcmax" type="number" placeholder="auto"></div></div>
+    <div class="frow"><div class="ff"><label>Peso (kg)</label><input id="n1-weight" type="number" step="0.1"></div><div class="ff">&nbsp;</div></div>
     <details style="margin-top:4px">
-      <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--amber)">+ tenho dados de limiar (zonas mais precisas)</summary>
+      <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--amber)">+ perfil do atleta (opcional)</summary>
       <div class="frow f3" style="margin-top:10px">
+        <div class="ff"><label>FC repouso (bpm)</label><input id="n1-hrrest" type="number"></div>
+        <div class="ff"><label>Objetivo</label><select id="n1-goal"><option value="">—</option><option value="base">Base / pré-temporada</option><option value="prova">Prova-alvo</option><option value="saude">Saúde / manutenção</option></select></div>
+        <div class="ff"><label>Histórico / condição</label><input id="n1-hist" type="text" placeholder="lesão, cardiopatia…"></div>
+      </div>
+    </details>
+    <details style="margin-top:4px">
+      <summary style="cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--amber)">+ dados para zonas mais precisas</summary>
+      <div class="frow f3" style="margin-top:10px">
+        <div class="ff"><label>FC máx (vazio = estima pela idade)</label><input id="n1-fcmax" type="number" placeholder="auto"></div>
         <div class="ff"><label>LTHR · FC de limiar (bpm)</label><input id="n1-lthr" type="number"></div>
         <div class="ff"><label data-help="ftp">FTP · potência (W)</label><input id="n1-ftp" type="number"></div>
-        <div class="ff"><label>Pace de limiar (mm:ss/km)</label><input id="n1-pace" type="text" placeholder="4:00"></div>
       </div>
-      <div style="font-size:11px;color:var(--ink-mute);margin-top:6px;line-height:1.5">Vêm de um teste de 30 min (contrarrelógio). Com eles as zonas saem por limiar (mais preciso) e o Cartão fica completo.</div>
+      <div class="frow"><div class="ff"><label>Pace de limiar (mm:ss/km)</label><input id="n1-pace" type="text" placeholder="4:00"></div><div class="ff">&nbsp;</div></div>
+      <div style="font-size:11px;color:var(--ink-mute);margin-top:6px;line-height:1.5">LTHR / FTP / pace vêm de um teste de 30 min (contrarrelógio). Com eles as zonas saem por limiar (mais preciso) e o Cartão fica completo. Sem FC máx, ela é estimada pela idade.</div>
     </details>
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
       <button class="pl-btn primary" id="n1-gen">⚙ Gerar zonas + Cartão</button>
@@ -137,7 +146,7 @@
   </div>
 
   <details class="pl-adv" style="margin:6px 0 8px">
-    <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--amber);padding:8px 0">▸ Tenho laudo completo (CPET / bioimpedância / força) — Nível 3</summary>
+    <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--amber);padding:8px 0">▸ Tenho laudo completo (CPET / bioimpedância / força) — Níveis 2 e 3</summary>
   <div class="pl-toolbar">
     <button class="pl-btn primary" id="gen">⚙ Gerar parecer</button>
     <button class="pl-btn" id="ex">Carregar exemplo (laudo IEMEX)</button>
@@ -192,6 +201,7 @@
     </div>
 
     <div class="fcard"><h3>Campo · teste de pista / bike (DFA-α1)</h3>
+      <div style="font-size:11.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:10px">O α1 <b>não sai de um GPX/FIT comum</b>: precisa de RR (batimento-a-batimento) de uma <b>cinta de FC</b> (sensor óptico de pulso não serve), com correção de artefato, processado num app de HRV (Kubios / Runalyze / HRV Logger). Cole abaixo os valores de α1 por estágio. <b>Atenção:</b> o LT1 (α1≈0,75) é mais confiável que o LT2 (α1≈0,50) — este último a literatura ainda discute.</div>
       <div class="frow f3"><div class="ff"><label data-help="ftp">FTP de campo (W)</label><input id="fi-ftp" type="number"></div><div class="ff"><label>ou pot. 20 min (W)</label><input id="fi-p20" type="number"></div><div class="ff"><label data-help="decoupling">Decoupling Pw:Hr (%)</label><input id="fi-dec" type="number" step="0.1"></div></div>
       <div class="frow"><div class="ff"><label>Tipo do teste de campo</label><select id="dfa-type"><option value="bike">Bike — carga em watts</option><option value="pista">Pista / corrida — pace mm:ss</option></select></div><div class="ff"><label>&nbsp;</label><div style="font-size:11px;color:var(--ink-mute);font-family:var(--mono);padding-top:8px">DFA-α1 cruza 0,75 (LV1) e 0,50 (LV2)</div></div></div>
       <div class="ff"><label data-help="dfa">Estágios DFA-α1 · uma linha: <b>carga(W) ou pace(mm:ss)</b>, FC, α1</label><textarea id="dfa-text" placeholder="bike → 200,135,0.80&#10;pista → 4:30,150,0.78"></textarea></div>
@@ -208,18 +218,38 @@
 
   <div class="print-only" id="print-head">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #c96d1a;padding-bottom:8px;margin-bottom:14px">
-      <div><div style="font-size:18px;font-weight:700;color:#1a1a20">LMAeroFit · Physio Lab</div><div style="font-size:11px;color:#666">Parecer Fisiológico — avaliação traduzida em decisão de treino</div></div>
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a20">LMAeroFit · FisioLab</div><div style="font-size:11px;color:#666">Parecer Fisiológico — avaliação traduzida em decisão de treino</div></div>
       <div id="print-meta" style="font-size:11px;color:#444;text-align:right;font-family:'JetBrains Mono',monospace"></div>
     </div>
   </div>
   <div id="report"></div>
   <div class="print-only" id="print-foot" style="margin-top:16px;border-top:1px solid #ddd;padding-top:8px;font-size:9.5px;color:#777;line-height:1.5">
-    A ferramenta não diagnostica, não prescreve dieta e não libera para treino — registra o que o laudo/médico disse, com fonte e grau de confiança em cada número. Cada saída é rotulada como medido · estimado · populacional. Gerado em LMAeroFit · Physio Lab.
+    A ferramenta não diagnostica, não prescreve dieta e não libera para treino — registra o que o laudo/médico disse, com fonte e grau de confiança em cada número. Cada saída é rotulada como medido · estimado · populacional. Gerado em LMAeroFit · FisioLab.
   </div>
+
+  <details class="pl-adv" style="margin:18px 0 8px">
+    <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--amber);padding:8px 0">▸ Como funciona · Metodologia · Disclaimer</summary>
+    <div style="font-size:13px;line-height:1.65;color:var(--ink-soft);max-width:760px">
+      <h4 style="color:var(--ink);font-size:14px;margin:12px 0 6px">Como esta ferramenta lê o seu metabolismo</h4>
+      <p>Todo esforço de endurance é pago por dois sistemas: o aeróbio, que queima principalmente gordura e sustenta o esforço longo, e o glicolítico, que queima carboidrato e entrega potência rápida. A proporção entre os dois muda com a intensidade — e é ela que define onde estão seus limiares, quanto cada zona custa de combustível e que tipo de atleta você é hoje. A ferramenta estima esse perfil a partir do que você já tem e roda o método mais profundo que o seu dado permite: com FC, mapeia suas zonas; com variabilidade da FC (α1), estima os limiares sem lactato; com teste de esforço (gases, watts), monta o perfil de sistemas de energia. Quanto melhor o dado, mais profunda a leitura — e ela sempre mostra o quanto aquela resposta é precisa. Nunca finge exatidão que o seu dado não tem.</p>
+      <h4 style="color:var(--ink);font-size:14px;margin:14px 0 6px">O princípio e as referências</h4>
+      <p>A ferramenta aplica um princípio fisiológico estabelecido e de domínio público: o desempenho de endurance é descrito pela interação entre o sistema aeróbio e o glicolítico, e essa interação determina limiares, oxidação de substrato e custo de combustível em cada intensidade. É ciência publicada e revisada por pares, que não pertence a nenhum produto ou empresa.</p>
+      <ul style="margin:6px 0 0 18px;line-height:1.7">
+        <li>Modelo de zonas e limiares (LT1/LT2): Seiler &amp; Kjerland (2006); Seiler (2010).</li>
+        <li>Limiares por variabilidade da FC (DFA α1 ≈ 0,75 / 0,50): Rogers, Giles, Draper, Hoos &amp; Gronwald (2021), <i>Frontiers in Physiology</i>.</li>
+        <li>Oxidação de substrato por intensidade (crossover): Brooks &amp; Mercier (1994), <i>J. Appl. Physiol.</i> 76(6):2253–2261; San-Millán &amp; Brooks (2018), <i>Sports Medicine</i> 48(2):467–479.</li>
+        <li>Distribuição de treino de elite: Casado et al. (2023); Foster et al. (2022).</li>
+        <li>Zonas para Garmin / TrainingPeaks / Intervals.icu: Friel / TrainingPeaks (%LTHR e pace de limiar), Allen &amp; Coggan (%FTP).</li>
+      </ul>
+      <p style="margin-top:8px">As fronteiras de zona não são fixas: mudam com a fase da temporada, altitude, temperatura e hidratação. Por isso a ferramenta trata cada perfil como uma fotografia do momento.</p>
+      <h4 style="color:var(--ink);font-size:14px;margin:14px 0 6px">Sobre a origem e os limites</h4>
+      <p>Ferramenta <b>educacional e descritiva</b>, gratuita, construída por um atleta de endurance que aplica ciência publicada à prática do treino. <b>Não foi validada clinicamente, não é instrumento de diagnóstico, e o autor não é médico nem fisiologista.</b> As estimativas são aproximações baseadas em modelos públicos e não substituem teste de esforço laboratorial, avaliação fisiológica profissional, nem orientação médica. A hierarquia do LMAeroFit é, nesta ordem: <b>segurança → consistência → performance</b>. Antes de mudar treino, intensidade ou estratégia, consulte o profissional que acompanha você. Todos os dados são processados no seu navegador e não são enviados a nenhum servidor.</p>
+    </div>
+  </details>
 
   <div class="priv">◉ Privacidade: a ferramenta não guarda o seu laudo — só usa os números enquanto a aba está aberta. Dado de saúde é sensível (LGPD). · A ferramenta não diagnostica, não prescreve dieta e não libera para treino: registra o que o laudo/médico disse, com fonte e grau de confiança em cada número.</div>
 </main>
-<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · PHYSIO LAB v2026.1</div></footer>
+<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · FISIOLAB v2026.1</div></footer>
 
 <script src="./assets/profile.js?v=2"></script>
 <script src="./assets/fit-parser.js?v=2"></script>
@@ -269,11 +299,12 @@
     var prof={sport:sport,lthr:lthr,fcmax:fcmax,fcmaxConf:fcmaxConf,ftp:ftp,thrPaceSecKm:pace};
     var hr=lthr?F.zonesHR(lthr,sport):(fcmax?F.zonesHRmax(fcmax,fcmaxConf):null);
     var pw=ftp?F.zonesPower(ftp):null; var pc=pace?F.zonesPace(pace):null;
-    var verdict=lthr?'Zonas de FC por <b>limiar</b> (precisas).':'Zonas de FC por <b>% da FC máxima</b>'+(fcmaxConf==='populacional'?' — FC máx estimada pela idade (populacional); um teste de limiar deixa exato':'')+'.';
+    var verdict=lthr?'Zonas de FC por <b>limiar</b> (precisas).':'Zonas de FC por <b>% da FC máxima</b>'+(fcmaxConf==='populacional'?' — FC máx estimada pela idade por Tanaka et al. (2001), populacional; um teste de limiar deixa exato':'')+'.';
     if(pw)verdict+=' Potência por FTP.'; if(pc)verdict+=' Pace por limiar de corrida.';
     var out='<div class="pl-parecer" style="margin-top:0"><p><strong>Veredito.</strong> '+verdict+'</p></div>';
     out+=zblock('Zonas de FC',hr,'fc')+zblock('Zonas de potência',pw,'')+zblock('Zonas de pace',pc,'pace')+cartao(F.cartao(prof));
     out+='<div class="pl-flag" style="margin-top:14px"><div class="ft">↗ a ciência orienta, você decide</div><p>Estas faixas são o que a fisiologia indica para a sua situação. Quem confirma é o seu corpo: use a percepção de esforço e como você responde no treino para ajustar. O número aponta o caminho; a decisão final é sua.</p></div>';
+    out+='<div style="margin-top:10px;font-size:12.5px;color:var(--ink-soft)">→ Para ver a <b>distribuição de tempo por zona</b> de um treino, suba o arquivo no <a href="./session-debrief.html" style="color:var(--amber)">Session Debrief</a>.</div>';
     g('n1-out').innerHTML=out;
     if(window.LMA&&LMA.help)LMA.help.refresh();
     g('n1-out').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -294,8 +325,8 @@
   function val(id){var el=g(id);return el?(el.value||'').trim():'';}
   function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
   function save(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true;}catch(e){return false;}}
-  function snap(){return {sport:val('n1-sport'),age:num('n1-age'),sex:val('n1-sex'),weight:num('n1-weight'),fcmax:num('n1-fcmax'),lthr:num('n1-lthr'),ftp:num('n1-ftp'),pace:val('n1-pace'),updated:new Date().toISOString()};}
-  function apply(p){if(!p)return;['sport','sex'].forEach(function(k){if(p[k]&&g('n1-'+k))g('n1-'+k).value=p[k];});['age','weight','fcmax','lthr','ftp','pace'].forEach(function(k){if(p[k]!=null&&p[k]!==''&&g('n1-'+k))g('n1-'+k).value=p[k];});}
+  function snap(){return {sport:val('n1-sport'),age:num('n1-age'),sex:val('n1-sex'),weight:num('n1-weight'),hrrest:num('n1-hrrest'),goal:val('n1-goal'),hist:val('n1-hist'),fcmax:num('n1-fcmax'),lthr:num('n1-lthr'),ftp:num('n1-ftp'),pace:val('n1-pace'),updated:new Date().toISOString()};}
+  function apply(p){if(!p)return;['sport','sex','goal'].forEach(function(k){if(p[k]&&g('n1-'+k))g('n1-'+k).value=p[k];});['age','weight','hrrest','hist','fcmax','lthr','ftp','pace'].forEach(function(k){if(p[k]!=null&&p[k]!==''&&g('n1-'+k))g('n1-'+k).value=p[k];});}
   function fmtType(t){return t==='teste'?'Teste':t==='prova'?'Prova':'Anotação';}
   function renderTL(){
     var o=load(),tl=(o.timeline||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
