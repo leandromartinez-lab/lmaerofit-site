@@ -65,6 +65,10 @@
       </div>
       <div class="ff"><label data-help="cda">Posição / CdA</label>
         <select id="cda"><option value="0.40">Road · mãos no alto (CdA ~0,40)</option><option value="0.32" selected>Road · curvado (CdA ~0,32)</option><option value="0.28">Road + clip-on aero (~0,28)</option><option value="0.24">TT / contrarrelógio (~0,24)</option></select></div>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--amber)">Não sei meu CdA — estimar</summary>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px"><div class="ff"><label>Altura (cm)</label><input id="cda-h" type="number" placeholder="175"></div><div class="ff"><label>&nbsp;</label><button class="rp-btn" id="cda-est" type="button" style="width:100%">Estimar e aplicar</button></div></div>
+        <div id="cda-est-out" style="font-size:11.5px;color:var(--ink-mute);margin-top:6px;line-height:1.5">Usa a posição selecionada + sua altura e peso. É <b>estimativa</b> (não medição) — um teste de campo é mais preciso.</div>
+      </details>
       <div class="ff" style="margin-top:8px"><label data-help="crr">Pneu / piso · Crr</label>
         <select id="crr"><option value="0.004">Prova · asfalto liso (0,004)</option><option value="0.005" selected>Treino / misto (0,005)</option><option value="0.008">Áspero / gravel leve (0,008)</option><option value="0.012">Gravel pesado (0,012)</option></select></div>
     </div>
@@ -82,10 +86,12 @@
       <div class="field-inline" style="margin-bottom:8px">
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft)"><input type="radio" name="mode" value="if" checked style="width:auto"> Esforço (IF)</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft)"><input type="radio" name="mode" value="time" style="width:auto"> Tempo-meta</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft)"><input type="radio" name="mode" value="tss" style="width:auto"> Carga (TSS)</label>
       </div>
       <div class="field" id="if-box"><label data-help="intensityfactor">Fator de intensidade <span class="val" id="lbl-if">0.80</span></label>
         <input type="range" id="tif" min="0.55" max="0.95" step="0.01" value="0.80"></div>
       <div class="ff" id="time-box" style="display:none"><label>Tempo-meta da bike (h:mm)</label><input id="ttime" type="text" placeholder="2:30"></div>
+      <div class="ff" id="tss-box" style="display:none"><label data-help="tss">TSS-alvo da bike (deixe perna pra corrida)</label><input id="ttss" type="number" placeholder="ex.: 280"></div>
       <div class="ff" style="margin-top:10px"><label>Pontos de passagem / cortes (km, separados por vírgula)</label><input id="aid" type="text" placeholder="ex.: 40, 90, 140"></div>
       <button class="rp-btn" id="gen" style="margin-top:14px;background:var(--amber);color:#0a0c0e;border-color:var(--amber);font-weight:600">⚙ Gerar plano</button>
     </div>
@@ -108,7 +114,7 @@
 const $ = id => document.getElementById(id);
 const prof = (window.LMA && LMA.profile && LMA.profile.load) ? LMA.profile.load() : null;
 if (window.LMA && LMA.profile && LMA.profile.mountBadge) LMA.profile.mountBadge($('prof-badge'));
-let RECORDS = null, PLAN = null, SEGS = null;
+let RECORDS = null, PLAN = null, SEGS = null, cdaOverride = null;
 
 // prefill do perfil / FisioLab
 try { if (prof) { if (prof.ftp && !$('ftp').value) $('ftp').value = prof.ftp; if (prof.massKg && !$('wt').value) $('wt').value = Math.round(prof.massKg); } } catch (e) {}
@@ -135,13 +141,21 @@ document.querySelectorAll('input[name=mode]').forEach(function(r){ r.addEventLis
   var m=document.querySelector('input[name=mode]:checked').value;
   $('if-box').style.display = m==='if'?'':'none';
   $('time-box').style.display = m==='time'?'':'none';
+  $('tss-box').style.display = m==='tss'?'':'none';
 });});
 $('tif').addEventListener('input', function(){ $('lbl-if').textContent = (+$('tif').value).toFixed(2); });
+$('cda').addEventListener('change', function(){ cdaOverride=null; });
+$('cda-est').addEventListener('click', function(){
+  var base=+$('cda').value, h=+$('cda-h').value||175, m=+$('wt').value||70;
+  var est=Math.max(0.18, Math.min(0.55, base*Math.pow(h/175,0.4)*Math.pow(m/70,0.25)));
+  cdaOverride=est;
+  $('cda-est-out').innerHTML='CdA estimado <b style="color:var(--amber)">'+est.toFixed(3)+'</b> — aplicado (posição + altura + peso). É estimativa; um teste de campo é mais preciso.';
+});
 
 function buildOpts(){
   var ftp = +$('ftp').value || 0;
   return { ftp:ftp, massRider:+$('wt').value||70, massBike:+$('wbike').value||8,
-    cda:+$('cda').value, crr:+$('crr').value, eta:0.977,
+    cda:(cdaOverride!=null?cdaOverride:+$('cda').value), crr:+$('crr').value, eta:0.977,
     wind:+$('wind').value||0, windFromDeg:+$('wdir').value||0, temp:+$('temp').value, baseAltitude:+$('alt').value||0 };
 }
 
@@ -153,6 +167,7 @@ $('gen').addEventListener('click', function(){
   catch(e){ $('out').innerHTML='<div class="card"><p style="color:var(--warn)">'+e.message+'</p></div>'; return; }
   var mode = document.querySelector('input[name=mode]:checked').value;
   if(mode==='time'){ var ts=parseTime($('ttime').value); if(!ts){ $('out').innerHTML='<div class="card"><p>Informe o tempo-meta no formato h:mm (ex.: 2:30).</p></div>'; return; } o.mode='time'; o.targetTimeSec=ts; }
+  else if(mode==='tss'){ var tg=+$('ttss').value; if(!tg){ $('out').innerHTML='<div class="card"><p>Informe o TSS-alvo da bike (ex.: ~280 num Ironman, ~210 num 70.3) — assim você dosa pra deixar perna pra corrida.</p></div>'; return; } o.mode='tss'; o.targetTSS=tg; }
   else { o.mode='if'; o.targetIF=+$('tif').value; }
   PLAN = LMA.racePlan.plan(SEGS, o);
   render(PLAN, o);
@@ -184,13 +199,22 @@ function aidTimes(o){
   return out;
 }
 
+function cheatText(plan, ov, climbs, o){
+  var L=['COLA DE PROVA · LMAeroFit Race Plan'];
+  L.push('Alvo: NP ~'+Math.round(ov.np)+' W · IF '+ov.if.toFixed(2)+' · TSS '+Math.round(ov.tss)+' · ~'+hm(ov.timeSec));
+  L.push('Largue conservador no 1o terco. Ride your number.');
+  if(climbs.length){ L.push(''); L.push('SUBIDAS:'); climbs.forEach(function(c){ L.push('  '+c.cat+' km'+c.startKm.toFixed(1)+' ('+(c.distM/1000).toFixed(1)+'km @'+c.avgGrade.toFixed(1)+'%): ~'+c.avgPower+' W'); }); }
+  L.push(''); L.push('Descidas: alivie (~70% do alvo), carregue velocidade.');
+  L.push('A ciencia aponta; ajuste pelo feeling. Nao estoure a IF — perna pra corrida.');
+  return L.join('\n');
+}
 function render(plan, o){
   var ov=plan.overview;
   var s=sustIF(ov.timeSec), diff=ov.if-s;
   var rv = diff>0.04 ? {t:'Meta agressiva',c:'var(--crit)',m:'O esforço exigido ('+ov.if.toFixed(2)+' IF) está acima do sustentável para essa duração (~'+s.toFixed(2)+'). Dá pra tentar, mas o risco de estourar é real — reveja a meta ou a FTP.'}
     : diff>-0.03 ? {t:'Meta realista',c:'var(--aero-bright)',m:'O esforço ('+ov.if.toFixed(2)+' IF) bate com o sustentável para a duração (~'+s.toFixed(2)+'). Plano coerente com a sua FTP.'}
     : {t:'Dá pra mais',c:'var(--signal)',m:'O esforço ('+ov.if.toFixed(2)+' IF) está abaixo do sustentável (~'+s.toFixed(2)+') — sobra margem; dá pra mirar um tempo melhor.'};
-  var wi=whatif(o), aids=aidTimes(o);
+  var wi=whatif(o), aids=aidTimes(o), heat=LMA.racePlan.heatNote(o.temp, ov.timeSec), climbs=LMA.racePlan.detectClimbs(plan.segments);
   var biggest = Math.min(wi.cda,wi.wt,wi.crr);
   function mm(d){return (d<0?'−':'+')+Math.abs(d/60).toFixed(1)+' min';}
 
@@ -199,10 +223,11 @@ function render(plan, o){
     rows.map(function(r){var cls=r.grade>0.01?'up':r.grade<-0.01?'dn':'';return '<tr class="'+cls+'"><td>'+r.cumKm.toFixed(1)+'</td><td class="gr">'+(r.grade*100).toFixed(1)+'%</td><td class="pw">'+Math.round(r.power)+'</td><td>'+(r.speed*3.6).toFixed(1)+'</td><td>'+hms(r.dt)+'</td><td>'+hms(r.cumT)+'</td></tr>';}).join('')+'</tbody></table>';
 
   var fo={ftp:o.ftp,name:'Race Plan',desc:'LMAeroFit Race Plan',file:'raceplan'};
-  window.__rpfo=fo;
+  window.__rpfo=fo; window.__cola=cheatText(plan,ov,climbs,o);
 
   var html='<div class="card">';
   html+='<div style="border-left:3px solid '+rv.c+';padding:10px 14px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:'+rv.c+';margin-bottom:4px">Veredito · '+rv.t+'</div><div style="font-size:13.5px;color:var(--ink-soft);line-height:1.55">'+rv.m+'</div></div>';
+  if(heat) html+='<div style="border-left:3px solid var(--warn);padding:8px 12px;background:rgba(244,185,66,.06);border-radius:8px;margin-bottom:12px;font-size:12.5px;color:var(--warn);line-height:1.5">☀ '+heat.msg+'</div>';
 
   html+='<div class="rp-ov">'+
     ov_c('Tempo bike', hm(ov.timeSec),'amb')+ov_c('Pot. méd.', Math.round(ov.avgPower)+'W')+ov_c('NP', Math.round(ov.np)+'W')+
@@ -211,6 +236,7 @@ function render(plan, o){
   if(plan.note) html+='<div style="font-size:12px;color:var(--warn);margin:4px 0 8px">⚠ '+plan.note+'</div>';
 
   html+='<div class="card-title" style="margin-top:14px">Plano de potência por trecho</div>'+tbl;
+  if(climbs.length){ html+='<div class="card-title" style="margin-top:18px">Subidas categorizadas</div><table class="rp-tbl"><thead><tr><th>Cat</th><th>Km</th><th>Extensão</th><th>Grade</th><th>Ganho</th><th>Watts</th><th>Tempo</th></tr></thead><tbody>'+climbs.map(function(c){return '<tr><td style="color:var(--amber)">'+c.cat+'</td><td>'+c.startKm.toFixed(1)+'</td><td>'+(c.distM/1000).toFixed(1)+' km</td><td class="gr">'+c.avgGrade.toFixed(1)+'%</td><td>+'+c.gainM+' m</td><td class="pw">'+c.avgPower+'</td><td>'+hms(c.durSec)+'</td></tr>';}).join('')+'</tbody></table>'; }
 
   html+='<div class="card-title" style="margin-top:18px">What-if · onde investir</div>'+
     '<div style="font-size:13px;color:var(--ink-soft);line-height:1.6">No mesmo esforço, quanto cada melhoria economiza:'+
@@ -227,6 +253,7 @@ function render(plan, o){
     '<button class="rp-btn" onclick="DL(\'mrc\')">MRC .mrc</button>'+
     '<button class="rp-btn" onclick="DL(\'csv\')">Cola .csv</button>'+
     '<button class="rp-btn" onclick="DL(\'tcx\')">Rota .tcx</button>'+
+    '<button class="rp-btn" onclick="DL(\'cola\')">⤓ Cola de prova .txt</button>'+
     '</div><div class="rp-compat">Compatível com Garmin · Wahoo · Zwift · TrainerRoad · TrainingPeaks (importação manual dos arquivos).</div>';
 
   html+='<div style="background:rgba(255,138,28,.05);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:12px 14px;margin-top:16px"><div style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:6px">↗ a ciência orienta, você decide</div><div style="font-size:12.5px;color:var(--ink-soft);line-height:1.55">O plano é o que a física diz para a sua FTP, o seu equipamento e as condições. O dia e a sensação mandam — ajuste pelo feeling. <b style="color:var(--ink)">Em triatlo, não estoure a IF: deixe perna para a corrida.</b> E treine com o plano antes da prova.</div></div>';
@@ -243,6 +270,7 @@ function DL(kind){
   else if(kind==='mrc'){ c=F.toMRC(PLAN,fo); name='raceplan.mrc'; }
   else if(kind==='csv'){ c=F.toCSV(PLAN,fo); name='raceplan.csv'; mime='text/csv'; }
   else if(kind==='tcx'){ c=F.toTCX(RECORDS,fo); name='raceplan-rota.tcx'; mime='application/xml'; }
+  else if(kind==='cola'){ c=window.__cola||''; name='cola-prova.txt'; }
   var b=new Blob([c],{type:mime}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click();
 }
 </script>
