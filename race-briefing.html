@@ -334,19 +334,39 @@ function planView(m){
   if(bg) bg.classList.toggle('pv-on', graf);
   if(bl) bl.classList.toggle('pv-on', !graf);
 }
+function wireProfileHover(){
+  var wrap=$('prof-wrap'); if(!wrap || !window.__prof || !window.__prof.samples || !window.__prof.samples.length) return;
+  var svg=wrap.querySelector('svg'), cursor=$('prof-cursor'), dot=$('prof-dot'), tip=$('prof-tip');
+  var S=window.__prof.samples, W=window.__prof.W;
+  function nearest(vbX){ var lo=0,hi=S.length-1; while(lo<hi){ var mid=(lo+hi)>>1; if(S[mid].x<vbX) lo=mid+1; else hi=mid; } if(lo>0 && Math.abs(S[lo-1].x-vbX)<Math.abs(S[lo].x-vbX)) lo--; return S[lo]; }
+  function move(ev){
+    var r=svg.getBoundingClientRect(); if(!r.width) return;
+    var px=(ev.touches&&ev.touches[0])?ev.touches[0].clientX:ev.clientX;
+    var s=nearest((px-r.left)/r.width*W);
+    cursor.setAttribute('x1',s.x); cursor.setAttribute('x2',s.x); cursor.style.display='';
+    dot.setAttribute('cx',s.x); dot.setAttribute('cy',s.y); dot.style.display='';
+    tip.innerHTML='km '+s.cumKm.toFixed(1)+' &middot; <b style="color:var(--amber)">'+Math.round(s.p)+' W</b><br>'+Math.round(s.alt)+' m &middot; '+(s.spd*3.6).toFixed(1)+' km/h';
+    tip.style.display='block';
+    var leftPx=(s.x/W)*r.width, tw=tip.offsetWidth||130;
+    tip.style.left=Math.min(Math.max(leftPx-tw/2,2), r.width-tw-2)+'px';
+  }
+  function leave(){ cursor.style.display='none'; dot.style.display='none'; tip.style.display='none'; }
+  svg.addEventListener('mousemove',move); svg.addEventListener('mouseleave',leave);
+  svg.addEventListener('touchstart',move,{passive:true}); svg.addEventListener('touchmove',move,{passive:true}); svg.addEventListener('touchend',leave);
+}
 function zonePowerColor(p, ftp){ var r=ftp?p/ftp:0; return r<0.55?'#4aa3e0':r<0.75?'#46c08a':r<0.90?'#ecc33f':r<1.05?'#ef8a3a':r<1.20?'#e8503f':'#c0392b'; }
 function profileChart(plan, o){
-  var segs=plan.segments, ftp=o.ftp||250;
+  var segs=plan.segments, ftp=o.ftp||250, base=o.baseAltitude||0;
   var pts=[], cumD=0, elev=0, minE=1e9, maxE=-1e9;
-  for(var i=0;i<segs.length;i++){ var s=segs[i]; elev+=s.grade*s.dist; cumD+=s.dist; pts.push({d:cumD,e:elev,p:s.power}); if(elev<minE)minE=elev; if(elev>maxE)maxE=elev; }
+  for(var i=0;i<segs.length;i++){ var s=segs[i]; elev+=s.grade*s.dist; cumD+=s.dist; pts.push({d:cumD,e:elev,p:s.power,spd:s.speed}); if(elev<minE)minE=elev; if(elev>maxE)maxE=elev; }
   if(pts.length<2) return '';
   var totalD=cumD||1, W=700,H=210, padT=12,padB=26,padL=8,padR=8;
   var ew=W-padL-padR, eh=H-padT-padB, eRange=(maxE-minE)||1;
   function X(d){ return padL+(d/totalD)*ew; }
   function Y(e){ return padT+eh-((e-minE)/eRange)*eh; }
   var step=Math.max(1, Math.ceil(pts.length/400));
-  var area='M '+X(0).toFixed(1)+' '+Y(minE).toFixed(1);
-  for(var k=0;k<pts.length;k+=step) area+=' L '+X(pts[k].d).toFixed(1)+' '+Y(pts[k].e).toFixed(1);
+  var area='M '+X(0).toFixed(1)+' '+Y(minE).toFixed(1), samples=[];
+  for(var k=0;k<pts.length;k+=step){ var pp=pts[k]; area+=' L '+X(pp.d).toFixed(1)+' '+Y(pp.e).toFixed(1); samples.push({x:+X(pp.d).toFixed(1),y:+Y(pp.e).toFixed(1),cumKm:pp.d/1000,p:pp.p,alt:base+pp.e,spd:pp.spd}); }
   area+=' L '+X(pts[pts.length-1].d).toFixed(1)+' '+Y(pts[pts.length-1].e).toFixed(1)+' L '+X(totalD).toFixed(1)+' '+Y(minE).toFixed(1)+' Z';
   var lines='';
   for(var k=0;k+step<pts.length;k+=step){ var a=pts[k], b=pts[Math.min(pts.length-1,k+step)];
@@ -354,8 +374,13 @@ function profileChart(plan, o){
   var totalKm=totalD/1000, tickEvery=totalKm<=20?5:totalKm<=60?10:totalKm<=120?20:30, ticks='';
   for(var km=tickEvery; km<totalKm; km+=tickEvery){ var x=X(km*1000); ticks+='<line x1="'+x.toFixed(1)+'" y1="'+padT+'" x2="'+x.toFixed(1)+'" y2="'+(padT+eh)+'" stroke="rgba(255,255,255,.06)"/><text x="'+x.toFixed(1)+'" y="'+(H-8)+'" fill="#7a8088" font-size="9" font-family="monospace" text-anchor="middle">'+km+'</text>'; }
   var elLab='<text x="'+padL+'" y="'+(padT+9)+'" fill="#7a8088" font-size="9" font-family="monospace">&Delta; '+Math.round(maxE-minE)+' m</text>';
-  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:6px" xmlns="http://www.w3.org/2000/svg">'+
-    '<path d="'+area+'" fill="rgba(255,255,255,.05)" stroke="none"/>'+lines+ticks+elLab+'</svg>';
+  window.__prof={ W:W, samples:samples };
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:6px" xmlns="http://www.w3.org/2000/svg">'+
+    '<path d="'+area+'" fill="rgba(255,255,255,.05)" stroke="none"/>'+lines+ticks+elLab+
+    '<line id="prof-cursor" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+eh)+'" stroke="var(--amber)" stroke-width="1" opacity="0.7" style="display:none"/>'+
+    '<circle id="prof-dot" r="4" fill="var(--amber)" stroke="#0a0c0e" stroke-width="1.5" style="display:none"/>'+
+    '<rect id="prof-hit" x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent" style="cursor:crosshair"/></svg>';
+  return '<div id="prof-wrap" style="position:relative">'+svg+'<div id="prof-tip" style="position:absolute;top:2px;pointer-events:none;display:none;background:#11151a;border:1px solid var(--line-strong);border-radius:6px;padding:6px 9px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);line-height:1.5;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5"></div></div>';
 }
 function powerLegend(){
   var Z=[['Z1','#4aa3e0'],['Z2','#46c08a'],['Z3','#ecc33f'],['Z4','#ef8a3a'],['Z5','#e8503f'],['Z6','#c0392b']];
@@ -437,6 +462,7 @@ function render(plan, o, wind){
 
   html+='</div>';
   $('out').innerHTML=html;
+  wireProfileHover();
 }
 function ov_c(l,v,cls){ return '<div class="c"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>'; }
 
