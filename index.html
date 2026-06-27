@@ -637,6 +637,7 @@
     </a>
     <div class="nav-links">
       <a href="#ferramentas">Ferramentas</a>
+      <a href="#comecar">Como usar</a>
       <a href="#como">Como funciona</a>
       <a href="#inteligencia">Inteligência</a>
       <a href="./provas.html">Provas</a>
@@ -862,11 +863,125 @@
   </div>
 </section>
 
+<!-- ============ POR ONDE COMEÇAR (guia de uso) ============ -->
+<section class="block" id="comecar">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-num">§ 02</span>
+      <h2 class="section-title">Por onde começar. <em>O caminho sem se perder.</em></h2>
+      <span class="section-sub">GUIA DE USO</span>
+    </div>
+
+    <style>
+      #comecar .start-intro{font-size:16px;color:var(--ink-soft);line-height:1.65;max-width:640px;margin-bottom:30px}
+      #comecar .start-flow{display:flex;flex-direction:column;gap:14px}
+      #comecar .start-step{display:grid;grid-template-columns:46px 1fr;gap:18px;align-items:start;border:1px solid var(--line);border-radius:16px;padding:20px 22px;background:rgba(255,255,255,.015);transition:border-color .2s}
+      #comecar .start-step:hover{border-color:rgba(255,138,28,.45)}
+      #comecar .start-badge{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--amber);border:1px solid rgba(255,138,28,.4);background:rgba(255,138,28,.06)}
+      #comecar .start-step.setup .start-badge{color:var(--ink-soft);border-color:var(--line);background:transparent;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:13px}
+      #comecar .start-body h3{font-size:19px;font-weight:600;color:var(--ink);margin:2px 0 3px;letter-spacing:-.01em}
+      #comecar .start-body h3 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--ink-soft);font-size:15px;margin-left:6px}
+      #comecar .start-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:14px}
+      #comecar .start-rows .r .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);opacity:.85;margin-bottom:4px}
+      #comecar .start-rows .r .v{font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+      #comecar .start-link{display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.04em;color:var(--amber);font-weight:500}
+      #comecar .start-link svg{width:11px;height:11px}
+      #comecar .start-sub2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+      @media(max-width:640px){#comecar .start-sub2{grid-template-columns:1fr}#comecar .start-step{grid-template-columns:38px 1fr;gap:13px;padding:16px}}
+      #comecar .start-thread{margin-top:26px;border-left:3px solid var(--amber);padding:4px 0 4px 16px;font-size:14.5px;color:var(--ink-soft);line-height:1.65;max-width:720px}
+      #comecar .start-thread b{color:var(--ink)}
+    </style>
+
+    <p class="start-intro">São seis ferramentas independentes — você usa só as que precisar. Mas elas se encaixam num ciclo. Este é o caminho recomendado, do "conhecer seu corpo" ao "analisar a prova".</p>
+
+    <div class="start-flow">
+
+      <div class="start-step setup">
+        <div class="start-badge">0</div>
+        <div class="start-body">
+          <h3>Comece aqui <em>· uma vez só</em></h3>
+          <div class="start-rows">
+            <div class="r"><div class="k">Seu perfil</div><div class="v">Clique no seu nome no topo e preencha peso, FTP, ritmo e suor. Fica salvo no navegador e é reaproveitado por todas as ferramentas.</div></div>
+            <div class="r"><div class="k">Contexto da prova</div><div class="v">Defina qual é a sua próxima prova e quando. Alimenta o Briefing e a Nutrição com a duração e o clima certos.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-step">
+        <div class="start-badge">1</div>
+        <div class="start-body">
+          <h3>Conheça seu motor <em>· Physio Lab</em></h3>
+          <div class="start-rows">
+            <div class="r"><div class="k">Para que serve</div><div class="v">Traduz seu exame fisiológico (ou teste de campo) em zonas de treino e plano de combustível.</div></div>
+            <div class="r"><div class="k">Como começar</div><div class="v">Suba o PDF do laudo — ele preenche os campos sozinho. Sem laudo? Use um teste de campo (DFA-α1) ou preencha à mão.</div></div>
+            <div class="r"><div class="k">O que você recebe</div><div class="v">Suas 5 zonas, energia e combustível por intensidade, e um parecer com a fonte e a confiança de cada número.</div></div>
+          </div>
+          <a class="start-link" href="./physio-lab.html">Abrir Physio Lab <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></a>
+        </div>
+      </div>
+
+      <div class="start-step">
+        <div class="start-badge">2</div>
+        <div class="start-body">
+          <h3>Planeje a prova <em>· Race Briefing</em></h3>
+          <div class="start-rows">
+            <div class="r"><div class="k">Para que serve</div><div class="v">Monta a estratégia: sua forma na data, o vento do percurso, o pacing por trecho — e compara bike de estrada × TT.</div></div>
+            <div class="r"><div class="k">Como começar</div><div class="v">Confirme o Contexto da Prova e suba o GPX/FIT do percurso.</div></div>
+            <div class="r"><div class="k">O que você recebe</div><div class="v">Pacing sugerido segmento a segmento, leitura do vento e a escolha de bike com o custo em watts.</div></div>
+          </div>
+          <a class="start-link" href="./race-briefing.html">Abrir Race Briefing <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></a>
+        </div>
+      </div>
+
+      <div class="start-step">
+        <div class="start-badge">3</div>
+        <div class="start-body">
+          <h3>Feche o combustível <em>· Race Fueling</em></h3>
+          <div class="start-rows">
+            <div class="r"><div class="k">Para que serve</div><div class="v">Monta o plano de carboidrato, sódio e líquido da prova — e o kit de produtos pra comprar.</div></div>
+            <div class="r"><div class="k">Como começar</div><div class="v">Escolha a prova no Contexto. Se já passou pelo Physio Lab, clique no banner para usar o seu alvo de carbo real.</div></div>
+            <div class="r"><div class="k">O que você recebe</div><div class="v">Gramas de carbo por hora, sódio do suor, líquido por hora e um kit com produtos brasileiros e custo em R$.</div></div>
+          </div>
+          <a class="start-link" href="./race-fueling.html">Abrir Race Fueling <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></a>
+        </div>
+      </div>
+
+      <div class="start-step">
+        <div class="start-badge">4</div>
+        <div class="start-body">
+          <h3>Acerte o equipamento <em>· quando precisar</em></h3>
+          <div class="start-sub2">
+            <div class="r"><div class="k">Gear Lab — tênis</div><div class="v">Diz qual tênis combina com o seu uso (ritmo, volume, terreno) e devolve um ranking. <a class="start-link" style="margin-top:8px" href="./gear-lab.html">Abrir →</a></div></div>
+            <div class="r"><div class="k">Aero Bike — posição</div><div class="v">Estima o ganho de tempo de ajustes na sua posição e setup aero. <a class="start-link" style="margin-top:8px" href="./aero-bike.html">Abrir →</a></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-step">
+        <div class="start-badge">5</div>
+        <div class="start-body">
+          <h3>Analise depois <em>· Session Debrief</em></h3>
+          <div class="start-rows">
+            <div class="r"><div class="k">Para que serve</div><div class="v">Lê seu treino ou prova e diz, em português, o que foi bem e o que melhorar — sem jargão solto.</div></div>
+            <div class="r"><div class="k">Como começar</div><div class="v">Suba o arquivo da sessão (FIT, GPX, TCX ou CSV) do seu relógio ou ciclocomputador.</div></div>
+            <div class="r"><div class="k">O que você recebe</div><div class="v">Um veredito honesto, as métricas traduzidas e o foco do próximo ciclo de treino.</div></div>
+          </div>
+          <a class="start-link" href="./session-debrief.html">Abrir Session Debrief <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 6h8M7 3l3 3-3 3"/></svg></a>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="start-thread">Como tudo se conecta: o <b>Physio Lab</b> define suas zonas e o seu combustível → o <b>Briefing</b> e a <b>Nutrição</b> usam isso para montar a prova → você corre → o <b>Debrief</b> fecha o ciclo e mostra o que ajustar no próximo. O seu <b>perfil</b> e o <b>contexto da prova</b> circulam por todas, então você preenche uma vez só.</p>
+
+  </div>
+</section>
+
 <!-- ============ COMO FUNCIONA ============ -->
 <section class="block" id="como">
   <div class="container">
     <div class="section-head">
-      <span class="section-num">§ 02</span>
+      <span class="section-num">§ 03</span>
       <h2 class="section-title">Briefing, voo, debrief. <em>O ciclo do atleta.</em></h2>
       <span class="section-sub">FLIGHT MODEL</span>
     </div>
@@ -895,7 +1010,7 @@
 <section class="block" id="inteligencia">
   <div class="container">
     <div class="section-head">
-      <span class="section-num">§ 03</span>
+      <span class="section-num">§ 04</span>
       <h2 class="section-title">Mais inteligência. <em>Menos planilha.</em></h2>
       <span class="section-sub">ROADMAP · v2026</span>
     </div>
