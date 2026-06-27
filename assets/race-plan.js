@@ -83,6 +83,13 @@
         if (metrics(planForNP(segs, p, midNP, lo, hi), p).timeSec > opts.targetTimeSec) nLo = midNP; else nHi = midNP;
       }
       usedNP = (nLo + nHi) / 2; out = planForNP(segs, p, usedNP, lo, hi);
+    } else if (opts.mode === 'tss' && opts.targetTSS) {
+      // acha a NP que faz o TSS = targetTSS (NP maior -> TSS maior)
+      var tLo = 50, tHi = opts.ftp * 1.2;
+      var tssMax = metrics(planForNP(segs, p, tHi, lo, hi), p).tss;
+      if (opts.targetTSS > tssMax + 1) note = 'TSS-alvo acima do alcançável neste percurso (máx ~' + Math.round(tssMax) + ') — mostrando o esforço máximo.';
+      for (var kt = 0; kt < 50; kt++) { var midN = (tLo + tHi) / 2; if (metrics(planForNP(segs, p, midN, lo, hi), p).tss < opts.targetTSS) tLo = midN; else tHi = midN; }
+      usedNP = (tLo + tHi) / 2; out = planForNP(segs, p, usedNP, lo, hi);
     } else {
       usedNP = opts.ftp * (opts.targetIF || 0.75);
       out = planForNP(segs, p, usedNP, lo, hi);
@@ -90,6 +97,34 @@
     return { segments: out, overview: metrics(out, p), targetNP: usedNP, note: note };
   }
 
-  root.LMA = root.LMA || {}; root.LMA.racePlan = { plan: plan, metrics: metrics };
+  // ---- detecção e categorização de subidas (a partir dos segmentos do plano) ----
+  function detectClimbs(segs) {
+    var climbs = [], cur = null, cum = 0;
+    for (var i = 0; i < segs.length; i++) {
+      var s = segs[i], startD = cum; cum += s.dist;
+      if (s.grade > 0.015) { if (!cur) cur = { d0: startD, dist: 0, gain: 0, tw: 0, pw: 0, t0: s.tCum - s.dt }; cur.dist += s.dist; cur.gain += s.grade * s.dist; cur.pw += s.power * s.dt; cur.tw += s.dt; }
+      else if (s.grade < -0.005) { if (cur) { pushIf(cur); cur = null; } }
+      else if (cur) { cur.dist += s.dist; cur.pw += s.power * s.dt; cur.tw += s.dt; }
+    }
+    if (cur) pushIf(cur);
+    function pushIf(c) {
+      var avgG = c.dist ? (c.gain / c.dist) * 100 : 0;
+      if (c.dist >= 250 && avgG >= 3) {
+        var score = c.dist * avgG;
+        climbs.push({ startKm: c.d0 / 1000, distM: Math.round(c.dist), gainM: Math.round(c.gain), avgGrade: avgG, avgPower: Math.round(c.tw ? c.pw / c.tw : 0), durSec: c.tw, startT: c.t0,
+          cat: score >= 90000 ? 'HC' : score >= 55000 ? 'Cat1' : score >= 30000 ? 'Cat2' : score >= 15000 ? 'Cat3' : 'Cat4' });
+      }
+    }
+    return climbs;
+  }
+  // aviso de calor: temp alta + prova longa -> drift cardíaco, recuar
+  function heatNote(temp, durationSec) {
+    if (temp == null) return null; var h = durationSec / 3600;
+    if (temp >= 30 && h >= 2.5) return { delta: 0.03, msg: 'Calor forte (' + Math.round(temp) + '°C) numa prova longa: o coração deriva na 2ª metade. Mire ~0,03 de IF abaixo e largue conservador — quem corre bem no calor pacing a bike por baixo.' };
+    if (temp >= 27 && h >= 3) return { delta: 0.02, msg: 'Calor (' + Math.round(temp) + '°C) + prova longa: previna o drift cardíaco; segure ~0,02 de IF na 1ª metade.' };
+    return null;
+  }
+
+  root.LMA = root.LMA || {}; root.LMA.racePlan = { plan: plan, metrics: metrics, detectClimbs: detectClimbs, heatNote: heatNote };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.LMA.racePlan;
 })(typeof self !== 'undefined' ? self : (typeof global !== 'undefined' ? global : this));
