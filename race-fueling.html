@@ -111,6 +111,7 @@
         <div class="field"><label>Bike <span class="val" id="lbl-tbk">68 min</span></label>
           <input type="range" id="tbk" min="0" max="420" step="1" value="68"></div>
       </div>
+      <div id="bikeplan-note" style="font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);line-height:1.5;margin:2px 0 6px;display:none"></div>
       <div class="stack-row">
         <div class="field"><label>T2 <span class="val" id="lbl-tt2">2 min</span></label>
           <input type="range" id="tt2" min="0" max="15" step="1" value="2"></div>
@@ -456,9 +457,22 @@ function applyRaceContext(){
   $('t').value = rc.temp; $('rh').value = rc.humidity;
   update();
 }
+// Pré-preenche a duração da bike a partir do Race Briefing (handoff)
+function applyBikePlan(){
+  try{
+    var raw = localStorage.getItem('lma.race.bikeplan.v1'); if(!raw) return;
+    var bp = JSON.parse(raw); if(!bp || !bp.bikeSec) return;
+    var mins = Math.round(bp.bikeSec/60); if(!(mins>0 && mins<=420)) return;
+    $('tbk').value = mins;
+    var n = $('bikeplan-note');
+    if(n){ var h=(mins/60)|0, m=mins%60; n.innerHTML = '◎ Tempo de bike (<b style="color:var(--amber)">'+(h?h+'h'+('0'+m).slice(-2):mins+' min')+'</b>) vindo do <b style="color:var(--amber)">Race Briefing</b>'+(bp.if?' · IF '+bp.if:'')+'. Ajuste se quiser.'; n.style.display=''; }
+    update();
+  }catch(e){}
+}
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
 fillMods();
 applyRaceContext();
+applyBikePlan();
 </script>
 <script src="./assets/help.js?v=1"></script>
 </body>

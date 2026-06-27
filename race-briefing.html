@@ -29,6 +29,9 @@
   .rp-dl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
   .rp-compat{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:8px;letter-spacing:.03em}
   .field-inline{display:flex;gap:10px;flex-wrap:wrap}
+  /* inputs de texto/número/hora: cockpit.css só estiliza a classe .input — forçamos a caixa aqui p/ o texto não sumir */
+  .wrap input[type=number],.wrap input[type=text],.wrap input[type=time]{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;color:var(--ink);font-family:inherit}
+  .wrap input[type=number]:focus,.wrap input[type=text]:focus,.wrap input[type=time]:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow)}
 </style>
 </head>
 <body data-lma="tool">
@@ -111,11 +114,12 @@
 <script src="./assets/bike-model.js"></script>
 <script src="./assets/race-plan.js?v=1"></script>
 <script src="./assets/race-plan-files.js?v=1"></script>
+<script src="./assets/wind-analysis.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
 const prof = (window.LMA && LMA.profile && LMA.profile.load) ? LMA.profile.load() : null;
 if (window.LMA && LMA.profile && LMA.profile.mountBadge) LMA.profile.mountBadge($('prof-badge'));
-let RECORDS = null, PLAN = null, SEGS = null, cdaOverride = null;
+let RECORDS = null, PLAN = null, SEGS = null, cdaOverride = null, WIND = null;
 
 try { if (prof) { if (prof.ftp && !$('ftp').value) $('ftp').value = prof.ftp; if (prof.massKg && !$('wt').value) $('wt').value = Math.round(prof.massKg); } } catch (e) {}
 
@@ -168,7 +172,7 @@ function buildOpts(){
     wind:+$('wind').value||0, windFromDeg:+$('wdir').value||0, temp:+$('temp').value, baseAltitude:+$('alt').value||0 };
 }
 
-$('gen').addEventListener('click', function(){
+$('gen').addEventListener('click', async function(){
   if(!RECORDS){ $('out').innerHTML='<div class="card"><p style="color:var(--warn)">Suba o percurso da bike primeiro.</p></div>'; return; }
   var o = buildOpts();
   if(!o.ftp){ $('out').innerHTML='<div class="card"><p>Informe a sua <b>FTP</b> (ou preencha o perfil / gere no FisioLab) — sem ela não dá pra calcular os watts.</p></div>'; return; }
@@ -178,10 +182,58 @@ $('gen').addEventListener('click', function(){
   if(mode==='time'){ var ts=parseTime($('ttime').value); if(!ts){ $('out').innerHTML='<div class="card"><p>Informe o tempo-meta no formato h:mm (ex.: 2:30).</p></div>'; return; } o.mode='time'; o.targetTimeSec=ts; }
   else if(mode==='tss'){ var tg=+$('ttss').value; if(!tg){ $('out').innerHTML='<div class="card"><p>Informe o TSS-alvo da bike (ex.: ~280 num Ironman, ~210 num 70.3) — assim você dosa pra deixar perna pra corrida.</p></div>'; return; } o.mode='tss'; o.targetTSS=tg; }
   else { o.mode='if'; o.targetIF=+$('tif').value; }
+  // time-aware: vento hora a hora do Contexto, indexado pela ETA de cada trecho
+  WIND = null; o.windBySeg = null;
+  try {
+    var RCb = (window.LMA&&LMA.race&&LMA.race.isSet&&LMA.race.isSet())?LMA.race.load():null;
+    if(RCb && RCb.lat!=null && RCb.lng!=null && RCb.dateISO && LMA.race.fetchHourlyWind){
+      $('out').innerHTML='<div class="card"><p style="color:var(--ink-mute)">◌ Buscando o vento hora a hora ao longo do percurso…</p></div>';
+      var hourly = await LMA.race.fetchHourlyWind(RCb.lat, RCb.lng, RCb.dateISO);
+      WIND = buildTimeAware(SEGS, o, hourly, RCb); // seta o.windBySeg
+    }
+  } catch(e){ WIND=null; o.windBySeg=null; } // fora da janela de previsão -> usa o vento único
   PLAN = LMA.racePlan.plan(SEGS, o);
-  render(PLAN, o);
+  render(PLAN, o, WIND);
   if(window.LMA&&LMA.help) LMA.help.refresh();
 });
+
+// ---- time-aware: vento por segmento pela ETA + dados p/ melhor horário ----
+function startHourDecimal(hhmm){ var m=(hhmm||'07:00').split(':'); return (+m[0]||7)+(+m[1]||0)/60; }
+function windAtHour(hourly, hourDec){
+  var h=Math.max(0, Math.min(hourly.length-1, hourDec));
+  var i0=Math.floor(h), i1=Math.min(hourly.length-1, i0+1), fr=h-i0;
+  var a=hourly[i0]||hourly[hourly.length-1], b=hourly[i1]||a;
+  return { windKmh: a.windKmh+(b.windKmh-a.windKmh)*fr, windFromDeg: fr<0.5?a.windFromDeg:b.windFromDeg };
+}
+function windBySegFor(refSegs, hourly, startDec){
+  return refSegs.map(function(s){
+    var w = windAtHour(hourly, startDec + (s.tCum - s.dt/2)/3600);
+    return { ms:(w.windKmh||0)/3.6, fromDeg:w.windFromDeg||0 };
+  });
+}
+function buildTimeAware(SEGS, o, hourly, RC){
+  var first = LMA.racePlan.plan(SEGS, Object.assign({}, o, {windBySeg:null})); // ETA de referência
+  var startDec = startHourDecimal(RC.startTime);
+  o.windBySeg = windBySegFor(first.segments, hourly, startDec);
+  return { hourly:hourly, startDec:startDec, refSegs:first.segments, startTime:RC.startTime };
+}
+// melhor horário de largada: rankeia janelas pelo vento-contra médio (rápido, sem re-planejar)
+function bestStart(wind){
+  var out=[];
+  for(var dh=-2; dh<=4; dh+=1){
+    var st=wind.startDec+dh; if(st<0||st>22) continue;
+    var wbs=windBySegFor(wind.refSegs, wind.hourly, st), head=0, tw=0;
+    for(var i=0;i<wind.refSegs.length;i++){
+      var s=wind.refSegs[i], w=wbs[i];
+      var hw=w.ms*Math.cos((w.fromDeg - s.bearing)*Math.PI/180);
+      if(hw>0) head+=hw*s.dt; tw+=s.dt;
+    }
+    out.push({ startDec:st, dh:dh, headKmh: tw?(head/tw)*3.6:0 });
+  }
+  out.sort(function(a,b){return a.headKmh-b.headKmh;});
+  return out;
+}
+function decToHHMM(d){ var h=Math.floor(d), m=Math.round((d-h)*60); if(m===60){h++;m=0;} return h+':'+('0'+m).slice(-2); }
 
 function aggregate(segs, nRows){
   var total=segs.reduce(function(a,s){return a+s.dist;},0), bucket=total/nRows;
@@ -217,7 +269,61 @@ function cheatText(plan, ov, climbs, o){
   L.push('A ciencia aponta; ajuste pelo feeling. Nao estoure a IF — perna pra corrida.');
   return L.join('\n');
 }
-function render(plan, o){
+function aggregateWind(wfield, nRows){
+  var total=wfield.reduce(function(a,f){return a+f.dist;},0), bucket=total/nRows;
+  var rows=[], acc=null;
+  wfield.forEach(function(f){
+    if(!acc) acc={dist:0,tw:0,hw:0,yaw:0,cumKm:f.cumKm};
+    acc.dist+=f.dist; acc.tw+=f.dt; acc.hw+=f.hwMs*f.dt; acc.yaw+=Math.abs(f.yawDeg)*f.dt; acc.cumKm=f.cumKm;
+    if(acc.dist>=bucket){ rows.push(acc); acc=null; }
+  });
+  if(acc&&acc.tw) rows.push(acc);
+  return rows.map(function(a){ var hwKmh=(a.tw?a.hw/a.tw:0)*3.6; return {cumKm:a.cumKm, hwKmh:hwKmh, yaw:a.tw?a.yaw/a.tw:0, kind:hwKmh>=2?'head':hwKmh<=-2?'tail':'cross'}; });
+}
+function windSection(plan, o, ov, wind){
+  if(!(window.LMA&&LMA.windAnalysis)) return '';
+  var f=LMA.windAnalysis.field(plan.segments, o);
+  var sm=LMA.windAnalysis.summary(f);
+  var tCalm;
+  try{ tCalm=LMA.racePlan.plan(SEGS, Object.assign({}, o, {wind:0, windBySeg:null, mode:'if', targetIF:ov.if})).overview.timeSec; }catch(e){ tCalm=ov.timeSec; }
+  var dWindMin=(ov.timeSec - tCalm)/60;
+  var html='<div class="card-title" style="margin-top:18px">Vento na prova'+(wind?' &middot; <span style="color:var(--amber);font-size:11px">hora a hora (largada '+wind.startTime+')</span>':'')+'</div>';
+  var impTxt = dWindMin>0.3 ? 'O vento te custa <b style="color:var(--crit)">~'+dWindMin.toFixed(1)+' min</b> vs ar parado'
+    : dWindMin<-0.3 ? 'O vento te ajuda <b style="color:var(--signal)">~'+Math.abs(dWindMin).toFixed(1)+' min</b> no saldo'
+    : 'Vento praticamente neutro no saldo';
+  html+='<div style="font-size:13px;color:var(--ink-soft);line-height:1.6">'+impTxt+'. <b>'+Math.round(sm.pctHead*100)+'%</b> do tempo com vento contra &middot; <b>'+Math.round(sm.pctTail*100)+'%</b> a favor &middot; <b>'+Math.round(sm.pctCross*100)+'%</b> lateral. Yaw m&eacute;dio ~'+sm.meanYaw.toFixed(0)+'&deg;.</div>';
+  if(sm.maxXwKmh>=28) html+='<div style="border-left:3px solid var(--warn);padding:8px 12px;background:rgba(244,185,66,.06);border-radius:8px;margin-top:10px;font-size:12.5px;color:var(--warn);line-height:1.5">&#9888; Vento lateral forte (rajada cruzada de pico ~'+Math.round(sm.maxXwKmh)+' km/h): cuidado com a estabilidade em rodas altas/discos e nas descidas expostas.</div>';
+  if(sm.worst.length){
+    html+='<div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.06em">Piores trechos de vento contra</div>';
+    html+='<table class="rp-tbl"><thead><tr><th>Km</th><th>Extens&atilde;o</th><th>Tempo</th><th>Vento contra</th></tr></thead><tbody>'+
+      sm.worst.map(function(w){return '<tr><td>'+w.startKm.toFixed(1)+'</td><td>'+w.distKm.toFixed(1)+' km</td><td>'+hms(w.timeSec)+'</td><td class="pw">'+Math.round(w.avgHwKmh)+' km/h</td></tr>';}).join('')+'</tbody></table>';
+  }
+  var aw=aggregateWind(f, 12);
+  html+='<div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.06em">Vento por trecho</div>';
+  html+='<table class="rp-tbl"><thead><tr><th>Km</th><th>Eixo</th><th>Componente</th><th>Yaw</th></tr></thead><tbody>'+
+    aw.map(function(r){ var lbl=r.kind==='head'?'contra':r.kind==='tail'?'a favor':'lateral'; var col=r.kind==='head'?'var(--crit)':r.kind==='tail'?'var(--aero-bright)':'var(--ink-soft)';
+      return '<tr><td>'+r.cumKm.toFixed(1)+'</td><td style="color:'+col+'">'+lbl+'</td><td>'+(r.hwKmh>=0?'+':'')+r.hwKmh.toFixed(0)+' km/h</td><td>'+Math.abs(r.yaw).toFixed(0)+'&deg;</td></tr>';
+    }).join('')+'</tbody></table>';
+  var yh=LMA.windAnalysis.yawHistogram(f);
+  html+='<div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.06em">Distribui&ccedil;&atilde;o de yaw &middot; escolha de roda</div><div style="display:flex;gap:4px;align-items:flex-end;height:54px">'+
+    yh.map(function(b){ var h=Math.round(b.pct*50)+2; var lab=b.hi>100?(b.lo+'+'):(b.lo+'&ndash;'+b.hi); return '<div style="flex:1;text-align:center"><div style="background:var(--amber);height:'+h+'px;border-radius:3px 3px 0 0;opacity:'+(0.4+b.pct*0.6)+'"></div><div style="font-family:var(--mono);font-size:8.5px;color:var(--ink-mute);margin-top:3px">'+lab+'&deg;</div><div style="font-family:var(--mono);font-size:9px;color:var(--ink-soft)">'+Math.round(b.pct*100)+'%</div></div>';}).join('')+'</div>';
+  html+='<div style="font-size:11.5px;color:var(--ink-mute);line-height:1.5;margin-top:6px">'+(sm.meanYaw>=10?'Yaw alto na maior parte &mdash; rodas mais altas/perfil aero rendem aqui (se o vento lateral n&atilde;o comprometer o controle).':'Yaw baixo predominante &mdash; o ganho aero de roda alta &eacute; menor; priorize controle e conforto.')+'</div>';
+  if(wind){
+    var bs=bestStart(wind), best=bs[0], chosen=bs.filter(function(c){return c.dh===0;})[0]||bs[0];
+    html+='<div style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin:14px 0 4px;text-transform:uppercase;letter-spacing:.06em">Melhor hor&aacute;rio de largada</div>';
+    if(best && chosen && best.headKmh < chosen.headKmh - 1){
+      html+='<div style="font-size:13px;color:var(--ink-soft);line-height:1.6">Largando &agrave;s <b style="color:var(--amber)">'+decToHHMM(best.startDec)+'</b> o vento contra m&eacute;dio cai pra ~'+best.headKmh.toFixed(0)+' km/h (vs ~'+chosen.headKmh.toFixed(0)+' km/h &agrave;s '+decToHHMM(chosen.startDec)+'). Se puder escolher, vale antecipar/atrasar.</div>';
+    } else {
+      html+='<div style="font-size:13px;color:var(--ink-soft);line-height:1.6">O hor&aacute;rio escolhido ('+decToHHMM(chosen.startDec)+') j&aacute; est&aacute; entre os melhores &mdash; variar a largada quase n&atilde;o muda o vento contra.</div>';
+    }
+    html+='<table class="rp-tbl" style="margin-top:6px"><thead><tr><th>Largada</th><th>Vento contra m&eacute;dio</th></tr></thead><tbody>'+
+      bs.slice().sort(function(a,b){return a.startDec-b.startDec;}).map(function(c){var mark=c===best?' &#9664; melhor':c.dh===0?' (escolhido)':''; return '<tr><td>'+decToHHMM(c.startDec)+mark+'</td><td class="pw">'+c.headKmh.toFixed(0)+' km/h</td></tr>';}).join('')+'</tbody></table>';
+  } else {
+    html+='<div style="font-size:11.5px;color:var(--ink-mute);line-height:1.5;margin-top:10px">&#9678; Quer o vento <b>hora a hora</b> e o <b>melhor hor&aacute;rio de largada</b>? Preencha local, data e hor&aacute;rio no <b style="color:var(--amber)">Contexto da prova</b> (no topo) e gere de novo.</div>';
+  }
+  return html;
+}
+function render(plan, o, wind){
   var ov=plan.overview;
   var raceMs=null; try{ var RC2=LMA.race.load(); if(RC2&&RC2.dateISO) raceMs=new Date(RC2.dateISO+'T12:00:00').getTime(); }catch(e){}
   var forma=(window.LMA&&LMA.profile&&LMA.profile.formReadiness)?LMA.profile.formReadiness(raceMs||Date.now()):null;
@@ -267,6 +373,8 @@ function render(plan, o){
     : dMin<-0.5 ? 'A road é mais rápida (~'+Math.abs(dMin).toFixed(1)+' min) — o percurso favorece agilidade e subida.'
     : 'Empate técnico (~'+Math.abs(dMin).toFixed(1)+' min) — escolha pelo conforto e segurança nas descidas.';
   html+='<div class="card-title" style="margin-top:18px">Road vs TT (na mesma IF)</div><div style="font-size:13px;color:var(--ink-soft);line-height:1.6">'+rtVerd+' <span style="color:var(--ink-mute);font-size:11.5px">(road CdA ~0,32 × TT ~0,24)</span></div>';
+
+  html+=windSection(plan, o, ov, wind);
 
   if(aids.length){ html+='<div class="card-title" style="margin-top:18px">Passagem nos pontos marcados</div><table class="rp-tbl"><thead><tr><th>Km</th><th>Tempo previsto</th></tr></thead><tbody>'+
     aids.map(function(a){return '<tr><td>'+a.km+'</td><td>'+(a.t!=null?hms(a.t):'além do percurso')+'</td></tr>';}).join('')+'</tbody></table>'; }
