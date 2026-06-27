@@ -109,6 +109,33 @@
     <div id="n1-out" style="margin-top:16px"></div>
   </div>
 
+  <div class="fcard" id="prof-card" style="margin-bottom:18px">
+    <h3>Perfil &amp; evolução <span style="color:var(--ink-mute);text-transform:none;letter-spacing:0;font-family:var(--body);font-size:12px">— guarde e acompanhe a temporada</span></h3>
+    <div style="font-size:12px;color:var(--ink-mute);line-height:1.5;margin-bottom:10px">Tudo fica no seu navegador. Exporte o <b>.json</b> para não perder ao trocar de aparelho — é o seu perfil portátil.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="pl-btn" id="pf-save">⤓ Salvar perfil</button>
+      <button class="pl-btn" id="pf-export">⤓ Exportar .json</button>
+      <label class="pl-btn" style="cursor:pointer">⤴ Importar .json<input type="file" id="pf-import" accept=".json,application/json" style="display:none"></label>
+    </div>
+    <div id="pf-status" style="font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:8px;min-height:14px"></div>
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--amber);text-transform:uppercase;margin-bottom:4px">Linha do tempo das zonas</div>
+      <div style="font-size:11.5px;color:var(--ink-mute);line-height:1.5;margin-bottom:10px">Registre só os marcos reais — um teste ou uma prova a fundo. Treino comum não muda zona; só um esforço-teste atualiza. Cada marco fica datado e ancorado na origem.</div>
+      <div class="frow f3">
+        <div class="ff"><label>Data</label><input id="tl-date" type="date"></div>
+        <div class="ff"><label>Tipo</label><select id="tl-type"><option value="teste">Teste (rampa/FTP/30 min)</option><option value="prova">Prova a fundo</option><option value="manual">Anotação</option></select></div>
+        <div class="ff"><label>Origem (arquivo/descrição)</label><input id="tl-origin" type="text" placeholder="ex.: FTP test 20 min"></div>
+      </div>
+      <div class="frow f3">
+        <div class="ff"><label>LTHR (bpm)</label><input id="tl-lthr" type="number"></div>
+        <div class="ff"><label>FTP (W)</label><input id="tl-ftp" type="number"></div>
+        <div class="ff"><label>Pace limiar (mm:ss)</label><input id="tl-pace" type="text" placeholder="4:00"></div>
+      </div>
+      <div style="margin-top:10px"><button class="pl-btn" id="tl-add">+ registrar marco</button></div>
+      <div id="tl-list" style="margin-top:14px"></div>
+    </div>
+  </div>
+
   <details class="pl-adv" style="margin:6px 0 8px">
     <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--amber);padding:8px 0">▸ Tenho laudo completo (CPET / bioimpedância / força) — Nível 3</summary>
   <div class="pl-toolbar">
@@ -246,6 +273,7 @@
     if(pw)verdict+=' Potência por FTP.'; if(pc)verdict+=' Pace por limiar de corrida.';
     var out='<div class="pl-parecer" style="margin-top:0"><p><strong>Veredito.</strong> '+verdict+'</p></div>';
     out+=zblock('Zonas de FC',hr,'fc')+zblock('Zonas de potência',pw,'')+zblock('Zonas de pace',pc,'pace')+cartao(F.cartao(prof));
+    out+='<div class="pl-flag" style="margin-top:14px"><div class="ft">↗ a ciência orienta, você decide</div><p>Estas faixas são o que a fisiologia indica para a sua situação. Quem confirma é o seu corpo: use a percepção de esforço e como você responde no treino para ajustar. O número aponta o caminho; a decisão final é sua.</p></div>';
     g('n1-out').innerHTML=out;
     if(window.LMA&&LMA.help)LMA.help.refresh();
     g('n1-out').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -253,6 +281,45 @@
   g('n1-gen').addEventListener('click',render);
   g('n1-clr').addEventListener('click',function(){['n1-age','n1-weight','n1-fcmax','n1-lthr','n1-ftp','n1-pace'].forEach(function(id){if(g(id))g(id).value='';});g('n1-out').innerHTML='';});
   try{var p=window.LMA&&LMA.profile&&LMA.profile.load&&LMA.profile.load();if(p&&p.onboarded){if(p.age&&g('n1-age')&&!g('n1-age').value)g('n1-age').value=p.age;if(p.sex&&g('n1-sex'))g('n1-sex').value=p.sex;if(p.massKg&&g('n1-weight')&&!g('n1-weight').value)g('n1-weight').value=p.massKg;}}catch(e){}
+})();
+</script>
+<script>
+/* FisioLab · Perfil & linha do tempo — persistência local + .json (nada sobe a servidor) */
+(function(){
+  var D=document, g=function(id){return D.getElementById(id);};
+  if(!g('pf-save')) return;
+  var KEY='lma.fisiolab.v1';
+  function st(m,c){var e=g('pf-status');if(e){e.textContent=m||'';e.style.color=c||'var(--ink-soft)';}}
+  function num(id){var el=g(id);if(!el)return null;var v=(el.value||'').trim().replace(',','.');return v===''?null:(isNaN(+v)?null:+v);}
+  function val(id){var el=g(id);return el?(el.value||'').trim():'';}
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}}
+  function save(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true;}catch(e){return false;}}
+  function snap(){return {sport:val('n1-sport'),age:num('n1-age'),sex:val('n1-sex'),weight:num('n1-weight'),fcmax:num('n1-fcmax'),lthr:num('n1-lthr'),ftp:num('n1-ftp'),pace:val('n1-pace'),updated:new Date().toISOString()};}
+  function apply(p){if(!p)return;['sport','sex'].forEach(function(k){if(p[k]&&g('n1-'+k))g('n1-'+k).value=p[k];});['age','weight','fcmax','lthr','ftp','pace'].forEach(function(k){if(p[k]!=null&&p[k]!==''&&g('n1-'+k))g('n1-'+k).value=p[k];});}
+  function fmtType(t){return t==='teste'?'Teste':t==='prova'?'Prova':'Anotação';}
+  function renderTL(){
+    var o=load(),tl=(o.timeline||[]).slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+    if(!tl.length){g('tl-list').innerHTML='<div style="font-size:12px;color:var(--ink-mute)">Nenhum marco ainda. Registre um teste ou prova a fundo para começar a sua linha do tempo.</div>';return;}
+    g('tl-list').innerHTML=tl.map(function(e){
+      var vals=[];if(e.lthr)vals.push('LTHR '+e.lthr);if(e.ftp)vals.push('FTP '+e.ftp+'W');if(e.pace)vals.push('pace '+e.pace);
+      return '<div style="display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:8px 0;font-size:12.5px"><div><span style="font-family:var(--mono);color:var(--amber)">'+(e.date||'—')+'</span> · <b style="color:var(--ink)">'+fmtType(e.type)+'</b><div style="color:var(--ink-mute);font-size:11.5px">'+(e.origin||'')+(vals.length?' · '+vals.join(' · '):'')+'</div></div><button data-id="'+e.id+'" class="tl-del" type="button" style="background:none;border:0;color:var(--ink-mute);cursor:pointer;font-size:11px">remover</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(g('tl-list').querySelectorAll('.tl-del'),function(b){b.addEventListener('click',function(){
+      var id=b.getAttribute('data-id'),o=load();o.timeline=(o.timeline||[]).filter(function(x){return (''+x.id)!==id;});save(o);renderTL();st('Marco removido.');
+    });});
+  }
+  g('pf-save').addEventListener('click',function(){var o=load();o.profile=snap();save(o)?st('✓ Perfil salvo no navegador.','var(--aero-bright)'):st('⚠ Não foi possível salvar.','var(--warn)');});
+  g('pf-export').addEventListener('click',function(){var o=load();o.profile=snap();save(o);var blob=new Blob([JSON.stringify(o,null,2)],{type:'application/json'});var a=D.createElement('a');a.href=URL.createObjectURL(blob);a.download='fisiolab-perfil.json';a.click();st('✓ Arquivo .json exportado.','var(--aero-bright)');});
+  g('pf-import').addEventListener('change',function(ev){var f=ev.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);if(typeof o!=='object'||o===null)throw 0;save(o);apply(o.profile);renderTL();st('✓ Perfil importado.','var(--aero-bright)');}catch(e){st('⚠ Arquivo inválido — esperado um .json de perfil do FisioLab.','var(--warn)');}};r.readAsText(f);});
+  g('tl-add').addEventListener('click',function(){
+    var entry={id:'m'+Date.now(),date:val('tl-date'),type:val('tl-type'),origin:val('tl-origin'),lthr:num('tl-lthr'),ftp:num('tl-ftp'),pace:val('tl-pace')};
+    if(!entry.date){st('⚠ Informe a data do marco.','var(--warn)');return;}
+    if(!entry.origin){st('⚠ Informe a origem (qual teste/prova gerou este dado).','var(--warn)');return;}
+    var o=load();o.timeline=o.timeline||[];o.timeline.push(entry);save(o);
+    ['tl-origin','tl-lthr','tl-ftp','tl-pace'].forEach(function(id){if(g(id))g(id).value='';});
+    renderTL();st('✓ Marco registrado, datado e ancorado.','var(--aero-bright)');
+  });
+  var o0=load(); if(o0.profile) apply(o0.profile); renderTL();
 })();
 </script>
 <script>
