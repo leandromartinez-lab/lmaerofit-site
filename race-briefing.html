@@ -29,6 +29,9 @@
   .rp-dl{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
   .rp-compat{font-family:var(--mono);font-size:10.5px;color:var(--ink-mute);margin-top:8px;letter-spacing:.03em}
   .field-inline{display:flex;gap:10px;flex-wrap:wrap}
+  .pv-toggle{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;margin:8px 0 6px}
+  .pv-btn{font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:7px 14px;background:transparent;color:var(--ink-mute);border:none;cursor:pointer;transition:background .15s,color .15s}
+  .pv-btn.pv-on{background:var(--amber);color:#0a0c0e;font-weight:600}
   /* inputs de texto/número/hora: cockpit.css só estiliza a classe .input — forçamos a caixa aqui p/ o texto não sumir */
   .wrap input[type=number],.wrap input[type=text],.wrap input[type=time]{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;color:var(--ink);font-family:inherit}
   .wrap input[type=number]:focus,.wrap input[type=text]:focus,.wrap input[type=time]:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow)}
@@ -323,6 +326,14 @@ function windSection(plan, o, ov, wind){
   }
   return html;
 }
+function planView(m){
+  var g=$('view-grafico'), l=$('view-lista'), bg=$('pv-graf'), bl=$('pv-list');
+  if(!g||!l) return;
+  var graf=(m==='graf');
+  g.style.display=graf?'':'none'; l.style.display=graf?'none':'';
+  if(bg) bg.classList.toggle('pv-on', graf);
+  if(bl) bl.classList.toggle('pv-on', !graf);
+}
 function zonePowerColor(p, ftp){ var r=ftp?p/ftp:0; return r<0.55?'#4aa3e0':r<0.75?'#46c08a':r<0.90?'#ecc33f':r<1.05?'#ef8a3a':r<1.20?'#e8503f':'#c0392b'; }
 function profileChart(plan, o){
   var segs=plan.segments, ftp=o.ftp||250;
@@ -386,9 +397,11 @@ function render(plan, o, wind){
     ov_c('Subida', '+'+Math.round(egain)+' m')+'</div>';
   if(plan.note) html+='<div style="font-size:12px;color:var(--warn);margin:4px 0 8px">⚠ '+plan.note+'</div>';
 
-  html+='<div class="card-title" style="margin-top:14px">Plano de potência · perfil da prova</div>'+profileChart(plan,o)+powerLegend();
-  html+='<details style="margin-top:12px"><summary style="cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--amber)">Ver tabela completa de potências por trecho</summary>'+tbl+'</details>';
-  if(climbs.length){ html+='<div class="card-title" style="margin-top:18px">Subidas categorizadas</div><table class="rp-tbl"><thead><tr><th>Cat</th><th>Km</th><th>Extensão</th><th>Grade</th><th>Ganho</th><th>Watts</th><th>Tempo</th></tr></thead><tbody>'+climbs.map(function(c){return '<tr><td style="color:var(--amber)">'+c.cat+'</td><td>'+c.startKm.toFixed(1)+'</td><td>'+(c.distM/1000).toFixed(1)+' km</td><td class="gr">'+c.avgGrade.toFixed(1)+'%</td><td>+'+c.gainM+' m</td><td class="pw">'+c.avgPower+'</td><td>'+hms(c.durSec)+'</td></tr>';}).join('')+'</tbody></table>'; }
+  var climbsTbl = climbs.length ? '<div class="card-title" style="margin-top:16px">Subidas categorizadas</div><table class="rp-tbl"><thead><tr><th>Cat</th><th>Km</th><th>Extensão</th><th>Grade</th><th>Ganho</th><th>Watts</th><th>Tempo</th></tr></thead><tbody>'+climbs.map(function(c){return '<tr><td style="color:var(--amber)">'+c.cat+'</td><td>'+c.startKm.toFixed(1)+'</td><td>'+(c.distM/1000).toFixed(1)+' km</td><td class="gr">'+c.avgGrade.toFixed(1)+'%</td><td>+'+c.gainM+' m</td><td class="pw">'+c.avgPower+'</td><td>'+hms(c.durSec)+'</td></tr>';}).join('')+'</tbody></table>' : '<div style="font-size:12px;color:var(--ink-mute);margin-top:12px">Sem subidas categorizadas neste percurso.</div>';
+  html+='<div class="card-title" style="margin-top:14px">Plano de potência por trecho</div>';
+  html+='<div class="pv-toggle"><button id="pv-graf" class="pv-btn pv-on" onclick="planView(\'graf\')">&#9636; Gr&aacute;fico</button><button id="pv-list" class="pv-btn" onclick="planView(\'list\')">&#8803; Lista + subidas</button></div>';
+  html+='<div id="view-grafico">'+profileChart(plan,o)+powerLegend()+'</div>';
+  html+='<div id="view-lista" style="display:none">'+tbl+climbsTbl+'</div>';
 
   html+='<div class="card-title" style="margin-top:18px">What-if · onde investir</div>'+
     '<div style="font-size:13px;color:var(--ink-soft);line-height:1.6">No mesmo esforço, quanto cada melhoria economiza:'+
