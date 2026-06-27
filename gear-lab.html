@@ -4,28 +4,29 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Gear Lab · LMAeroFit</title>
-<meta name="description" content="Bench de tênis: stack, drop, peso, CTS e energy return — ranqueado pelo seu perfil.">
+<meta name="description" content="Comparador de tênis de corrida: banco com specs reais, busca e filtro, ranqueado pela sua prova e perfil. A ciência orienta; o feeling decide.">
 <meta name="theme-color" content="#0a0c0e">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/cockpit.css?v=2">
+<link rel="stylesheet" href="./assets/cockpit.css?v=3">
 <style>
-  .shoe-card{display:grid;grid-template-columns:90px 1fr 100px;gap:14px;align-items:center;padding:14px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-md);margin-bottom:10px;transition:all .2s var(--ease)}
+  .shoe-card{display:grid;grid-template-columns:70px 1fr 70px;gap:14px;align-items:center;padding:14px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-md);margin-bottom:10px;transition:all .2s var(--ease)}
   .shoe-card.top{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow)}
-  .shoe-card .ideogram{height:60px;display:flex;align-items:flex-end;justify-content:center;gap:2px}
+  .shoe-card .ideogram{height:52px;display:flex;align-items:flex-end;justify-content:center;gap:2px}
   .shoe-card .ideogram .bar{width:8px;background:linear-gradient(180deg,var(--amber-bright),var(--amber-soft));border-radius:2px 2px 0 0}
   .shoe-card .name{font-weight:600;font-size:14px}
   .shoe-card .meta{font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-top:4px}
-  .shoe-card .score{font-family:var(--mono);font-weight:500;font-size:24px;color:var(--amber);text-align:right}
-  .shoe-card.top .score{font-size:30px}
+  .shoe-card .score{font-family:var(--mono);font-weight:500;font-size:26px;color:var(--amber);text-align:right}
+  .shoe-card.top .score{font-size:32px}
   .shoe-card .score-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--ink-mute);text-transform:uppercase;text-align:right}
+  .gl-filt{background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:6px 8px;color:var(--ink-soft);font-size:11.5px;font-family:var(--mono);flex:1;min-width:130px}
   @media(max-width:520px){
-    .shoe-card{grid-template-columns:60px 1fr 70px;padding:12px;gap:10px}
-    .shoe-card .ideogram{height:48px}
-    .shoe-card .score{font-size:20px}
+    .shoe-card{grid-template-columns:54px 1fr 58px;padding:12px;gap:10px}
+    .shoe-card .ideogram{height:44px}
+    .shoe-card .score{font-size:22px}
   }
 </style>
 </head>
@@ -45,34 +46,41 @@
 <header class="head">
   <div class="eyebrow">Instrumento · Equipamento</div>
   <h1>Gear <em>Lab</em></h1>
-  <p class="sub">Bench de tênis de corrida. Score combina energy return, peso, stack e drop — ponderado pelo seu perfil e tipo de prova.</p>
+  <p class="sub">Comparador de tênis de corrida com specs reais (fonte no banco). Escolha a prova, ajuste suas preferências e busque/filtre — o ranking explica o porquê de cada um.</p>
 </header>
 <main class="wrap">
   <div class="howto" style="background:rgba(255,138,28,.05);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 16px;margin-bottom:18px">
   <div style="font-family:var(--mono,'JetBrains Mono',monospace);font-size:10px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;margin-bottom:8px">◉ Como usar</div>
   <div style="font-size:13.5px;line-height:1.6;color:var(--ink-soft)">
-    <div style="margin-bottom:4px"><b style="color:var(--ink)">Para que serve:</b> diz qual tênis combina com o seu uso (ritmo, volume, terreno) e devolve um ranking.</div>
-    <div style="margin-bottom:4px"><b style="color:var(--ink)">Como começar:</b> escolha o caso de uso e ajuste os controles de preferência.</div>
-    <div><b style="color:var(--ink)">O que você recebe:</b> um ranking de modelos com score, explicando o porquê de cada um.</div>
+    <div style="margin-bottom:4px"><b style="color:var(--ink)">Para que serve:</b> diz qual tênis combina com a sua prova e o seu perfil — e por quê.</div>
+    <div style="margin-bottom:4px"><b style="color:var(--ink)">Como começar:</b> escolha a prova, ajuste suas preferências e use a busca/filtro pra reduzir as opções.</div>
+    <div><b style="color:var(--ink)">O que você recebe:</b> um ranking 0–100 com o porquê de cada modelo — pra decidir, não pra guardar na gaveta.</div>
   </div>
 </div>
   <div class="grid grid-2">
     <div class="card">
-      <div class="card-title">Use case</div>
-      <div class="tabs" id="use-tabs">
-        <button class="tab" data-u="5k">5-10k</button>
-        <button class="tab active" data-u="hm">Meia / 70.3 run</button>
-        <button class="tab" data-u="mar">Maratona / IM</button>
-        <button class="tab" data-u="trail">Trail</button>
-      </div>
-
-      <div class="field"><label>Pace alvo <span class="val" id="lbl-pace">4:30 /km</span></label>
-        <input type="range" id="pace" min="180" max="420" step="5" value="270"></div>
-      <div class="field"><label>Volume semanal <span class="val" id="lbl-vol">50 km</span></label>
-        <input type="range" id="vol" min="10" max="160" step="5" value="50"></div>
+      <div class="card-title">Sua prova &amp; perfil</div>
+      <div class="field"><label>Prova / distância</label>
+        <select id="race">
+          <option value="5">5 km · Sprint (corrida)</option>
+          <option value="10">10 km · Olímpico (corrida)</option>
+          <option value="15">15 km</option>
+          <option value="16.1">16,1 km · 10 milhas</option>
+          <option value="21.1" selected>21,1 km · Meia / 70.3 (corrida)</option>
+          <option value="30">30 km</option>
+          <option value="42.2">42,2 km · Maratona / Ironman (corrida)</option>
+          <option value="50">50 km · ultra</option>
+          <option value="80">80 km · ultra</option>
+          <option value="100">100 km · ultra</option>
+          <option value="161">161 km · 100 milhas</option>
+          <option value="trail">Trilha / Trail</option>
+        </select></div>
+      <div class="field"><label>Seu peso <span class="val" id="lbl-wt">70 kg</span></label>
+        <input type="range" id="wt" min="40" max="130" step="1" value="70"></div>
+      <div id="wt-note" style="font-size:11px;color:var(--ink-mute);margin:-4px 0 10px;min-height:14px"></div>
 
       <div class="card-title" style="margin-top:18px">Suas preferências</div>
-      <div class="field"><label data-help="energyreturn">Importância · energy return <span class="val" id="lbl-w1">7</span></label>
+      <div class="field"><label data-help="energyreturn">Importância · economia (placa/espuma) <span class="val" id="lbl-w1">7</span></label>
         <input type="range" id="w1" min="1" max="10" step="1" value="7"></div>
       <div class="field"><label>Importância · peso leve <span class="val" id="lbl-w2">6</span></label>
         <input type="range" id="w2" min="1" max="10" step="1" value="6"></div>
@@ -83,115 +91,89 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Ranking · top 8 para você</div>
+      <div class="card-title">Banco de tênis</div>
+      <input type="text" id="q" placeholder="Buscar marca ou modelo…" style="width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:9px 11px;color:var(--ink);font-size:13px;margin-bottom:10px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <select id="f-cat" class="gl-filt"><option value="">Categoria: todas</option><option value="prova">Prova</option><option value="tempo">Tempo</option><option value="treino">Treino</option><option value="trail">Trail</option></select>
+        <select id="f-plate" class="gl-filt"><option value="">Placa: qualquer</option><option value="carbono">Carbono</option><option value="sem">Sem placa</option></select>
+        <select id="f-drop" class="gl-filt"><option value="">Drop: qualquer</option><option value="lo">Baixo (≤6mm)</option><option value="mid">Médio (7–9)</option><option value="hi">Alto (≥10)</option></select>
+        <select id="f-stack" class="gl-filt"><option value="">Stack: qualquer</option><option value="lo">Baixo (≤32)</option><option value="mid">Médio (33–39)</option><option value="hi">Alto (≥40)</option></select>
+        <select id="f-weight" class="gl-filt"><option value="">Peso: qualquer</option><option value="lo">Leve (≤220g)</option><option value="mid">Médio (221–260)</option><option value="hi">Pesado (&gt;260)</option></select>
+      </div>
+      <div id="count" style="font-family:var(--mono);font-size:11px;color:var(--ink-mute);margin-bottom:10px"></div>
       <div id="rank"></div>
+
+      <div style="background:rgba(255,138,28,.05);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:12px 14px;margin-top:8px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:6px">↗ a ciência orienta, você decide</div>
+        <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.55">Placa, espuma, stack e drop mudam a economia e o conforto — mas o <b style="color:var(--ink)">encaixe no seu pé e a sensação na passada decidem</b>. Use o ranking pra reduzir as opções e <b style="color:var(--ink)">prove antes de comprar</b>.</div>
+      </div>
 
       <div class="note">
         <details>
           <summary>Como calculamos o score</summary>
-          <p style="margin-top:8px"><code>score = Σ (peso_i × normalizado_i)</code> com normalização min-max no banco. Cada categoria de uso tem multiplicadores embutidos (ex: maratona bonifica stack alto e energy return, 5k bonifica peso leve).</p>
-          <p style="margin-top:8px"><strong>Energy return</strong> (Hoogkamer 2018): placa de carbono + foam supercrítico = -1.0 a -4.0% custo metabólico vs trainer convencional. Modelado como % no banco.</p>
-          <p style="margin-top:8px">Banco com 12 modelos representativos. Pra ver todos os 47+ do CSV original, próxima iteração com filtro/busca.</p>
+          <p style="margin-top:8px"><code>score 0–100 = Σ(preferência × viés_da_prova × atributo)</code>, normalizado no banco. A prova ajusta os pesos (curta bonifica leveza; longa bonifica amortecimento e economia) e o seu peso bonifica amortecimento/durabilidade.</p>
+          <p style="margin-top:8px"><strong>Economia</strong> é <em>estimada</em> de placa + espuma (placa de carbono ≈ −4% de custo metabólico — Hoogkamer 2018), não medida por modelo. Stack, drop e peso são specs do fabricante, com fonte no banco (<code>assets/shoes.json</code>).</p>
         </details>
       </div>
     </div>
   </div>
 </main>
-<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · GEAR LAB v2026</div></footer>
+<footer><div class="mono" style="font-size:10px;letter-spacing:.16em;color:var(--ink-dim)">LMAEROFIT · GEAR LAB v2026.2</div></footer>
 
 <script src="./assets/profile.js"></script>
+<script src="./assets/gear-lab.js?v=1"></script>
 <script>
 const $ = id => document.getElementById(id);
-const prof = LMA.profile.load();
-LMA.profile.mountBadge($('prof-badge'));
+const prof = (window.LMA && LMA.profile && LMA.profile.load) ? LMA.profile.load() : null;
+if (window.LMA && LMA.profile && LMA.profile.mountBadge) LMA.profile.mountBadge($('prof-badge'));
+let SHOES = [];
+if (prof && prof.massKg) { $('wt').value = Math.round(prof.massKg); }
 
-// Banco de tênis (representativo, dados 2025)
-const SHOES = [
-  {name:'Nike Alphafly 3',          stack:40, drop:8,  weight:200, er:4.0, type:'race'},
-  {name:'Nike Vaporfly 3',          stack:40, drop:8,  weight:190, er:3.8, type:'race'},
-  {name:'Adidas Adios Pro 3',       stack:39, drop:6.5,weight:210, er:3.5, type:'race'},
-  {name:'Asics Metaspeed Sky+',     stack:40, drop:5,  weight:205, er:3.6, type:'race'},
-  {name:'Saucony Endorphin Pro 4',  stack:39.5,drop:8, weight:215, er:3.2, type:'race'},
-  {name:'Hoka Rocket X 2',          stack:36, drop:5,  weight:220, er:3.0, type:'race'},
-  {name:'New Balance SC Elite v4',  stack:40, drop:4,  weight:225, er:3.1, type:'race'},
-  {name:'Asics Novablast 4',        stack:41.5,drop:8, weight:255, er:1.8, type:'trainer'},
-  {name:'Hoka Mach 6',              stack:37, drop:5,  weight:235, er:1.6, type:'trainer'},
-  {name:'Saucony Endorphin Speed 4',stack:36, drop:8,  weight:230, er:2.4, type:'tempo'},
-  {name:'Nike Pegasus Plus',        stack:37, drop:10, weight:248, er:1.5, type:'trainer'},
-  {name:'Hoka Speedgoat 6',         stack:38, drop:4,  weight:280, er:1.2, type:'trail'},
-];
-
-const USE_BIAS = {
-  '5k':    {er:0.9, light:1.3, stack:0.7, drop:0.8, trail:0},
-  'hm':    {er:1.1, light:1.0, stack:1.0, drop:1.0, trail:0},
-  'mar':   {er:1.3, light:0.8, stack:1.2, drop:1.1, trail:0},
-  'trail': {er:0.5, light:0.7, stack:1.2, drop:0.5, trail:2.0},
-};
+function dropRange(v){ return v==='lo'?{dropMax:6}:v==='mid'?{dropMin:7,dropMax:9}:v==='hi'?{dropMin:10}:{}; }
+function stackRange(v){ return v==='lo'?{stackMax:32}:v==='mid'?{stackMin:33,stackMax:39}:v==='hi'?{stackMin:40}:{}; }
+function weightRange(v){ return v==='lo'?{weightMax:220}:v==='mid'?{weightMin:221,weightMax:260}:v==='hi'?{weightMin:261}:{}; }
+function ecoTier(e){ return e>=70?'alta':e>=35?'média':'baixa'; }
 
 function update(){
-  const useCase = document.querySelector('#use-tabs .tab.active').dataset.u;
-  const pace = +$('pace').value, vol=+$('vol').value;
-  const w1=+$('w1').value, w2=+$('w2').value, w3=+$('w3').value, w4=+$('w4').value;
-  $('lbl-pace').textContent = `${Math.floor(pace/60)}:${String(pace%60).padStart(2,'0')} /km`;
-  $('lbl-vol').textContent = `${vol} km`;
+  if (!SHOES.length) return;
+  const raceV = $('race').value, trail = raceV==='trail', km = trail?null:parseFloat(raceV);
+  const wt = +$('wt').value;
+  const w1=+$('w1').value,w2=+$('w2').value,w3=+$('w3').value,w4=+$('w4').value;
+  $('lbl-wt').textContent = wt+' kg';
   $('lbl-w1').textContent=w1;$('lbl-w2').textContent=w2;$('lbl-w3').textContent=w3;$('lbl-w4').textContent=w4;
-
-  const bias = USE_BIAS[useCase];
-
-  // normaliza
-  const erMax = Math.max(...SHOES.map(s=>s.er)), erMin = Math.min(...SHOES.map(s=>s.er));
-  const wMax  = Math.max(...SHOES.map(s=>s.weight)), wMin = Math.min(...SHOES.map(s=>s.weight));
-  const sMax  = Math.max(...SHOES.map(s=>s.stack)),  sMin = Math.min(...SHOES.map(s=>s.stack));
-  const dMax  = Math.max(...SHOES.map(s=>s.drop)),   dMin = Math.min(...SHOES.map(s=>s.drop));
-
-  const ranked = SHOES.map(s=>{
-    const erN   = (s.er-erMin)/(erMax-erMin);                    // alto melhor
-    const lightN= 1 - (s.weight-wMin)/(wMax-wMin);              // baixo melhor
-    const stackN= (s.stack-sMin)/(sMax-sMin);
-    const dropN = (s.drop-dMin)/(dMax-dMin);
-    const trailB= s.type==='trail' ? 1 : 0;
-    const score = (
-      erN    * w1 * bias.er +
-      lightN * w2 * bias.light +
-      stackN * w3 * bias.stack +
-      dropN  * w4 * bias.drop +
-      trailB * bias.trail * 8
-    );
-    return {...s, score};
-  }).sort((a,b)=>b.score-a.score).slice(0,8);
-
-  const maxScore = ranked[0].score;
-  $('rank').innerHTML = ranked.map((s,i)=>{
-    // ideogram: bars representando stack + er
-    const bars = [
-      Math.round(s.stack/45*100),
-      Math.round(s.er/4.5*100),
-      Math.round((300-s.weight)/120*100),
-      Math.round(s.drop/12*100),
-    ];
-    const barsHtml = bars.map(h=>`<div class="bar" style="height:${Math.max(8,h)}%"></div>`).join('');
+  $('wt-note').textContent = (prof && prof.massKg) ? '' : 'Usando peso padrão — preencha o perfil para personalizar.';
+  const filters = Object.assign({ q:$('q').value.trim(), category:$('f-cat').value, plate:$('f-plate').value }, dropRange($('f-drop').value), stackRange($('f-stack').value), weightRange($('f-weight').value));
+  const filtered = LMA.gear.filter(SHOES, filters);
+  const ranked = LMA.gear.rank(filtered, { km, trail, athleteWeightKg:wt, prefs:{er:w1,light:w2,stack:w3,drop:w4} });
+  $('count').textContent = ranked.length+' de '+SHOES.length+' modelos';
+  if (!ranked.length) { $('rank').innerHTML = '<div style="font-size:13px;color:var(--ink-mute);padding:16px 0">Nenhum modelo com esses filtros. Afrouxe um critério.</div>'; return; }
+  $('rank').innerHTML = ranked.slice(0,8).map((s,i)=>{
+    const bars=[Math.round((s.stack_mm||30)/45*100), Math.round(s.economyEst), Math.round((300-(s.weight_g||260))/120*100), Math.round((s.drop_mm||6)/12*100)]
+      .map(h=>`<div class="bar" style="height:${Math.max(8,Math.min(100,h))}%"></div>`).join('');
+    const price = s.price_brl ? ('R$ '+s.price_brl) : '—';
     return `<div class="shoe-card${i===0?' top':''}">
-      <div class="ideogram">${barsHtml}</div>
+      <div class="ideogram">${bars}</div>
       <div>
-        <div class="name">${s.name}</div>
-        <div class="meta">${s.stack}mm · drop ${s.drop}mm · ${s.weight}g · ER ${s.er}%</div>
+        <div class="name">${s.brand} ${s.model}</div>
+        <div class="meta">${s.stack_mm??'—'}mm · drop ${s.drop_mm??'—'}mm · ${s.weight_g??'—'}g · ${s.plate==='carbono'?'placa carbono':'sem placa'}</div>
+        <div style="font-size:12px;color:var(--ink-soft);margin-top:5px">${s.why}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--ink-mute);margin-top:3px"><span class="src-dot e"></span> economia est.: ${ecoTier(s.economyEst)} · preço ${price}</div>
       </div>
       <div>
-        <div class="score">${(s.score*10).toFixed(0)}</div>
-        <div class="score-lbl">${i===0?'TOP':`#${i+1}`}</div>
+        <div class="score">${s.score}</div>
+        <div class="score-lbl">${i===0?'TOP':'#'+(i+1)}</div>
       </div>
     </div>`;
   }).join('');
+  if (window.LMA && LMA.help) LMA.help.refresh();
 }
 
-document.querySelectorAll('#use-tabs .tab').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('#use-tabs .tab').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active'); update();
-  });
-});
-document.querySelectorAll('input').forEach(el=>el.addEventListener('input',update));
-update();
+['race','wt','q','f-cat','f-plate','f-drop','f-stack','f-weight','w1','w2','w3','w4'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',update); });
+
+fetch('./assets/shoes.json')
+  .then(r=>r.json())
+  .then(data=>{ SHOES = Array.isArray(data)?data:[]; update(); })
+  .catch(()=>{ $('rank').innerHTML='<div style="color:var(--warn);font-size:13px;padding:12px 0">Não consegui carregar o banco de tênis (assets/shoes.json). Tente recarregar.</div>'; });
 </script>
 <script src="./assets/help.js?v=1"></script>
 </body>
