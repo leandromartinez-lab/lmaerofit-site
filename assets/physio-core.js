@@ -227,7 +227,7 @@
     return out;
   }
 
-  // ---------- Energia & combustível por intensidade (estilo INSCYD, honesto) ----------
+  // ---------- Energia & combustível por intensidade (modelo de sistemas de energia, honesto) ----------
   function computeEnergyFuel(I, zones) {
     const ath = I.athlete || {}, w = num(ath.weightKg);
     const out = { available: false, perZone: [], fatmax: null, carbmax: null, plan: null,

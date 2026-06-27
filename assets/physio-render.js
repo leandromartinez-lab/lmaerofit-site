@@ -137,7 +137,7 @@
     }
     if (m.dfa && (m.dfa.lt1 || m.dfa.lt2)) {
       const d = m.dfa, txt = `LT1 (aeróbio, α1=0,75): <strong>${d.lt1 ? (d.lt1.load || d.lt1.hr) + (d.lt1.load ? ' W' : ' bpm') : '—'}</strong> · LT2 (anaeróbio, α1=0,50): <strong>${d.lt2 ? (d.lt2.load || d.lt2.hr) + (d.lt2.load ? ' W' : ' bpm') : '—'}</strong>.`;
-      out.push(sec('§ 09b · DFA-α1', 'Limiares por <em>HRV</em> <span data-help="dfa"></span>', 'Estimativa de campo, sem lactato.', `<div class="pl-parecer"><p>${txt}</p></div>` + srcLine(d.source)));
+      out.push(sec('§ 09b · DFA-α1', 'Limiares por <em>HRV</em> <span data-help="dfa"></span>', 'Estimativa de campo, sem lactato.', `<div class="pl-parecer"><p>${txt}</p><p class="pl-src" style="margin-top:6px">Confiança: LT1 (α1≈0,75) <b>maior</b>; LT2 (α1≈0,50) <b>menor</b> — o limiar anaeróbio por α1 é mais contestado na literatura, trate como estimativa.</p></div>` + srcLine(d.source)));
     }
     if (r.portrait) out.push(sec('§ 10 · síntese', 'Retrato <em>integrado</em>', 'Os 7 módulos cruzados.', `<div class="pl-parecer"><p>${esc(r.portrait)}</p></div>`
       + `<div class="pl-src">A ferramenta não diagnostica, não prescreve, não libera — registra com fonte e confiança.</div>`));
